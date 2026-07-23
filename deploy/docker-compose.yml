@@ -1,0 +1,48 @@
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: jahad-frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    networks:
+      - jahad-network
+
+  # Placeholder for future backend service
+  # backend:
+  #   build:
+  #     context: ../backend
+  #     dockerfile: Dockerfile
+  #   container_name: jahad-backend
+  #   ports:
+  #     - "4000:4000"
+  #   environment:
+  #     - DB_HOST=postgres
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - jahad-network
+
+  # Placeholder for future database
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: jahad-postgres
+  #   environment:
+  #     POSTGRES_DB: jahad
+  #     POSTGRES_USER: jahad
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD:-jahad123}
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #   networks:
+  #     - jahad-network
+
+networks:
+  jahad-network:
+    driver: bridge
+
+# volumes:
+#   pgdata:
