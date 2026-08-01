@@ -11,58 +11,47 @@
 | تأمین‌کننده دان | دان‌فروشان | ثبت موجودی خوراک، قیمت‌گذاری |
 | کشتارگاه | صاحبان کشتارگاه | اعلام ظرفیت روزانه، قیمت‌گذاری |
 | انبار سردخانه | انبارداران | ثبت ظرفیت انبار، ساعت کاری |
-| **فنون (ما)** | **زنجیره‌کن** | **ایجاد و مدیریت زنجیره تأمین** |
+| **فنون (ما)** | **زنجیره‌کن / مزرعه‌دار** | **ایجاد زنجیره، مناقصه، مدیریت قرارداد** |
 
-## پلتفرم فنون — scoped فعلی
+## پلتفرم فنون v2 — تغییرات جدید
 
-پلتفرم فنون جایی است که **زنجیره‌کن** می‌آید و با انتخاب از بین entities هر پلتفرم دیگر، یک زنجیره تأمین مرغ گوشتی می‌سازد.
+### دو نقش کاربری
+- **مزرعه‌دار**: مشاهده پیشنهادهای قرارداد، ثبت درصد مشارکت، تأمین وثیقه
+- **تأمین‌کننده نهاده**: ایجاد زنجیره، تعریف شرایط قرارداد، تأیید/رد مزرعه‌داران
 
-### User Flow
+### Mobile-First Design
+- حذف سایدبار کامل
+- Top App Bar + Drawer (پترن موبایلی)
+- max-width: 480px — طراحی بهینه برای تلفن همراه
+- سویچ نقش در هدر با Segmented control
 
-1. **داشبورد**: مشاهده کارت‌های زنجیره‌های ایجاد شده با progress stepper
-2. **ایجاد زنجیره جدید** (ویزارد ۵ مرحله‌ای):
-   - **گام ۱**: انتخاب یک یا چند مزرعه (کارت‌هایی با گرید، ظرفیت، ضریب تبدیل، سابقه)
-   - **گام ۲**: انتخاب تأمین‌کننده جوجه یکروزه (کارت‌هایی با نژاد، موجودی، قیمت)
-   - **گام ۳**: انتخاب تأمین‌کننده خوراک دان (کارت‌هایی با نوع خوراک، ظرفیت، قیمت)
-   - **گام ۴**: انتخاب کشتارگاه (کارت‌هایی با ظرفیت روزانه، ساعت کاری، قیمت)
-   - **گام ۵**: انتخاب انبار مقصد (کارت‌هایی با ظرفیت، ساعت کاری)
-3. **جزئیات زنجیره**: مشاهده کامل تمام اجزای زنجیره و وضعیت آن
+## قوانین توسعه
 
-### ساختار داده
+### ۱. DRY — هرگز کد تکراری ننویس
+- اگر ۲+ بار کد مشابه مینویسی، فوراً abstraction جنریک بساز
 
-```
-Chain {
-  farms: Farm[]          // ۱ تا n مزرعه
-  chickSupplier: ChickSupplier    // ۱ تأمین‌کننده جوجه
-  feedSupplier: FeedSupplier      // ۱ تأمین‌کننده دان
-  slaughterhouse: Slaughterhouse  // ۱ کشتارگاه
-  warehouse: Warehouse            // ۱ انبار
-  currentStep: ChainStep          // feed_procurement | chick_placement | live_delivery | meat_delivery | completed
-}
-```
+### ۲. AI-Friendly Data
+- داده‌ها structured، labeled، با شناسه‌های یکتا و timestamp
+- اسامی فیلدها meaningful و قابل فهم برای LLMها
 
-## فازهای پروژه
+### ۳. امنیت (AFTA Compliance)
+- validation روی تمام inputها
+- sanitize داده‌های mock
+- آماده‌سازی ساختار برای audit log
 
-### فاز ۱: طراحی و نمونه‌سازی (فعال)
-- [x] راه‌اندازی فرانت با React + Vite + TypeScript + Ant Design
-- [x] پیاده‌سازی Layout پایه RTL فارسی
-- [x] داشبورد با ChainCardها و progress stepper
-- [x] ویزارد ۵ مرحله‌ای ساخت زنجیره با SelectionCard یکسان
-- [x] صفحه جزئیات زنجیره
-- [x] داده Mock با delay مصنوعی
-- [x] Docker + Nginx
-- [ ] تست UI با کارفرما و گرفتن بازخورد
+### ۴. Mobile-First
+- طراحی اول برای عرض ۳۶۰-۴۸۰px
+- max-width container با box-shadow
+- فضای بهینه، بدون شلوغی
 
-### فاز ۲: پیاده‌سازی بکند (آینده)
-- [ ] راه‌اندازی NestJS
-- [ ] طراحی دیتابیس PostgreSQL
-- [ ] API endpoints برای هر entity
-- [ ] احراز هویت
+### ۵. Reusability
+- `SelectionCard` جنریک برای تمام entity types
+- `EntitySelectionStep` برای تمام گام‌های ویزارد
+- از Ant Design تا جای ممکن استفاده کن
 
-### فاز ۳: اتصال و تست (آینده)
-- [ ] اتصال فرانت به API واقعی
-- [ ] تست یکپارچگی
-- [ ] دیپلوی
+### ۶. آمادگی برای API واقعی
+- تمام سرویس‌ها از `apiClient.ts` استفاده می‌کنند
+- تعویض mock با API واقعی = تغییر فقط `apiClient.ts`
 
 ## تکنولوژی‌ها
 
@@ -72,41 +61,21 @@ Chain {
 | UI | Ant Design 5 (RTL) |
 | Routing | React Router v6 |
 | Server State | TanStack Query v5 |
+| Font | Vazirmatn (Google Fonts) |
 | Container | Docker + Nginx |
 | Backend (آینده) | NestJS + PostgreSQL |
-
-## قوانین توسعه
-
-### ۱. Reusability اولویت اول
-- `SelectionCard` یک کامپوننت generic است که در تمام ۵ step ویزارد و صفحه جزئیات استفاده میشود
-- هر کامپوننت باید تا حد ممکن generic باشد
-- از کامپوننت‌های آماده Ant Design استفاده کن
-
-### ۲. آمادگی برای API واقعی
-- تمام سرویس‌ها از `apiClient.ts` استفاده می‌کنند
-- تعویض mock با API واقعی = تغییر فقط `apiClient.ts`
-
-### ۳. State Management
-- **Server state**: TanStack Query
-- **Wizard state**: React Context + useReducer (client-side, survives step navigation)
-- از Redux/Zustand استفاده نکن مگر ضروری
-
-### ۴. نام‌گذاری
-- `features/` — هر feature ماژول مستقل
-- `components/` — فقط اشتراکی و reusable
-- PascalCase برای کامپوننت‌ها، camelCase برای بقیه
 
 ## اجرا
 
 ```bash
-# Development
-cd frontend && npm run dev       # Vite dev server
+# Development با hot reload
+docker compose -f deploy/docker-compose.dev.yml up -d
 
-# Docker
-cd deploy && docker compose up --build -d
+# Production
+docker compose -f deploy/docker-compose.yml up --build -d
 # → http://localhost:3000
 ```
 
 ---
 
-*آخرین به‌روزرسانی: ۱۴۰۴/۰۴/۳۱*
+*آخرین به‌روزرسانی: ۱۴۰۴/۰۵/۰۱*

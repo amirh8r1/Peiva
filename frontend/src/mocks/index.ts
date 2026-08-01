@@ -6,3 +6,4 @@ export {
   mockWarehouses,
 } from './suppliers';
 export { mockChains } from './chains';
+export { mockContracts, mockProposals, mockCollaterals } from './contracts';

@@ -6,7 +6,9 @@ import { ConfigProvider } from 'antd';
 import faIR from 'antd/locale/fa_IR';
 import { antdTheme } from './config/theme';
 import App from './App';
+import { RoleProvider } from './context/RoleContext';
 import './config/rtl';
+import './index.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,9 +28,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         locale={faIR}
         direction="rtl"
       >
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <RoleProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </RoleProvider>
       </ConfigProvider>
     </QueryClientProvider>
   </React.StrictMode>,

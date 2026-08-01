@@ -1,0 +1,10 @@
+* {
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
