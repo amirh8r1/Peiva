@@ -1,6 +1,8 @@
 import { createContext, useContext, useReducer, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { Farm, ChickSupplier, FeedSupplier, Slaughterhouse, Warehouse } from '@/types';
+import type { Contract } from '@/types';
+import { TOTAL_STEPS } from '@/types';
 
 // ── State ──
 export interface ChainWizardState {
@@ -11,6 +13,9 @@ export interface ChainWizardState {
   selectedFeedSuppliers: FeedSupplier[];
   selectedSlaughterhouses: Slaughterhouse[];
   selectedWarehouses: Warehouse[];
+  contractType: Contract['contractType'];
+  contractTerms: string;
+  profitSharingMin: number;
 }
 
 const initialState: ChainWizardState = {
@@ -21,6 +26,9 @@ const initialState: ChainWizardState = {
   selectedFeedSuppliers: [],
   selectedSlaughterhouses: [],
   selectedWarehouses: [],
+  contractType: 'commission',
+  contractTerms: '',
+  profitSharingMin: 30,
 };
 
 // ── Actions ──
@@ -32,6 +40,9 @@ type WizardAction =
   | { type: 'TOGGLE_FEED_SUPPLIER'; payload: FeedSupplier }
   | { type: 'TOGGLE_SLAUGHTERHOUSE'; payload: Slaughterhouse }
   | { type: 'TOGGLE_WAREHOUSE'; payload: Warehouse }
+  | { type: 'SET_CONTRACT_TYPE'; payload: Contract['contractType'] }
+  | { type: 'SET_CONTRACT_TERMS'; payload: string }
+  | { type: 'SET_PROFIT_SHARING'; payload: number }
   | { type: 'RESET' };
 
 function toggleItem<T extends { id: string }>(items: T[], item: T): T[] {
@@ -39,56 +50,20 @@ function toggleItem<T extends { id: string }>(items: T[], item: T): T[] {
   return exists ? items.filter((i) => i.id !== item.id) : [...items, item];
 }
 
-function wizardReducer(
-  state: ChainWizardState,
-  action: WizardAction,
-): ChainWizardState {
+function wizardReducer(state: ChainWizardState, action: WizardAction): ChainWizardState {
   switch (action.type) {
-    case 'SET_STEP':
-      return { ...state, currentStep: action.payload };
-    case 'SET_NAME':
-      return { ...state, chainName: action.payload };
-    case 'TOGGLE_FARM':
-      return {
-        ...state,
-        selectedFarms: toggleItem(state.selectedFarms, action.payload),
-      };
-    case 'TOGGLE_CHICK_SUPPLIER':
-      return {
-        ...state,
-        selectedChickSuppliers: toggleItem(
-          state.selectedChickSuppliers,
-          action.payload,
-        ),
-      };
-    case 'TOGGLE_FEED_SUPPLIER':
-      return {
-        ...state,
-        selectedFeedSuppliers: toggleItem(
-          state.selectedFeedSuppliers,
-          action.payload,
-        ),
-      };
-    case 'TOGGLE_SLAUGHTERHOUSE':
-      return {
-        ...state,
-        selectedSlaughterhouses: toggleItem(
-          state.selectedSlaughterhouses,
-          action.payload,
-        ),
-      };
-    case 'TOGGLE_WAREHOUSE':
-      return {
-        ...state,
-        selectedWarehouses: toggleItem(
-          state.selectedWarehouses,
-          action.payload,
-        ),
-      };
-    case 'RESET':
-      return initialState;
-    default:
-      return state;
+    case 'SET_STEP': return { ...state, currentStep: action.payload };
+    case 'SET_NAME': return { ...state, chainName: action.payload };
+    case 'TOGGLE_FARM': return { ...state, selectedFarms: toggleItem(state.selectedFarms, action.payload) };
+    case 'TOGGLE_CHICK_SUPPLIER': return { ...state, selectedChickSuppliers: toggleItem(state.selectedChickSuppliers, action.payload) };
+    case 'TOGGLE_FEED_SUPPLIER': return { ...state, selectedFeedSuppliers: toggleItem(state.selectedFeedSuppliers, action.payload) };
+    case 'TOGGLE_SLAUGHTERHOUSE': return { ...state, selectedSlaughterhouses: toggleItem(state.selectedSlaughterhouses, action.payload) };
+    case 'TOGGLE_WAREHOUSE': return { ...state, selectedWarehouses: toggleItem(state.selectedWarehouses, action.payload) };
+    case 'SET_CONTRACT_TYPE': return { ...state, contractType: action.payload };
+    case 'SET_CONTRACT_TERMS': return { ...state, contractTerms: action.payload };
+    case 'SET_PROFIT_SHARING': return { ...state, profitSharingMin: action.payload };
+    case 'RESET': return initialState;
+    default: return state;
   }
 }
 
@@ -98,11 +73,7 @@ interface WizardContextValue {
   dispatch: React.Dispatch<WizardAction>;
   goNext: () => void;
   goPrev: () => void;
-  goToStep: (step: number) => void;
-  reset: () => void;
-  /** Whether the current step has valid selection(s) */
   canProceed: boolean;
-  /** Human-readable reason why can't proceed (empty if can) */
   proceedBlockReason: string;
 }
 
@@ -112,7 +83,7 @@ export function ChainWizardProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
 
   const goNext = useCallback(() => {
-    if (state.currentStep < 4) {
+    if (state.currentStep < TOTAL_STEPS - 1) {
       dispatch({ type: 'SET_STEP', payload: state.currentStep + 1 });
     }
   }, [state.currentStep]);
@@ -123,73 +94,34 @@ export function ChainWizardProvider({ children }: { children: ReactNode }) {
     }
   }, [state.currentStep]);
 
-  const goToStep = useCallback((step: number) => {
-    if (step >= 0 && step <= 4) {
-      dispatch({ type: 'SET_STEP', payload: step });
-    }
-  }, []);
-
-  const reset = useCallback(() => {
-    dispatch({ type: 'RESET' });
-  }, []);
-
   const { canProceed, proceedBlockReason } = (() => {
-    // Step 0 requires chain name + at least one farm
-    if (state.currentStep === 0) {
-      if (state.chainName.trim().length === 0) {
-        return {
-          canProceed: false,
-          proceedBlockReason: 'لطفاً نام زنجیره را وارد کنید',
-        };
-      }
-      if (state.selectedFarms.length === 0) {
-        return {
-          canProceed: false,
-          proceedBlockReason: 'حداقل یک مزرعه انتخاب کنید',
-        };
-      }
-      return { canProceed: true, proceedBlockReason: '' };
-    }
-    if (state.currentStep === 1 && state.selectedChickSuppliers.length === 0) {
-      return {
-        canProceed: false,
-        proceedBlockReason: 'حداقل یک تأمین‌کننده جوجه انتخاب کنید',
-      };
-    }
-    if (state.currentStep === 2 && state.selectedFeedSuppliers.length === 0) {
-      return {
-        canProceed: false,
-        proceedBlockReason: 'حداقل یک تأمین‌کننده خوراک انتخاب کنید',
-      };
-    }
-    if (state.currentStep === 3 && state.selectedSlaughterhouses.length === 0) {
-      return {
-        canProceed: false,
-        proceedBlockReason: 'حداقل یک کشتارگاه انتخاب کنید',
-      };
-    }
-    if (state.currentStep === 4 && state.selectedWarehouses.length === 0) {
-      return {
-        canProceed: false,
-        proceedBlockReason: 'حداقل یک انبار انتخاب کنید',
-      };
+    const s = state;
+    switch (s.currentStep) {
+      case 0:
+        if (!s.chainName.trim()) return { canProceed: false, proceedBlockReason: 'نام زنجیره را وارد کنید' };
+        if (s.selectedFarms.length === 0) return { canProceed: false, proceedBlockReason: 'حداقل یک مزرعه انتخاب کنید' };
+        break;
+      case 1:
+        if (s.selectedChickSuppliers.length === 0) return { canProceed: false, proceedBlockReason: 'حداقل یک تأمین‌کننده جوجه انتخاب کنید' };
+        break;
+      case 2:
+        if (s.selectedFeedSuppliers.length === 0) return { canProceed: false, proceedBlockReason: 'حداقل یک تأمین‌کننده خوراک انتخاب کنید' };
+        break;
+      case 3:
+        if (s.selectedSlaughterhouses.length === 0) return { canProceed: false, proceedBlockReason: 'حداقل یک کشتارگاه انتخاب کنید' };
+        break;
+      case 4:
+        if (s.selectedWarehouses.length === 0) return { canProceed: false, proceedBlockReason: 'حداقل یک انبار انتخاب کنید' };
+        break;
+      case 6:
+        if (!s.contractTerms.trim()) return { canProceed: false, proceedBlockReason: 'شرایط قرارداد را وارد کنید' };
+        break;
     }
     return { canProceed: true, proceedBlockReason: '' };
   })();
 
   return (
-    <ChainWizardContext.Provider
-      value={{
-        state,
-        dispatch,
-        goNext,
-        goPrev,
-        goToStep,
-        reset,
-        canProceed,
-        proceedBlockReason,
-      }}
-    >
+    <ChainWizardContext.Provider value={{ state, dispatch, goNext, goPrev, canProceed, proceedBlockReason }}>
       {children}
     </ChainWizardContext.Provider>
   );
@@ -197,8 +129,6 @@ export function ChainWizardProvider({ children }: { children: ReactNode }) {
 
 export function useChainWizard(): WizardContextValue {
   const ctx = useContext(ChainWizardContext);
-  if (!ctx) {
-    throw new Error('useChainWizard must be used within ChainWizardProvider');
-  }
+  if (!ctx) throw new Error('useChainWizard must be used within ChainWizardProvider');
   return ctx;
 }

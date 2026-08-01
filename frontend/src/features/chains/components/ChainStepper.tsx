@@ -1,7 +1,8 @@
-import { Steps, Button, Typography, Alert } from 'antd';
-import { ArrowRightOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Button, Typography, Progress } from 'antd';
+import { ArrowRightOutlined, ArrowLeftOutlined, CloseOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { useChainWizard } from '../context/ChainWizardContext';
-import { CHAIN_CREATION_STEPS } from '@/types';
+import { TOTAL_STEPS } from '@/types';
 
 const { Text } = Typography;
 
@@ -11,103 +12,116 @@ interface ChainStepperProps {
   isSubmitting?: boolean;
 }
 
-export function ChainStepper({
-  children,
-  onSubmit,
-  isSubmitting,
-}: ChainStepperProps) {
-  const { state, goNext, goPrev, canProceed, proceedBlockReason } =
-    useChainWizard();
+/**
+ * Minimal mobile-friendly wizard shell.
+ * - Thin progress bar at top instead of bulky stepper
+ * - Floating bottom button
+ * - No PageHeader / name box — all inline
+ */
+export function ChainStepper({ children, onSubmit, isSubmitting }: ChainStepperProps) {
+  const { state, goNext, goPrev, canProceed, proceedBlockReason } = useChainWizard();
+  const navigate = useNavigate();
   const { currentStep } = state;
-  const isLastStep = currentStep === 4;
+  const isLastStep = currentStep === TOTAL_STEPS - 1;
   const isFirstStep = currentStep === 0;
+  const progress = Math.round(((currentStep + 1) / TOTAL_STEPS) * 100);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-      {/* Stepper — fixed at top */}
-      <div
-        style={{
-          background: '#fff',
-          borderRadius: 12,
-          padding: '20px 32px',
-          marginBottom: 16,
-          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-          flexShrink: 0,
-        }}
-      >
-        <Steps
-          current={currentStep}
-          size="small"
-          items={CHAIN_CREATION_STEPS.map((s, i) => ({
-            title: (
-              <Text
-                strong={i === currentStep}
-                style={{
-                  fontSize: 13,
-                  color: i === currentStep ? undefined : 'rgba(0,0,0,0.45)',
-                }}
-              >
-                {s.title}
-              </Text>
-            ),
-            description: i === currentStep ? (
-              <Text type="secondary" style={{ fontSize: 11 }}>
-                {s.description}
-              </Text>
-            ) : undefined,
-          }))}
-        />
-      </div>
-
-      {/* Validation hint */}
-      {!canProceed && proceedBlockReason && (
-        <Alert
-          message={proceedBlockReason}
-          type="warning"
-          showIcon
-          style={{ marginBottom: 12, borderRadius: 8, flexShrink: 0 }}
-        />
-      )}
-
-      {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, paddingBottom: 8 }}>
-        {children}
-      </div>
-
-      {/* Navigation — fixed at bottom */}
+      {/* Minimal top bar: close + progress */}
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          background: '#fff',
-          borderRadius: 12,
-          padding: '12px 24px',
-          boxShadow: '0 -1px 4px rgba(0,0,0,0.04)',
+          gap: 12,
+          padding: '8px 4px',
           flexShrink: 0,
-          marginTop: 8,
         }}
       >
         <Button
-          disabled={isFirstStep}
-          onClick={goPrev}
-          icon={<ArrowRightOutlined />}
-        >
-          مرحله قبل
-        </Button>
-
-        <Text type="secondary">
-          مرحله {currentStep + 1} از {CHAIN_CREATION_STEPS.length}
+          type="text"
+          size="small"
+          icon={<CloseOutlined />}
+          onClick={() => navigate('/')}
+        />
+        <div style={{ flex: 1 }}>
+          <Progress
+            percent={progress}
+            size="small"
+            showInfo={false}
+            strokeColor="#389e0d"
+            trailColor="#f0f0f0"
+            style={{ margin: 0 }}
+          />
+        </div>
+        <Text type="secondary" style={{ fontSize: 11, whiteSpace: 'nowrap' }}>
+          {currentStep + 1}/{TOTAL_STEPS}
         </Text>
+      </div>
 
+      {/* Step title */}
+      <Text
+        strong
+        style={{
+          fontSize: 16,
+          marginBottom: 4,
+          display: 'block',
+          flexShrink: 0,
+        }}
+      >
+        {currentStep < 5 ? 'انتخاب اجزای زنجیره' : 'تعریف شرایط قرارداد'}
+      </Text>
+      {proceedBlockReason && !canProceed && (
+        <Text type="warning" style={{ fontSize: 11, marginBottom: 8, flexShrink: 0, display: 'block' }}>
+          {proceedBlockReason}
+        </Text>
+      )}
+
+      {/* Scrollable content — cards area */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          minHeight: 0,
+          paddingBottom: 60,
+        }}
+      >
+        {children}
+      </div>
+
+      {/* Floating bottom button */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '100%',
+          maxWidth: 480,
+          padding: '8px 12px',
+          background: 'linear-gradient(transparent, #f5f5f5 30%)',
+          display: 'flex',
+          gap: 8,
+          zIndex: 20,
+        }}
+      >
+        {!isFirstStep && (
+          <Button onClick={goPrev} icon={<ArrowRightOutlined />} size="large">
+            قبل
+          </Button>
+        )}
         {isLastStep ? (
           <Button
             type="primary"
             onClick={onSubmit}
             disabled={!canProceed}
             loading={isSubmitting}
+            size="large"
+            block
+            style={{ height: 44 }}
           >
-            ایجاد زنجیره
+            تأیید و ارسال به مزرعه‌داران
           </Button>
         ) : (
           <Button
@@ -115,8 +129,11 @@ export function ChainStepper({
             onClick={goNext}
             disabled={!canProceed}
             icon={<ArrowLeftOutlined />}
+            size="large"
+            block
+            style={{ height: 44 }}
           >
-            مرحله بعد
+            ادامه
           </Button>
         )}
       </div>

@@ -5,11 +5,8 @@ import type {
   Slaughterhouse,
   Warehouse,
 } from './supplier';
+import type { Contract } from './contract';
 
-/**
- * Chain lifecycle step — where the chain currently is.
- * Mirrors the 5 creation wizard steps + post-creation states.
- */
 export type ChainStep =
   | 'farm_selection'
   | 'chick_supply'
@@ -24,42 +21,35 @@ export type ChainStep =
 
 export type ChainStatus = 'draft' | 'active' | 'completed' | 'cancelled';
 
-/** A supply chain assembled by the زنجیره‌کن on the Fonoon platform */
 export interface Chain {
   id: string;
   name: string;
-  /** Selected farms (one or more) */
   farms: Farm[];
-  /** Selected day-old chick suppliers (one or more) */
   chickSuppliers: ChickSupplier[];
-  /** Selected feed suppliers (one or more) */
   feedSuppliers: FeedSupplier[];
-  /** Selected slaughterhouses (one or more) */
   slaughterhouses: Slaughterhouse[];
-  /** Selected destination warehouses (one or more) */
   warehouses: Warehouse[];
-  /** Total number of chicks across all selected farms */
   totalChicks: number;
-  /** Predicted feed conversion ratio */
   predictedConversionRatio?: number;
-  /** Current lifecycle step */
   currentStep: ChainStep;
-  /** Overall chain status */
   status: ChainStatus;
-  /** Creation date (shamsi) */
   createdAt: string;
 }
 
-/** Wizard steps for chain creation (one per entity selection) */
+/** All wizard steps — chain creation + contract definition */
 export const CHAIN_CREATION_STEPS = [
-  { title: 'انتخاب مزرعه', description: 'مزارع مرغ گوشتی' },
-  { title: 'خرید جوجه یکروزه', description: 'تأمین‌کنندگان جوجه' },
-  { title: 'خرید خوراک دان', description: 'تأمین‌کنندگان نهاده' },
-  { title: 'انتخاب کشتارگاه', description: 'کشتارگاه‌های طرف قرارداد' },
-  { title: 'تعیین انبار مقصد', description: 'انبارهای سردخانه‌ای' },
+  { title: 'مزرعه', description: 'انتخاب مزرعه' },
+  { title: 'جوجه', description: 'انتخاب تأمین‌کننده جوجه' },
+  { title: 'دان', description: 'انتخاب تأمین‌کننده خوراک' },
+  { title: 'کشتارگاه', description: 'انتخاب کشتارگاه' },
+  { title: 'انبار', description: 'انتخاب انبار مقصد' },
+  { title: 'نوع قرارداد', description: 'کارمزدی یا پیمانکاری' },
+  { title: 'شرایط', description: 'تعهدات طرفین' },
+  { title: 'تسهیم', description: 'حداقل درصد تسهیم منافع' },
 ] as const;
 
-/** Display configuration for tracking steps shown on ChainCard */
+export const TOTAL_STEPS = CHAIN_CREATION_STEPS.length; // 8
+
 export const CHAIN_TRACKING_STEPS = [
   { key: 'feed_procurement' as const, label: 'دریافت نهاده' },
   { key: 'chick_placement' as const, label: 'جوجه‌ریزی' },
