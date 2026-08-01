@@ -1,120 +1,161 @@
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { Button, Empty, Spin, List, Card, Typography, Tag } from 'antd';
-import { PlusOutlined, EyeOutlined } from '@ant-design/icons';
+import { Button, Card, Typography, Tag, List, Empty, Badge, Space } from 'antd';
+import { PlusOutlined, BellOutlined } from '@ant-design/icons';
 import { useRole } from '@/context/RoleContext';
-import { chainService } from '@/features/chains/services/chain.service';
-import { proposalService, contractService } from '@/features/contracts/services/contract.service';
-import { ChainCard } from '@/components/ui/ChainCard';
+import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber } from '@/utils/format';
-import type { Chain, FarmProposal } from '@/types';
+import { CONTRACT_TYPE_LABELS } from '@/types';
 
 const { Text, Title } = Typography;
 
 function FarmOwnerDashboard() {
   const navigate = useNavigate();
-  const { data: proposals, isLoading } = useQuery({
-    queryKey: ['proposals'],
-    queryFn: () => proposalService.getByFarmId('farm-1'),
-  });
+  const { data } = useData();
+  const myProposals = data.proposals.filter((p) => p.farmId === 'farm-1');
+  const finalizedContractIds = new Set(data.contracts.filter((c) => c.status === 'finalized').map((c) => c.id));
+  const needCollateral = myProposals.filter((p) => p.status === 'accepted' && !finalizedContractIds.has(p.contractId));
+  const openContracts = data.contracts.filter((c) => c.status === 'sent' || c.status === 'negotiating');
+  const notBidYet = openContracts.filter((c) => !myProposals.some((p) => p.contractId === c.id));
+  const finalized = data.contracts.filter((c) => c.status === 'finalized');
 
-  const pending = proposals?.filter((p) => p.status === 'accepted') ?? [];
-  const all = proposals ?? [];
+  const totalAlerts = needCollateral.length + notBidYet.length;
 
   return (
     <>
-      <PageHeader title="داشبورد مزرعه‌دار" subtitle={`${all.length} قرارداد پیشنهادی`} />
+      <PageHeader title="داشبورد مزرعه‌دار" extra={
+        totalAlerts > 0 ? <Badge count={formatNumber(totalAlerts)}><BellOutlined style={{ fontSize: 20, color: '#faad14' }} /></Badge> : null
+      } />
 
-      {isLoading ? (
-        <Spin />
-      ) : (
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {pending.length > 0 && (
-            <Card style={{ marginBottom: 12, background: '#fff7e6', borderRadius: 10 }}>
-              <Text strong>⚠️ {formatNumber(pending.length)} قرارداد در انتظار تأمین وثیقه</Text>
-              <Button size="small" type="primary" style={{ display: 'block', marginTop: 8 }} onClick={() => navigate('/proposals')}>
-                مشاهده و اقدام
-              </Button>
-            </Card>
-          )}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* 🔴 Priority: Collateral needed */}
+        {needCollateral.length > 0 && (
+          <Card style={{ marginBottom: 10, background: '#fff7e6', borderRadius: 10, border: '1px solid #faad14' }}
+            onClick={() => navigate('/proposals')}>
+            <Space><Badge status="warning" /><Text strong>در انتظار تأمین وثیقه</Text></Space>
+            <Text style={{ display: 'block', marginTop: 4 }}>
+              {formatNumber(needCollateral.length)} قرارداد تأیید شده — برای نهایی شدن وثیقه لازم است
+            </Text>
+            <Button type="primary" size="small" block style={{ marginTop: 8 }}>تأمین وثیقه</Button>
+          </Card>
+        )}
 
-          <Title level={5}>قراردادهای پیشنهادی</Title>
-          <List
-            dataSource={all.slice(0, 3)}
-            renderItem={(p: FarmProposal) => (
-              <Card hoverable size="small" style={{ marginBottom: 8, borderRadius: 8 }} onClick={() => navigate(`/proposals/${p.id}`)}>
+        {/* 🟡 New contracts to bid on */}
+        {notBidYet.length > 0 && (
+          <Card style={{ marginBottom: 10, background: '#e6f7ff', borderRadius: 10, border: '1px solid #1677ff' }}
+            onClick={() => navigate('/proposals')}>
+            <Space><Badge status="processing" /><Text strong>فرصت جدید مناقصه</Text></Space>
+            <Text style={{ display: 'block', marginTop: 4 }}>
+              {formatNumber(notBidYet.length)} قرارداد جدید — پیشنهاد درصد مشارکت خود را ثبت کنید
+            </Text>
+            <Button size="small" block style={{ marginTop: 8 }}>مشاهده و ثبت پیشنهاد</Button>
+          </Card>
+        )}
+
+        {/* Green: finalized */}
+        {finalized.length > 0 && (
+          <Card size="small" style={{ marginBottom: 10, background: '#f6ffed', borderRadius: 10, border: '1px solid #389e0d' }}>
+            <Space><Badge status="success" /><Text strong>قراردادهای نهایی</Text></Space>
+            <Text style={{ display: 'block', marginTop: 4 }}>{formatNumber(finalized.length)} قرارداد نهایی شده</Text>
+            <Button type="link" size="small" onClick={() => navigate('/contracts')}>مشاهده</Button>
+          </Card>
+        )}
+
+        {/* Ongoing bids */}
+        {myProposals.filter((p) => p.status === 'pending').length > 0 && (
+          <>
+            <Title level={5} style={{ marginTop: 12, marginBottom: 8 }}>⏳ پیشنهادهای در حال بررسی</Title>
+            {myProposals.filter((p) => p.status === 'pending').map((p) => (
+              <Card key={p.id} size="small" style={{ marginBottom: 6, borderRadius: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div>
-                    <Text strong>{p.contractName}</Text>
-                    <div>
-                      <Text type="secondary" style={{ fontSize: 11 }}>درصد: ٪{formatNumber(p.proposedPercentage)}</Text>
-                    </div>
-                  </div>
-                  <Tag color={p.status === 'accepted' ? 'success' : p.status === 'rejected' ? 'error' : 'processing'}>
-                    {p.status === 'accepted' ? 'تأیید شده' : p.status === 'rejected' ? 'رد شده' : 'در انتظار'}
-                  </Tag>
+                  <Text>{p.contractName}</Text>
+                  <Tag color="processing">در انتظار</Tag>
                 </div>
+                <Text type="secondary" style={{ fontSize: 11 }}>پیشنهاد شما: ٪{formatNumber(p.proposedPercentage)}</Text>
               </Card>
-            )}
-          />
-          {all.length > 3 && (
-            <Button type="link" block onClick={() => navigate('/proposals')}>مشاهده همه</Button>
-          )}
-        </div>
-      )}
+            ))}
+          </>
+        )}
+
+        {totalAlerts === 0 && finalized.length === 0 && (
+          <Empty description="نوتیف جدیدی ندارید" />
+        )}
+      </div>
     </>
   );
 }
 
 function FeedSupplierDashboard() {
   const navigate = useNavigate();
-  const { data: chains, isLoading } = useQuery({
-    queryKey: ['chains'],
-    queryFn: () => chainService.getAll(),
-  });
-
-  const { data: contracts } = useQuery({
-    queryKey: ['contracts'],
-    queryFn: () => contractService.getAll(),
-  });
-
-  const activeContracts = contracts?.filter((c) => c.status !== 'finalized') ?? [];
+  const { data } = useData();
+  const contracts = data.contracts;
+  const withBids = contracts.filter((c) => c.status === 'negotiating');
+  const sent = contracts.filter((c) => c.status === 'sent');
+  const finalized = contracts.filter((c) => c.status === 'finalized');
+  const finalizedCIds = new Set(data.contracts.filter((c) => c.status === 'finalized').map((c) => c.id));
+  const acceptedCount = data.proposals.filter((p) => p.status === 'accepted' && !finalizedCIds.has(p.contractId)).length;
+  const totalAlerts = withBids.length + acceptedCount;
 
   return (
     <>
-      <PageHeader
-        title="داشبورد تأمین‌کننده"
-        subtitle="مدیریت زنجیره‌ها و قراردادها"
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/chains/new')}>
-            زنجیره جدید
-          </Button>
-        }
-      />
+      <PageHeader title="داشبورد تأمین‌کننده" extra={
+        <Space>
+          {totalAlerts > 0 && <Badge count={formatNumber(totalAlerts)}><BellOutlined style={{ fontSize: 20, color: '#faad14' }} /></Badge>}
+          <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => navigate('/chains/new')}>قرارداد جدید</Button>
+        </Space>
+      } />
 
-      {isLoading ? (
-        <Spin />
-      ) : (
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {chains && chains.length > 0 ? (
-            <>
-              <Title level={5} style={{ marginBottom: 8 }}>زنجیره‌های فعال</Title>
-              {chains.map((chain: Chain) => (
-                <ChainCard key={chain.id} chain={chain} />
-              ))}
-            </>
-          ) : (
-            <Empty description="هنوز زنجیره‌ای نساخته‌اید" />
-          )}
-
-          {activeContracts.length > 0 && (
-            <Button block type="primary" style={{ marginTop: 16 }} onClick={() => navigate('/contracts')}>
-              {formatNumber(activeContracts.length)} قرارداد فعال — مشاهده
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* 🔴 Contracts with new bids */}
+        {withBids.length > 0 && (
+          <Card style={{ marginBottom: 10, background: '#e6f7ff', borderRadius: 10, border: '1px solid #1677ff' }}>
+            <Space><Badge status="processing" /><Text strong>پیشنهادهای جدید در مناقصه</Text></Space>
+            <Text style={{ display: 'block', marginTop: 4 }}>
+              {formatNumber(withBids.length)} قرارداد پیشنهاد دریافت کرده‌اند — مزرعه‌داران را بررسی کنید
+            </Text>
+            <Button type="primary" size="small" block style={{ marginTop: 8 }} onClick={() => navigate('/contracts')}>
+              بررسی و تأیید مزرعه‌داران
             </Button>
-          )}
-        </div>
-      )}
+          </Card>
+        )}
+
+        {/* Sent contracts (no bids yet) */}
+        {sent.length > 0 && (
+          <>
+            <Title level={5} style={{ marginBottom: 8 }}>📨 قراردادهای ارسال شده</Title>
+            {sent.map((c) => (
+              <Card key={c.id} size="small" style={{ marginBottom: 6, borderRadius: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text strong>{c.name}</Text>
+                  <Tag color="processing">منتظر پیشنهاد</Tag>
+                </div>
+                <Text type="secondary" style={{ fontSize: 11 }}>هنوز پیشنهادی دریافت نشده</Text>
+              </Card>
+            ))}
+          </>
+        )}
+
+        {/* Pending collateral */}
+        {acceptedCount > 0 && (
+          <Card style={{ marginBottom: 10, background: '#fff7e6', borderRadius: 10, border: '1px solid #faad14' }}>
+            <Space><Badge status="warning" /><Text strong>در انتظار وثیقه</Text></Space>
+            <Text style={{ display: 'block', marginTop: 4 }}>
+              {formatNumber(acceptedCount)} مزرعه‌دار تأیید شده — منتظر تأمین وثیقه
+            </Text>
+          </Card>
+        )}
+
+        {/* Finalized */}
+        {finalized.length > 0 && (
+          <Card size="small" style={{ marginBottom: 10, background: '#f6ffed', borderRadius: 10, border: '1px solid #389e0d' }}>
+            <Space><Badge status="success" /><Text strong>قراردادهای نهایی شده</Text></Space>
+            <Text style={{ display: 'block', marginTop: 4 }}>{formatNumber(finalized.length)} قرارداد</Text>
+            <Button type="link" size="small" onClick={() => navigate('/contracts')}>مشاهده</Button>
+          </Card>
+        )}
+
+        {contracts.length === 0 && <Empty description="هنوز قراردادی ایجاد نکرده‌اید" />}
+      </div>
     </>
   );
 }

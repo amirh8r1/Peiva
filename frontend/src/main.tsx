@@ -7,6 +7,7 @@ import faIR from 'antd/locale/fa_IR';
 import { antdTheme } from './config/theme';
 import App from './App';
 import { RoleProvider } from './context/RoleContext';
+import { DataProvider } from './context/DataContext';
 import './config/rtl';
 import './index.css';
 
@@ -28,11 +29,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         locale={faIR}
         direction="rtl"
       >
-        <RoleProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </RoleProvider>
+        <DataProvider>
+          <RoleProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </RoleProvider>
+        </DataProvider>
       </ConfigProvider>
     </QueryClientProvider>
   </React.StrictMode>,

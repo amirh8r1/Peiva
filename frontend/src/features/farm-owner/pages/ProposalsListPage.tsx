@@ -1,75 +1,119 @@
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { Card, Tag, Typography, Button, Empty, Spin, List } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
-import { proposalService } from '@/features/contracts/services/contract.service';
+import { Card, Tag, Typography, Button, Empty, List } from 'antd';
+import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber } from '@/utils/format';
+import { CONTRACT_TYPE_LABELS } from '@/types';
 import type { FarmProposal } from '@/types';
 
 const { Text, Title } = Typography;
 
-const statusConfig: Record<string, { color: string; label: string }> = {
-  pending: { color: 'processing', label: 'در انتظار' },
-  accepted: { color: 'success', label: 'تأیید شده' },
-  rejected: { color: 'error', label: 'رد شده' },
-};
-
 export function ProposalsListPage() {
   const navigate = useNavigate();
-  const { data: proposals, isLoading } = useQuery({
-    queryKey: ['proposals'],
-    queryFn: () => proposalService.getByFarmId('farm-1'),
-  });
+  const { data } = useData();
+
+  const myProposals = data.proposals.filter((p) => p.farmId === 'farm-1');
+
+  // Only show contracts that aren't finalized yet
+  const finalizedIds = new Set(data.contracts.filter((c) => c.status === 'finalized').map((c) => c.id));
+
+  // Need collateral: accepted + contract NOT finalized
+  const needCollateral = myProposals.filter(
+    (p) => p.status === 'accepted' && !finalizedIds.has(p.contractId)
+  );
+
+  // Open contracts to bid on
+  const openContracts = data.contracts.filter(
+    (c) => (c.status === 'sent' || c.status === 'negotiating') && !finalizedIds.has(c.id)
+  );
+  const notBidYet = openContracts.filter(
+    (c) => !myProposals.some((p) => p.contractId === c.id)
+  );
+
+  // Already bid, waiting
+  const myPendingBids = myProposals.filter(
+    (p) => p.status === 'pending' && !finalizedIds.has(p.contractId)
+  );
+
+  // Rejected
+  const rejected = myProposals.filter(
+    (p) => p.status === 'rejected' && !finalizedIds.has(p.contractId)
+  );
 
   return (
     <>
       <PageHeader title="قراردادهای پیشنهادی" subtitle="پیشنهادهای دریافت شده از تأمین‌کنندگان" />
 
-      {isLoading ? (
-        <div style={{ textAlign: 'center', padding: 60 }}>
-          <Spin size="large" />
-        </div>
-      ) : proposals && proposals.length > 0 ? (
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          <List
-            dataSource={proposals}
-            renderItem={(p: FarmProposal) => {
-              const sc = statusConfig[p.status];
-              return (
-                <Card
-                  hoverable
-                  style={{ marginBottom: 12, borderRadius: 10 }}
-                  onClick={() => navigate(`/proposals/${p.id}`)}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <Title level={5} style={{ margin: 0 }}>{p.contractName}</Title>
-                    <Tag color={sc.color}>{sc.label}</Tag>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* 🔴 Priority: Collateral needed */}
+        {needCollateral.length > 0 && needCollateral.map((p) => (
+          <Card key={p.id} style={{ marginBottom: 10, background: '#fff7e6', borderRadius: 10, border: '1px solid #faad14' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <Text strong>{p.contractName}</Text>
+              <Tag color="warning">در انتظار وثیقه</Tag>
+            </div>
+            <Text type="secondary" style={{ fontSize: 12 }}>پیشنهاد شما: ٪{formatNumber(p.proposedPercentage)} — تأیید شد!</Text>
+            <Button type="primary" size="small" block style={{ marginTop: 8 }}
+              onClick={(e) => { e.stopPropagation(); navigate(`/collateral/${p.contractId}`); }}>
+              تأمین وثیقه
+            </Button>
+          </Card>
+        ))}
+
+        {/* 🟡 New to bid */}
+        {notBidYet.length > 0 && (
+          <>
+            <Title level={5} style={{ marginTop: needCollateral.length > 0 ? 16 : 0 }}>📋 فرصت‌های جدید مناقصه</Title>
+            <List dataSource={notBidYet} renderItem={(c) => (
+              <Card hoverable size="small" style={{ marginBottom: 8, borderRadius: 8 }} onClick={() => navigate(`/proposals/${c.id}`)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div>
+                    <Text strong>{c.name || 'قرارداد جدید'}</Text>
+                    <div><Tag style={{ marginTop: 4 }}>{CONTRACT_TYPE_LABELS[c.contractType]}</Tag></div>
                   </div>
-                  <div style={{ display: 'flex', gap: 24, marginBottom: 8 }}>
-                    <div>
-                      <Text type="secondary" style={{ fontSize: 11 }}>درصد پیشنهادی شما</Text>
-                      <div><Text strong>٪{formatNumber(p.proposedPercentage)}</Text></div>
-                    </div>
-                    <div>
-                      <Text type="secondary" style={{ fontSize: 11 }}>گرید مزرعه</Text>
-                      <div><Tag>{p.farmGrade}</Tag></div>
-                    </div>
-                  </div>
-                  <Text type="secondary" style={{ fontSize: 11 }}>ارسال شده در {p.submittedAt}</Text>
-                  {p.status === 'accepted' && (
-                    <Button type="primary" size="small" style={{ marginTop: 8 }} block>
-                      تأمین وثیقه و نهایی کردن
-                    </Button>
-                  )}
-                </Card>
-              );
-            }}
-          />
-        </div>
-      ) : (
-        <Empty description="هیچ قرارداد پیشنهادی ندارید" />
-      )}
+                  <Tag>پیشنهاد دهید</Tag>
+                </div>
+                <Text type="secondary" style={{ fontSize: 11 }}>حداقل تسهیم: ٪{formatNumber(c.profitSharingMin)}</Text>
+              </Card>
+            )} />
+          </>
+        )}
+
+        {/* ⏳ Pending bids */}
+        {myPendingBids.length > 0 && (
+          <>
+            <Title level={5} style={{ marginTop: 16 }}>⏳ پیشنهادهای در حال بررسی</Title>
+            {myPendingBids.map((p) => (
+              <Card key={p.id} size="small" style={{ marginBottom: 6, borderRadius: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text>{p.contractName}</Text>
+                  <Tag color="processing">در انتظار</Tag>
+                </div>
+                <Text type="secondary" style={{ fontSize: 11 }}>پیشنهاد: ٪{formatNumber(p.proposedPercentage)}</Text>
+              </Card>
+            ))}
+          </>
+        )}
+
+        {/* ❌ Rejected */}
+        {rejected.length > 0 && (
+          <>
+            <Title level={5} style={{ marginTop: 16 }}>❌ رد شده</Title>
+            {rejected.map((p) => (
+              <Card key={p.id} size="small" style={{ marginBottom: 6, borderRadius: 8, opacity: 0.6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text>{p.contractName}</Text>
+                  <Tag color="error">رد شده</Tag>
+                </div>
+              </Card>
+            ))}
+          </>
+        )}
+
+        {needCollateral.length === 0 && notBidYet.length === 0 && myPendingBids.length === 0 && rejected.length === 0 && (
+          <Empty description="نوتیف جدیدی ندارید" />
+        )}
+      </div>
     </>
   );
 }
