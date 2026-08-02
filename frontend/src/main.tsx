@@ -6,8 +6,8 @@ import { ConfigProvider } from 'antd';
 import faIR from 'antd/locale/fa_IR';
 import { antdTheme } from './config/theme';
 import App from './App';
-import { RoleProvider } from './context/RoleContext';
 import { DataProvider } from './context/DataContext';
+import './utils/dayjs'; // must be before any antd DatePicker usage
 import './config/rtl';
 import './index.css';
 
@@ -30,11 +30,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         direction="rtl"
       >
         <DataProvider>
-          <RoleProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </RoleProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
         </DataProvider>
       </ConfigProvider>
     </QueryClientProvider>

@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { RoleLandingPage } from '@/pages/RoleLandingPage';
 import { DashboardPage } from '@/features/farms/pages/Dashboard';
 import { CreateChainPage } from '@/features/chains/pages/CreateChainPage';
 import { ProposalsListPage } from '@/features/farm-owner/pages/ProposalsListPage';
@@ -8,26 +9,30 @@ import { CollateralPage } from '@/features/farm-owner/pages/CollateralPage';
 import { FarmOwnerContractsPage } from '@/features/farm-owner/pages/ContractsPage';
 import { FarmApprovalPage } from '@/features/feed-supplier/pages/FarmApprovalPage';
 import { SupplierContractsPage } from '@/features/feed-supplier/pages/ContractsPage';
-import { useRole } from '@/context/RoleContext';
-
-function RoleAwareContractsPage() {
-  const { role } = useRole();
-  return role === 'farm-owner' ? <FarmOwnerContractsPage /> : <SupplierContractsPage />;
-}
 
 export function AppRouter() {
   return (
     <Routes>
+      <Route path="/" element={<RoleLandingPage />} />
+
+      {/* Supplier routes */}
       <Route element={<AppLayout />}>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/proposals" element={<ProposalsListPage />} />
-        <Route path="/proposals/:id" element={<ProposalDetailPage />} />
-        <Route path="/collateral/:id" element={<CollateralPage />} />
-        <Route path="/chains/new" element={<CreateChainPage />} />
-        <Route path="/chains/:id/farms" element={<FarmApprovalPage />} />
-        <Route path="/contracts" element={<RoleAwareContractsPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/supplier" element={<DashboardPage />} />
+        <Route path="/supplier/contracts/new" element={<CreateChainPage />} />
+        <Route path="/supplier/contracts/:id/farms" element={<FarmApprovalPage />} />
+        <Route path="/supplier/contracts" element={<SupplierContractsPage />} />
       </Route>
+
+      {/* Farm owner routes */}
+      <Route element={<AppLayout />}>
+        <Route path="/farm" element={<DashboardPage />} />
+        <Route path="/farm/proposals" element={<ProposalsListPage />} />
+        <Route path="/farm/proposals/:id" element={<ProposalDetailPage />} />
+        <Route path="/farm/collateral/:id" element={<CollateralPage />} />
+        <Route path="/farm/contracts" element={<FarmOwnerContractsPage />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

@@ -1,147 +1,234 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Radio, Checkbox, Slider, Typography, Space, Tag, message } from 'antd';
+import { Input, Select, InputNumber, Radio, Checkbox, Slider, Card, Typography, message, DatePicker } from 'antd';
 import { ChainWizardProvider, useChainWizard } from '../context/ChainWizardContext';
 import { ChainStepper } from '../components/ChainStepper';
+import { SelectionCard } from '@/components/ui/SelectionCard';
+import dayjs from '@/utils/dayjs';
 import { useData } from '@/context/DataContext';
-import { formatNumber } from '@/utils/format';
-import { CONTRACT_TYPE_LABELS, TERM_TEMPLATES, PROFIT_METHODS } from '@/types';
-import type { Contract } from '@/types';
+import { formatNumber, parsePersianNumber } from '@/utils/format';
+import { jalaliDatePickerLocale } from '@/utils/jalaliDatePickerLocale';
+import { CONTRACT_TYPE_LABELS, TERM_TEMPLATES, PROFIT_METHODS, COLLATERAL_TYPE_LIST, IRAN_PROVINCES } from '@/types';
+import { mockFarms } from '@/mocks';
+import type { Contract, Farm } from '@/types';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
-// ── Step 0: Contract type ──
+// ── Step 0: Name + Duration + Region ──
+
+function BaseInfoStep() {
+  const { state, dispatch } = useChainWizard();
+  return (
+    <div>
+      <Text type="secondary" style={{ fontSize: 13 }}>نام قرارداد</Text>
+      <Input size="large" placeholder="مثلاً: قرارداد بهار ۱۴۰۴" value={state.contractName}
+        onChange={(e) => dispatch({ type: 'SET_NAME', payload: e.target.value })}
+        style={{ marginBottom: 16, borderRadius: 10 }} />
+
+      <Text type="secondary" style={{ fontSize: 13 }}>مدت قرارداد (تعداد دوره)</Text>
+      <InputNumber min={1} max={6} value={state.duration}
+        {...numberInputProps}
+        onChange={(v) => dispatch({ type: 'SET_DURATION', payload: v || 1 })} />
+
+      <Text type="secondary" style={{ fontSize: 13 }}>منطقه (استان)</Text>
+      <Select showSearch value={state.region || undefined} size="large" style={{ width: '100%', borderRadius: 10 }}
+        placeholder="استان مورد نظر را انتخاب کنید"
+        onChange={(v) => dispatch({ type: 'SET_REGION', payload: v as string })}
+        options={IRAN_PROVINCES.map((p) => ({ value: p, label: p }))} />
+    </div>
+  );
+}
+
+// ── Period step ──
+
+const numberInputProps = {
+  size: 'large' as const,
+  style: { width: '100%', marginBottom: 16, borderRadius: 10 },
+  parser: (v: string | undefined) => parsePersianNumber(v || ''),
+  formatter: (v: string | number | undefined) => v != null ? formatNumber(Number(v)) : '',
+};
+
+function PeriodStep() {
+  const { state, dispatch, periodIndex: pi } = useChainWizard();
+  const p = state.periods[pi] || { index: pi, chickCount: 0, targetWeight: 2500, deliveryDate: '' };
+
+  return (
+    <div>
+      <Text type="secondary" style={{ fontSize: 13 }}>تعداد جوجه‌ریزی (قطعه)</Text>
+      <InputNumber min={1000} max={200000} step={1000} value={p.chickCount || undefined}
+        {...numberInputProps}
+        onChange={(v) => dispatch({ type: 'SET_PERIOD', payload: { index: pi, data: { chickCount: v || 0 } } })} />
+
+      <Text type="secondary" style={{ fontSize: 13 }}>وزن هدف (گرم)</Text>
+      <InputNumber min={1500} max={3500} step={100} value={p.targetWeight}
+        {...numberInputProps}
+        onChange={(v) => dispatch({ type: 'SET_PERIOD', payload: { index: pi, data: { targetWeight: v || 2500 } } })} />
+
+      <Text type="secondary" style={{ fontSize: 13 }}>تاریخ تحویل</Text>
+      <DatePicker
+        locale={jalaliDatePickerLocale}
+        size="large"
+        style={{ width: '100%', borderRadius: 10 }}
+        format="YYYY/MM/DD"
+        value={p.deliveryDate ? (dayjs as any)(p.deliveryDate, { jalali: true }) : null}
+        onChange={(d) => {
+          if (d) dispatch({ type: 'SET_PERIOD', payload: { index: pi, data: { deliveryDate: (d as any).format('YYYY/MM/DD') } } });
+          else dispatch({ type: 'SET_PERIOD', payload: { index: pi, data: { deliveryDate: '' } } });
+        }}
+      />
+    </div>
+  );
+}
+
+// ── Contract type ──
 
 function ContractTypeStep() {
   const { state, dispatch } = useChainWizard();
   return (
     <Radio.Group value={state.contractType} onChange={(e) => dispatch({ type: 'SET_CONTRACT_TYPE', payload: e.target.value })} style={{ width: '100%' }}>
-      <Space direction="vertical" style={{ width: '100%' }}>
-        <Card hoverable size="small" style={state.contractType === 'commission' ? { border: '2px solid #389e0d', background: '#f6ffed' } : {}}>
-          <Radio value="commission">
-            <Text strong>کارمزدی</Text>
-            <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>تأمین‌کننده نهاده را تأمین میکند، سود به نسبت توافق تقسیم میشود</Text>
-          </Radio>
-        </Card>
-        <Card hoverable size="small" style={state.contractType === 'contract' ? { border: '2px solid #389e0d', background: '#f6ffed' } : {}}>
-          <Radio value="contract">
-            <Text strong>پیمانکاری</Text>
-            <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>تأمین‌کننده کل فرآیند را مدیریت میکند، مزرعه‌دار حق‌الزحمه ثابت دریافت میکند</Text>
-          </Radio>
-        </Card>
-      </Space>
+      <Card hoverable size="small" style={state.contractType === 'commission' ? { border: '2px solid #389e0d', background: '#f6ffed', marginBottom: 12 } : { marginBottom: 12 }}>
+        <Radio value="commission"><Text strong>کارمزدی</Text><Text type="secondary" style={{ display: 'block', fontSize: 12 }}>تأمین‌کننده نهاده را تأمین میکند، سود تقسیم میشود</Text></Radio>
+      </Card>
+      <Card hoverable size="small" style={state.contractType === 'contract' ? { border: '2px solid #389e0d', background: '#f6ffed' } : {}}>
+        <Radio value="contract"><Text strong>پیمانکاری</Text><Text type="secondary" style={{ display: 'block', fontSize: 12 }}>تأمین‌کننده کل فرآیند را مدیریت میکند</Text></Radio>
+      </Card>
     </Radio.Group>
   );
 }
 
-// ── Step 1: Terms selection ──
+// ── Terms ──
 
 function ContractTermsStep() {
   const { state, dispatch } = useChainWizard();
   return (
-    <div>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>شرایط و تعهدات مورد نظر را انتخاب کنید</Text>
-      <Checkbox.Group value={state.selectedTermIds} onChange={(vals) => {
-        // Find newly added or removed
-        const added = vals.filter((v: string) => !state.selectedTermIds.includes(v));
-        const removed = state.selectedTermIds.filter((v: string) => !vals.includes(v));
-        if (added.length) dispatch({ type: 'TOGGLE_TERM', payload: added[0] });
-        if (removed.length) dispatch({ type: 'TOGGLE_TERM', payload: removed[0] });
-      }}>
-        <Space direction="vertical" style={{ width: '100%' }}>
-          {TERM_TEMPLATES.map((t) => (
-            <Card key={t.id} size="small" hoverable style={{ borderRadius: 10 }}>
-              <Checkbox value={t.id}>
-                <Text strong style={{ fontSize: 13 }}>{t.label}</Text>
-                <Text type="secondary" style={{ display: 'block', fontSize: 11 }}>{t.description}</Text>
-              </Checkbox>
-            </Card>
-          ))}
-        </Space>
-      </Checkbox.Group>
-    </div>
+    <Checkbox.Group value={state.selectedTermIds} onChange={(vals) => {
+      const added = vals.filter((v: string) => !state.selectedTermIds.includes(v));
+      const removed = state.selectedTermIds.filter((v: string) => !vals.includes(v));
+      if (added.length) dispatch({ type: 'TOGGLE_TERM', payload: added[0] });
+      if (removed.length) dispatch({ type: 'TOGGLE_TERM', payload: removed[0] });
+    }} style={{ width: '100%' }}>
+      {TERM_TEMPLATES.map((t) => (
+        <Card key={t.id} size="small" hoverable
+          style={{ marginBottom: 8, borderRadius: 10, width: '100%' }}>
+          <Checkbox value={t.id} style={{ width: '100%' }}>
+            <Text strong style={{ fontSize: 13 }}>{t.label}</Text>
+            <Text type="secondary" style={{ display: 'block', fontSize: 11 }}>{t.description}</Text>
+          </Checkbox>
+        </Card>
+      ))}
+    </Checkbox.Group>
   );
 }
 
-// ── Step 2: Profit method + min % ──
+// ── Profit method ──
 
 function ProfitSharingStep() {
   const { state, dispatch } = useChainWizard();
   return (
     <div>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>شیوه تسهیم منافع را انتخاب کنید</Text>
       <Radio.Group value={state.profitMethodId} onChange={(e) => dispatch({ type: 'SET_PROFIT_METHOD', payload: e.target.value })} style={{ width: '100%' }}>
-        <Space direction="vertical" style={{ width: '100%' }}>
-          {PROFIT_METHODS.map((m) => (
-            <Card key={m.id} size="small" hoverable style={state.profitMethodId === m.id ? { border: '2px solid #389e0d', background: '#f6ffed', borderRadius: 10 } : { borderRadius: 10 }}>
-              <Radio value={m.id}>
-                <Text strong style={{ fontSize: 13 }}>{m.label}</Text>
-                <Text type="secondary" style={{ display: 'block', fontSize: 11 }}>{m.description}</Text>
-              </Radio>
-            </Card>
-          ))}
-        </Space>
+        {PROFIT_METHODS.map((m) => (
+          <Card key={m.id} size="small" hoverable style={state.profitMethodId === m.id ? { border: '2px solid #389e0d', background: '#f6ffed', marginBottom: 8, borderRadius: 10 } : { marginBottom: 8, borderRadius: 10 }}>
+            <Radio value={m.id}><Text strong style={{ fontSize: 13 }}>{m.label}</Text><Text type="secondary" style={{ display: 'block', fontSize: 11 }}>{m.description}</Text></Radio>
+          </Card>
+        ))}
       </Radio.Group>
-
-      <div style={{ background: '#f6ffed', borderRadius: 12, padding: '16px 20px', marginTop: 16 }}>
+      <div style={{ background: '#f6ffed', borderRadius: 12, padding: '16px 20px', marginTop: 12 }}>
         <Text style={{ fontSize: 12 }}>حداقل درصد تسهیم مزرعه‌دار</Text>
-        <div style={{ textAlign: 'center' }}>
-          <Text strong style={{ fontSize: 28, color: '#389e0d' }}>٪{formatNumber(state.profitSharingMin)}</Text>
-        </div>
-        <Slider min={10} max={60} value={state.profitSharingMin} onChange={(v) => dispatch({ type: 'SET_PROFIT_SHARING', payload: v })}
-          marks={{ 10: '۱۰', 25: '۲۵', 40: '۴۰', 60: '۶۰' }} />
+        <div style={{ textAlign: 'center' }}><Text strong style={{ fontSize: 28, color: '#389e0d' }}>٪{formatNumber(state.profitSharingMin)}</Text></div>
+        <Slider min={10} max={60} value={state.profitSharingMin} onChange={(v) => dispatch({ type: 'SET_PROFIT_SHARING', payload: v })} marks={{ 10: '۱۰', 25: '۲۵', 40: '۴۰', 60: '۶۰' }} />
       </div>
     </div>
   );
 }
 
-// ── Step 3: Review & Send ──
+// ── Collateral types ──
 
-function ReviewStep() {
-  const { state } = useChainWizard();
-  const selectedTerms = TERM_TEMPLATES.filter((t) => state.selectedTermIds.includes(t.id));
-  const selectedMethod = PROFIT_METHODS.find((m) => m.id === state.profitMethodId);
+function CollateralTypesStep() {
+  const { state, dispatch } = useChainWizard();
+  return (
+    <div>
+      <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>تضامین مورد قبول را انتخاب کنید</Text>
+      <Checkbox.Group value={state.acceptedCollateralTypes} onChange={(vals) => {
+        const added = vals.filter((v: string) => !state.acceptedCollateralTypes.includes(v));
+        const removed = state.acceptedCollateralTypes.filter((v: string) => !vals.includes(v));
+        if (added.length) dispatch({ type: 'TOGGLE_COLLATERAL_TYPE', payload: added[0] });
+        if (removed.length) dispatch({ type: 'TOGGLE_COLLATERAL_TYPE', payload: removed[0] });
+      }} style={{ width: '100%' }}>
+        {COLLATERAL_TYPE_LIST.map((ct) => (
+          <Card key={ct.id} size="small" hoverable style={{ marginBottom: 8, borderRadius: 10, width: '100%' }}>
+            <Checkbox value={ct.id} style={{ width: '100%' }}>{ct.icon} <Text strong>{ct.label}</Text></Checkbox>
+          </Card>
+        ))}
+      </Checkbox.Group>
+    </div>
+  );
+}
+
+// ── Farm selection (filtered) ──
+
+function FarmSelectionStep() {
+  const { state, dispatch } = useChainWizard();
+  const totalChicks = state.periods.reduce((s, p) => s + (p.chickCount || 0), 0);
+
+  // Filter farms: same province + enough capacity
+  const eligible = mockFarms.filter((f) => {
+    if (state.region && f.address.province !== state.region) return false;
+    if (totalChicks > f.capacity) return false;
+    return true;
+  });
 
   return (
     <div>
-      <Card size="small" style={{ borderRadius: 10, marginBottom: 12 }}>
-        <Text type="secondary" style={{ fontSize: 11 }}>نوع قرارداد</Text>
-        <div><Tag color="green">{CONTRACT_TYPE_LABELS[state.contractType]}</Tag></div>
-      </Card>
-
-      <Card size="small" style={{ borderRadius: 10, marginBottom: 12 }}>
-        <Text type="secondary" style={{ fontSize: 11 }}>شرایط انتخاب شده ({formatNumber(selectedTerms.length)})</Text>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
-          {selectedTerms.map((t) => <Tag key={t.id}>{t.label}</Tag>)}
-        </div>
-      </Card>
-
-      <Card size="small" style={{ borderRadius: 10, marginBottom: 12 }}>
-        <Text type="secondary" style={{ fontSize: 11 }}>شیوه تسهیم</Text>
-        <div><Text strong>{selectedMethod?.label}</Text></div>
-        <Text type="secondary" style={{ fontSize: 11 }}>{selectedMethod?.description}</Text>
-      </Card>
-
-      <Card size="small" style={{ borderRadius: 10, background: '#f6ffed' }}>
-        <Text type="secondary" style={{ fontSize: 11 }}>حداقل درصد مزرعه‌دار</Text>
-        <div><Text strong style={{ fontSize: 22, color: '#389e0d' }}>٪{formatNumber(state.profitSharingMin)}</Text></div>
-      </Card>
-
-      <Text type="secondary" style={{ display: 'block', marginTop: 16, textAlign: 'center', fontSize: 12 }}>
-        با زدن دکمه تأیید، این قرارداد برای تمام مزرعه‌داران واجد شرایط ارسال میشود
+      <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+        مزارع منطبق با شرایط ({formatNumber(eligible.length)} مورد) — استان {state.region}، ظرفیت ≥ {formatNumber(totalChicks)}
       </Text>
+      {eligible.map((farm) => (
+        <div key={farm.id} style={{ marginBottom: 10 }}>
+          <SelectionCard<Farm>
+            item={farm}
+            selected={state.selectedFarmIds.includes(farm.id)}
+            onSelect={() => dispatch({ type: 'TOGGLE_FARM', payload: farm.id })}
+            title={farm.name}
+            subtitle={`${farm.address.city}، ${farm.address.province}`}
+            rating={farm.rating}
+            grade={farm.grade}
+            fields={[
+              { label: 'ظرفیت', value: formatNumber(farm.capacity) },
+              { label: 'ضریب تبدیل', value: formatNumber(farm.avgConversionRatio, 1) },
+              { label: 'سابقه', value: `${formatNumber(farm.experienceYears)} سال` },
+              { label: 'مالک', value: farm.ownerName },
+            ]}
+            details={[
+              { label: 'نام', value: farm.name }, { label: 'مالک', value: farm.ownerName },
+              { label: 'موقعیت', value: `${farm.address.city}، ${farm.address.province}` },
+              { label: 'گرید', value: farm.grade }, { label: 'ظرفیت', value: formatNumber(farm.capacity) },
+              { label: 'ضریب تبدیل', value: formatNumber(farm.avgConversionRatio, 1) },
+              { label: 'سابقه', value: `${formatNumber(farm.experienceYears)} سال` },
+              { label: 'تلفن', value: farm.contact.phone },
+            ]}
+          />
+        </div>
+      ))}
     </div>
   );
 }
 
 // ── Step renderer ──
 
-const STEPS = [ContractTypeStep, ContractTermsStep, ProfitSharingStep, ReviewStep];
-
 function StepContent() {
-  const { state } = useChainWizard();
-  const C = STEPS[state.currentStep];
-  return <C />;
+  const ctx = useChainWizard();
+  const s = ctx.state;
+  const off = 1 + s.duration;
+
+  if (s.currentStep === 0) return <BaseInfoStep />;
+  if (ctx.isPeriodStep) return <PeriodStep />;
+  if (s.currentStep === off) return <ContractTypeStep />;
+  if (s.currentStep === off + 1) return <ContractTermsStep />;
+  if (s.currentStep === off + 2) return <ProfitSharingStep />;
+  if (s.currentStep === off + 3) return <CollateralTypesStep />;
+  if (s.currentStep === ctx.totalStepCount - 1) return <FarmSelectionStep />;
+  return null;
 }
 
 // ── Page ──
@@ -153,29 +240,32 @@ export function CreateChainPage() {
 
   return (
     <ChainWizardProvider>
-      <WizardInner
-        submitting={submitting}
-        onSubmit={(wizardState) => {
-          setSubmitting(true);
-          const newContract: Contract = {
-            id: `ctr-${Date.now()}`,
-            name: wizardState.contractName || 'قرارداد جدید',
-            contractType: wizardState.contractType,
-            selectedTermIds: wizardState.selectedTermIds,
-            profitMethodId: wizardState.profitMethodId,
-            profitSharingMin: wizardState.profitSharingMin,
-            status: 'sent',
-            createdBy: 'supplier',
-            createdAt: new Date().toLocaleDateString('fa-IR'),
-          };
-          dataDispatch({ type: 'ADD_CONTRACT', payload: newContract });
-          setTimeout(() => {
-            setSubmitting(false);
-            message.success('قرارداد با موفقیت ارسال شد و برای مزرعه‌داران ارسال گردید!');
-            navigate('/');
-          }, 600);
-        }}
-      />
+      <WizardInner submitting={submitting} onSubmit={(wizardState) => {
+        setSubmitting(true);
+        const totalChicks = wizardState.periods.reduce((s, p) => s + (p.chickCount || 0), 0);
+        const contract: Contract = {
+          id: `ctr-${Date.now()}`,
+          name: wizardState.contractName,
+          contractType: wizardState.contractType,
+          selectedTermIds: wizardState.selectedTermIds,
+          profitMethodId: wizardState.profitMethodId,
+          profitSharingMin: wizardState.profitSharingMin,
+          duration: wizardState.duration,
+          region: wizardState.region,
+          periods: wizardState.periods,
+          acceptedCollateralTypes: wizardState.acceptedCollateralTypes,
+          selectedFarmIds: wizardState.selectedFarmIds,
+          status: 'sent',
+          createdBy: 'supplier',
+          createdAt: new Date().toLocaleDateString('fa-IR'),
+        };
+        dataDispatch({ type: 'ADD_CONTRACT', payload: contract });
+        setTimeout(() => {
+          setSubmitting(false);
+          message.success(`قرارداد با موفقیت ایجاد و برای ${formatNumber(wizardState.selectedFarmIds.length)} مزرعه ارسال شد!`);
+          navigate('/supplier');
+        }, 600);
+      }} />
     </ChainWizardProvider>
   );
 }

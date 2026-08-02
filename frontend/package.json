@@ -11,14 +11,16 @@
     "deploy": "npm run build && npx surge dist --domain Peiva.surge.sh"
   },
   "dependencies": {
-    "antd": "^5.22.0",
     "@ant-design/icons": "^5.5.0",
+    "@tanstack/react-query": "^5.62.0",
+    "antd": "^5.22.0",
+    "axios": "^1.7.9",
+    "dayjs": "^1.11.13",
+    "jalali-dayjs": "^0.0.1",
+    "jalaliday": "^3.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0",
-    "@tanstack/react-query": "^5.62.0",
-    "axios": "^1.7.9",
-    "dayjs": "^1.11.13"
+    "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",

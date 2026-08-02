@@ -1,8 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode, type Dispatch } from 'react';
 import type { Contract, FarmProposal, Collateral } from '@/types';
 
-// ── App-level data that persists across role switches ──
-
 export interface AppData {
   contracts: Contract[];
   proposals: FarmProposal[];
@@ -11,13 +9,12 @@ export interface AppData {
 
 const STORAGE_KEY = 'fonoon-app-data';
 const VERSION_KEY = 'fonoon-app-version';
-const CURRENT_VERSION = 2; // bump when data schema changes
+const CURRENT_VERSION = 3;
 
 function loadData(): AppData {
   try {
-    const storedVersion = localStorage.getItem(VERSION_KEY);
-    // Clear stale data from older versions
-    if (!storedVersion || Number(storedVersion) < CURRENT_VERSION) {
+    const v = localStorage.getItem(VERSION_KEY);
+    if (!v || Number(v) < CURRENT_VERSION) {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
       return { contracts: [], proposals: [], collaterals: [] };
@@ -39,53 +36,46 @@ export type DataAction =
   | { type: 'UPDATE_CONTRACT_STATUS'; payload: { id: string; status: Contract['status'] } }
   | { type: 'ADD_PROPOSAL'; payload: FarmProposal }
   | { type: 'UPDATE_PROPOSAL'; payload: { id: string; status: FarmProposal['status'] } }
-  | { type: 'ADD_COLLATERAL'; payload: Collateral };
+  | { type: 'ADD_COLLATERAL'; payload: Collateral }
+  | { type: 'SYNC'; payload: AppData };
 
 function reducer(state: AppData, action: DataAction): AppData {
   switch (action.type) {
-    case 'ADD_CONTRACT':
-      return { ...state, contracts: [...state.contracts, action.payload] };
+    case 'ADD_CONTRACT': return { ...state, contracts: [...state.contracts, action.payload] };
     case 'UPDATE_CONTRACT_STATUS':
-      return {
-        ...state,
-        contracts: state.contracts.map((c) =>
-          c.id === action.payload.id ? { ...c, status: action.payload.status } : c,
-        ),
-      };
-    case 'ADD_PROPOSAL':
-      return { ...state, proposals: [...state.proposals, action.payload] };
+      return { ...state, contracts: state.contracts.map((c) => c.id === action.payload.id ? { ...c, status: action.payload.status } : c) };
+    case 'ADD_PROPOSAL': return { ...state, proposals: [...state.proposals, action.payload] };
     case 'UPDATE_PROPOSAL':
-      return {
-        ...state,
-        proposals: state.proposals.map((p) =>
-          p.id === action.payload.id ? { ...p, status: action.payload.status } : p,
-        ),
-      };
-    case 'ADD_COLLATERAL':
-      return { ...state, collaterals: [...state.collaterals, action.payload] };
-    default:
-      return state;
+      return { ...state, proposals: state.proposals.map((p) => p.id === action.payload.id ? { ...p, status: action.payload.status } : p) };
+    case 'ADD_COLLATERAL': return { ...state, collaterals: [...state.collaterals, action.payload] };
+    case 'SYNC': return action.payload;
+    default: return state;
   }
 }
 
 // ── Context ──
 
-interface DataContextValue {
-  data: AppData;
-  dispatch: Dispatch<DataAction>;
-}
+interface DataContextValue { data: AppData; dispatch: Dispatch<DataAction>; }
 
 const DataContext = createContext<DataContextValue | null>(null);
-
 const initialData = loadData();
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [data, dispatch] = useReducer(reducer, initialData);
 
-  // Persist to localStorage on every change
+  // Persist to localStorage
+  useEffect(() => { saveData(data); }, [data]);
+
+  // Cross-tab sync
   useEffect(() => {
-    saveData(data);
-  }, [data]);
+    const handler = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try { dispatch({ type: 'SYNC', payload: JSON.parse(e.newValue) }); } catch { /* */ }
+      }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
 
   return (
     <DataContext.Provider value={{ data, dispatch }}>
