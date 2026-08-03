@@ -19,7 +19,7 @@ export interface ChainWizardState {
 const initialState: ChainWizardState = {
   currentStep: 0,
   contractName: '',
-  duration: 2,
+  duration: 0,
   region: '',
   periods: [],
   contractType: 'commission',
@@ -62,8 +62,8 @@ function wizardReducer(state: ChainWizardState, action: WizardAction): ChainWiza
     case 'SET_STEP': return { ...state, currentStep: action.payload };
     case 'SET_NAME': return { ...state, contractName: action.payload };
     case 'SET_DURATION': {
-      const d = Math.max(1, Math.min(6, action.payload));
-      const periods = Array.from({ length: d }, (_, i) => state.periods[i] || { index: i, chickCount: 0, targetWeight: 2500, deliveryDate: '' });
+      const d = action.payload ?? 0;
+      const periods = Array.from({ length: d }, (_, i) => state.periods[i] || { index: i, chickCount: 0, targetWeight: 0, deliveryDate: '' });
       return { ...state, duration: d, periods };
     }
     case 'SET_REGION': return { ...state, region: action.payload };
@@ -113,20 +113,26 @@ export function ChainWizardProvider({ children }: { children: ReactNode }) {
     const s = state;
     if (s.currentStep === 0) {
       if (!s.contractName.trim()) return { canProceed: false, proceedBlockReason: 'نام قرارداد را وارد کنید' };
+      if (!s.duration || s.duration < 1) return { canProceed: false, proceedBlockReason: 'مدت قرارداد را وارد کنید' };
       if (!s.region) return { canProceed: false, proceedBlockReason: 'منطقه را انتخاب کنید' };
       return { canProceed: true, proceedBlockReason: '' };
     }
     if (isPeriodStep(state)) {
       const p = s.periods[periodIndex(state)];
       if (!p || !p.chickCount) return { canProceed: false, proceedBlockReason: 'تعداد جوجه‌ریزی را وارد کنید' };
+      if (!p.targetWeight) return { canProceed: false, proceedBlockReason: 'وزن هدف را وارد کنید' };
       if (!p.deliveryDate) return { canProceed: false, proceedBlockReason: 'تاریخ تحویل را وارد کنید' };
       return { canProceed: true, proceedBlockReason: '' };
     }
-    if (s.currentStep === contractStepOffset(s) + 2) { // terms
+    if (s.currentStep === contractStepOffset(s)) { // contract type
+      if (!s.contractType) return { canProceed: false, proceedBlockReason: 'نوع قرارداد را انتخاب کنید' };
+      return { canProceed: true, proceedBlockReason: '' };
+    }
+    if (s.currentStep === contractStepOffset(s) + 1) { // terms
       if (s.selectedTermIds.length === 0) return { canProceed: false, proceedBlockReason: 'حداقل یک شرط انتخاب کنید' };
       return { canProceed: true, proceedBlockReason: '' };
     }
-    if (s.currentStep === contractStepOffset(s) + 4) { // collateral types
+    if (s.currentStep === contractStepOffset(s) + 3) { // collateral types
       if (s.acceptedCollateralTypes.length === 0) return { canProceed: false, proceedBlockReason: 'حداقل یک نوع تضمین انتخاب کنید' };
       return { canProceed: true, proceedBlockReason: '' };
     }

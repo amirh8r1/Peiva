@@ -6,7 +6,7 @@ import { ChainStepper } from '../components/ChainStepper';
 import { SelectionCard } from '@/components/ui/SelectionCard';
 import dayjs from '@/utils/dayjs';
 import { useData } from '@/context/DataContext';
-import { formatNumber, parsePersianNumber } from '@/utils/format';
+import { formatNumber, parsePersianNumber, toPersianDigits } from '@/utils/format';
 import { jalaliDatePickerLocale } from '@/utils/jalaliDatePickerLocale';
 import { CONTRACT_TYPE_LABELS, TERM_TEMPLATES, PROFIT_METHODS, COLLATERAL_TYPE_LIST, IRAN_PROVINCES } from '@/types';
 import { mockFarms } from '@/mocks';
@@ -26,9 +26,9 @@ function BaseInfoStep() {
         style={{ marginBottom: 16, borderRadius: 10 }} />
 
       <Text type="secondary" style={{ fontSize: 13 }}>مدت قرارداد (تعداد دوره)</Text>
-      <InputNumber min={1} max={6} value={state.duration}
+      <InputNumber value={state.duration || undefined}
         {...numberInputProps}
-        onChange={(v) => dispatch({ type: 'SET_DURATION', payload: v || 1 })} />
+        onChange={(v) => dispatch({ type: 'SET_DURATION', payload: v ?? 0 })} />
 
       <Text type="secondary" style={{ fontSize: 13 }}>منطقه (استان)</Text>
       <Select showSearch value={state.region || undefined} size="large" style={{ width: '100%', borderRadius: 10 }}
@@ -50,26 +50,26 @@ const numberInputProps = {
 
 function PeriodStep() {
   const { state, dispatch, periodIndex: pi } = useChainWizard();
-  const p = state.periods[pi] || { index: pi, chickCount: 0, targetWeight: 2500, deliveryDate: '' };
+  const p = state.periods[pi] || { index: pi, chickCount: 0, targetWeight: 0, deliveryDate: '' };
 
   return (
     <div>
       <Text type="secondary" style={{ fontSize: 13 }}>تعداد جوجه‌ریزی (قطعه)</Text>
-      <InputNumber min={1000} max={200000} step={1000} value={p.chickCount || undefined}
+      <InputNumber value={p.chickCount || undefined}
         {...numberInputProps}
-        onChange={(v) => dispatch({ type: 'SET_PERIOD', payload: { index: pi, data: { chickCount: v || 0 } } })} />
+        onChange={(v) => dispatch({ type: 'SET_PERIOD', payload: { index: pi, data: { chickCount: v ?? 0 } } })} />
 
       <Text type="secondary" style={{ fontSize: 13 }}>وزن هدف (گرم)</Text>
-      <InputNumber min={1500} max={3500} step={100} value={p.targetWeight}
+      <InputNumber value={p.targetWeight || undefined}
         {...numberInputProps}
-        onChange={(v) => dispatch({ type: 'SET_PERIOD', payload: { index: pi, data: { targetWeight: v || 2500 } } })} />
+        onChange={(v) => dispatch({ type: 'SET_PERIOD', payload: { index: pi, data: { targetWeight: v ?? 0 } } })} />
 
       <Text type="secondary" style={{ fontSize: 13 }}>تاریخ تحویل</Text>
       <DatePicker
         locale={jalaliDatePickerLocale}
         size="large"
         style={{ width: '100%', borderRadius: 10 }}
-        format="YYYY/MM/DD"
+        format={(d) => toPersianDigits((d as any).format('YYYY/MM/DD'))}
         value={p.deliveryDate ? (dayjs as any)(p.deliveryDate, { jalali: true }) : null}
         onChange={(d) => {
           if (d) dispatch({ type: 'SET_PERIOD', payload: { index: pi, data: { deliveryDate: (d as any).format('YYYY/MM/DD') } } });

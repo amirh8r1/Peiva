@@ -4,7 +4,7 @@ import { Card, Radio, Button, InputNumber, Typography, Space, message } from 'an
 import { CheckCircleOutlined } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { formatNumber } from '@/utils/format';
+import { formatNumber, parsePersianNumber } from '@/utils/format';
 import { COLLATERAL_TYPE_LIST } from '@/types';
 
 const { Text, Title } = Typography;
@@ -55,7 +55,9 @@ export function CollateralPage() {
         </Card>
         {(type === 'cash' || type === 'check') && (
           <Card style={{ marginBottom: 12 }}><Title level={5}>مبلغ (تومان)</Title>
-            <InputNumber value={value} onChange={(v) => setValue(v)} style={{ width: '100%' }} size="large" formatter={(v) => formatNumber(Number(v) || 0)} />
+            <InputNumber value={value} onChange={(v) => setValue(v)} style={{ width: '100%' }} size="large"
+              parser={(v) => parsePersianNumber(v || '')}
+              formatter={(v) => v != null ? formatNumber(Number(v)) : ''} />
           </Card>
         )}
         <Button type="primary" block size="large" onClick={handleSubmit}>ثبت و نهایی کردن قرارداد</Button>

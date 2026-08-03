@@ -14,7 +14,7 @@ export function RoleLandingPage() {
       padding: 24, gap: 20,
     }}>
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
-        <Title level={2} style={{ marginBottom: 4 }}>🐔 پلتفرم فنون</Title>
+        <Title level={2} style={{ marginBottom: 4 }}>🐔 پلتفرم پیوا</Title>
         <Text type="secondary">سامانه مدیریت زنجیره تأمین مرغ گوشتی</Text>
         <Text type="secondary" style={{ display: 'block', fontSize: 11, marginTop: 8 }}>
           نقش خود را انتخاب کنید
