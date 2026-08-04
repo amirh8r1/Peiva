@@ -38,7 +38,7 @@ export function ChainStepper({ children, onSubmit, isSubmitting }: ChainStepperP
         <Text type="warning" style={{ fontSize: 11, marginBottom: 4, flexShrink: 0, display: 'block' }}>{ctx.proceedBlockReason}</Text>
       )}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, paddingBottom: 60 }}>{children}</div>
-      <div style={{ position: 'fixed', bottom: 56, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, padding: '8px 12px', background: 'linear-gradient(transparent, #f5f5f5 30%)', display: 'flex', gap: 8, zIndex: 101 }}>
+      <div style={{ position: 'fixed', bottom: 70, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, padding: '8px 12px', background: 'linear-gradient(transparent, #f5f5f5 30%)', display: 'flex', gap: 8, zIndex: 101 }}>
         {state.currentStep > 0 && <Button onClick={ctx.goPrev} icon={<ArrowRightOutlined />} size="large">قبل</Button>}
         {isLast ? (
           <Button type="primary" onClick={onSubmit} disabled={!ctx.canProceed} loading={isSubmitting} size="large" block style={{ height: 44 }}>تأیید و ارسال به مزرعه‌داران</Button>

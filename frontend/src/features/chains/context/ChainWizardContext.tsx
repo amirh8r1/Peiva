@@ -25,7 +25,7 @@ const initialState: ChainWizardState = {
   contractType: 'commission',
   selectedTermIds: [],
   profitMethodId: 'p1',
-  profitSharingMin: 30,
+  profitSharingMin: 10,
   acceptedCollateralTypes: [],
   selectedFarmIds: [],
 };

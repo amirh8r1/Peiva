@@ -1,23 +1,18 @@
-import { useNavigate } from 'react-router-dom';
-import { Card, Tag, Typography, Button, Empty, List } from 'antd';
-import { PlusCircleOutlined } from '@ant-design/icons';
+import { Card, Tag, Typography, Empty, List } from 'antd';
 import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber } from '@/utils/format';
 import { CONTRACT_TYPE_LABELS } from '@/types';
 import type { Contract } from '@/types';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 export function SupplierContractsPage() {
-  const navigate = useNavigate();
   const { data } = useData();
 
   return (
     <>
-      <PageHeader title="قراردادها" extra={
-        <Button icon={<PlusCircleOutlined />} type="primary" size="small" onClick={() => navigate('/supplier/contracts/new')}>قرارداد جدید</Button>
-      } />
+      <PageHeader title="قراردادها" />
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {data.contracts.length > 0 ? (
           <List dataSource={data.contracts} renderItem={(c: Contract) => (
@@ -38,9 +33,7 @@ export function SupplierContractsPage() {
             </Card>
           )} />
         ) : (
-          <Empty description="قراردادی ندارید">
-            <Button type="primary" icon={<PlusCircleOutlined />} onClick={() => navigate('/supplier/contracts/new')}>اولین قرارداد</Button>
-          </Empty>
+          <Empty description="قراردادی ندارید" />
         )}
       </div>
     </>

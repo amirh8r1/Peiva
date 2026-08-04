@@ -136,7 +136,7 @@ function ProfitSharingStep() {
       <div style={{ background: '#f6ffed', borderRadius: 12, padding: '16px 20px', marginTop: 12 }}>
         <Text style={{ fontSize: 12 }}>حداقل درصد تسهیم مزرعه‌دار</Text>
         <div style={{ textAlign: 'center' }}><Text strong style={{ fontSize: 28, color: '#389e0d' }}>٪{formatNumber(state.profitSharingMin)}</Text></div>
-        <Slider min={10} max={60} value={state.profitSharingMin} onChange={(v) => dispatch({ type: 'SET_PROFIT_SHARING', payload: v })} marks={{ 10: '۱۰', 25: '۲۵', 40: '۴۰', 60: '۶۰' }} />
+        <Slider min={0} max={20} value={state.profitSharingMin} onChange={(v) => dispatch({ type: 'SET_PROFIT_SHARING', payload: v })} marks={{ 0: '۰', 5: '۵', 10: '۱۰', 15: '۱۵', 20: '۲۰' }} />
       </div>
     </div>
   );

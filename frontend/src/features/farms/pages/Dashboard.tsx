@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Card, Typography, Tag, Empty, Badge, Space } from 'antd';
-import { PlusOutlined, BellOutlined } from '@ant-design/icons';
+import { BellOutlined } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber } from '@/utils/format';
@@ -66,9 +66,7 @@ function SupplierDashboard() {
 
   return (
     <>
-      <PageHeader title="داشبورد تأمین‌کننده" extra={
-        <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => navigate('/supplier/contracts/new')}>قرارداد جدید</Button>
-      } />
+      <PageHeader title="داشبورد تأمین‌کننده" />
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {sent.length > 0 && sent.map((c) => (
           <Card key={c.id} style={{ marginBottom: 10, background: '#e6f7ff', borderRadius: 10, border: '1px solid #1677ff' }}>

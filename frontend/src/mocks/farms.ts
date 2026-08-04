@@ -253,4 +253,276 @@ export const mockFarms: Farm[] = [
     active: true,
     description: 'قطب پرورشی جنوبشرق — دارای قرارداد مستقیم با کشتارگاه',
   },
+  // ── Tehran extras ──
+  {
+    id: 'farm-19', name: 'مرغداری ری', ownerName: 'قاسم نوربخش',
+    address: { province: 'تهران', city: 'ری', address: 'ری، جاده ورامین، کهریزک' },
+    contact: { phone: '09121112233' }, grade: 'B', capacity: 22000, avgConversionRatio: 1.78, experienceYears: 11, rating: 4.0, active: true,
+    description: 'دسترسی عالی به بازار تهران — ۳ سالن پرورش تمام اتوماتیک',
+  },
+  {
+    id: 'farm-20', name: 'مرغداری پردیس', ownerName: 'حمید رجبی',
+    address: { province: 'تهران', city: 'پردیس', address: 'پردیس، جاده دماوند، کیلومتر ۱۵' },
+    contact: { phone: '09127778899' }, grade: 'A', capacity: 45000, avgConversionRatio: 1.52, experienceYears: 20, rating: 4.7, active: true,
+    description: 'مجتمع تولیدی پیشرفته — برنده جایزه کیفیت استان تهران',
+  },
+  {
+    id: 'farm-21', name: 'مرغداری شاهد', ownerName: 'یونس جعفری',
+    address: { province: 'تهران', city: 'شهریار', address: 'شهریار، جاده ملارد' },
+    contact: { phone: '09123334455' }, grade: 'C', capacity: 9000, avgConversionRatio: 2.08, experienceYears: 4, rating: 3.3, active: true,
+    description: 'واحد کوچک خانوادگی — در حال اخذ مجوز توسعه',
+  },
+  {
+    id: 'farm-22', name: 'مرغداری فیروزه', ownerName: 'نازیلا امینی',
+    address: { province: 'تهران', city: 'اسلامشهر', address: 'اسلامشهر، جاده ساوه' },
+    contact: { phone: '09128889900' }, grade: 'B', capacity: 31000, avgConversionRatio: 1.68, experienceYears: 13, rating: 4.3, active: true,
+    description: 'سیستم سرمایشی پیشرفته — ۵ سالن با دانخوری زنجیره‌ای',
+  },
+  {
+    id: 'farm-23', name: 'مرغداری آسمان', ownerName: 'بهرام نادری',
+    address: { province: 'تهران', city: 'رباط‌کریم', address: 'رباط‌کریم، جاده پرندک' },
+    contact: { phone: '09129990011' }, grade: 'A', capacity: 38000, avgConversionRatio: 1.55, experienceYears: 19, rating: 4.5, active: true,
+    description: 'دارای گواهینامه HACCP — مجهز به سیستم بیوسکیوریتی',
+  },
+  {
+    id: 'farm-24', name: 'مرغداری طوسک', ownerName: 'امید هاشمی',
+    address: { province: 'تهران', city: 'دماوند', address: 'دماوند، جاده فیروزکوه، روستای سربندان' },
+    contact: { phone: '09125556677' }, grade: 'B', capacity: 18000, avgConversionRatio: 1.82, experienceYears: 8, rating: 3.9, active: true,
+    description: 'موقعیت خوش‌آب‌وهوا — مناسب پرورش در تمام فصول',
+  },
+  // ── Isfahan extras ──
+  {
+    id: 'farm-25', name: 'مرغداری نقش جهان', ownerName: 'شاپور بختیاری',
+    address: { province: 'اصفهان', city: 'فلاورجان', address: 'فلاورجان، جاده زرین‌شهر' },
+    contact: { phone: '09131114455' }, grade: 'A', capacity: 48000, avgConversionRatio: 1.48, experienceYears: 23, rating: 4.8, active: true,
+    description: 'بزرگترین زنجیره تولید استان — صادرکننده به کشورهای همسایه',
+  },
+  {
+    id: 'farm-26', name: 'مرغداری نطنز', ownerName: 'محمود قاسمی',
+    address: { province: 'اصفهان', city: 'نطنز', address: 'نطنز، جاده بادرود' },
+    contact: { phone: '09132221133' }, grade: 'B', capacity: 14000, avgConversionRatio: 1.88, experienceYears: 7, rating: 3.8, active: true,
+    description: 'مرغداری کوهپایه‌ای — دمای طبیعی مطلوب در تابستان',
+  },
+  {
+    id: 'farm-27', name: 'مرغداری بهارستان', ownerName: 'آرش صالحی',
+    address: { province: 'اصفهان', city: 'شاهین‌شهر', address: 'شاهین‌شهر، شهرک صنعتی مورچه‌خورت' },
+    contact: { phone: '09133332211' }, grade: 'C', capacity: 11000, avgConversionRatio: 2.02, experienceYears: 3, rating: 3.4, active: true,
+    description: 'واحد در حال نوسازی — تجهیزات جدید نصب شده در سال جاری',
+  },
+  {
+    id: 'farm-28', name: 'مرغداری سپاهان', ownerName: 'فرزاد پورمند',
+    address: { province: 'اصفهان', city: 'گلپایگان', address: 'گلپایگان، جاده خوانسار' },
+    contact: { phone: '09134445566' }, grade: 'B', capacity: 26000, avgConversionRatio: 1.73, experienceYears: 14, rating: 4.1, active: true,
+    description: 'تخصص در پرورش نژاد آرین — ۴ سالن مجهز به سیستم گرمایش کفی',
+  },
+  {
+    id: 'farm-29', name: 'مرغداری زاینده', ownerName: 'تورج کیانی',
+    address: { province: 'اصفهان', city: 'شهرضا', address: 'شهرضا، جاده آباده' },
+    contact: { phone: '09135557788' }, grade: 'A', capacity: 52000, avgConversionRatio: 1.44, experienceYears: 27, rating: 4.9, active: true,
+    description: 'قطب صنعتی جنوب استان — دارای قرارداد بلندمدت با کشتارگاه',
+  },
+  {
+    id: 'farm-30', name: 'مرغداری کویر', ownerName: 'رامین افتخاری',
+    address: { province: 'اصفهان', city: 'خور و بیابانک', address: 'خور، جاده طبس' },
+    contact: { phone: '09136664455' }, grade: 'C', capacity: 8000, avgConversionRatio: 2.2, experienceYears: 2, rating: 3.1, active: true,
+    description: 'واحد اقلیم گرم و خشک — مجهز به سیستم مه‌پاش فشار قوی',
+  },
+  // ── Khorasan Razavi extras ──
+  {
+    id: 'farm-31', name: 'مرغداری توس', ownerName: 'ناصر علوی',
+    address: { province: 'خراسان رضوی', city: 'طرقبه', address: 'طرقبه، جاده شاندیز' },
+    contact: { phone: '09151112233' }, grade: 'A', capacity: 40000, avgConversionRatio: 1.53, experienceYears: 21, rating: 4.6, active: true,
+    description: 'مرغداری ییلاقی با تهویه طبیعی — مناسب جوجه‌ریزی بهاره',
+  },
+  {
+    id: 'farm-32', name: 'مرغداری رضوی', ownerName: 'غلامرضا توسلی',
+    address: { province: 'خراسان رضوی', city: 'سبزوار', address: 'سبزوار، جاده اسفراین' },
+    contact: { phone: '09152223344' }, grade: 'B', capacity: 24000, avgConversionRatio: 1.77, experienceYears: 9, rating: 4.0, active: true,
+    description: 'دسترسی به نهاده‌های محلی — کاهش هزینه حمل خوراک',
+  },
+  {
+    id: 'farm-33', name: 'مرغداری گناباد', ownerName: 'مصطفی رجایی',
+    address: { province: 'خراسان رضوی', city: 'گناباد', address: 'گناباد، جاده قائن' },
+    contact: { phone: '09153334455' }, grade: 'C', capacity: 13000, avgConversionRatio: 1.96, experienceYears: 5, rating: 3.5, active: true,
+    description: 'مناسب پرورش دوره‌های کوتاه‌مدت — نزدیک به بازار مصرف جنوب',
+  },
+  {
+    id: 'farm-34', name: 'مرغداری طوس طلایی', ownerName: 'احسان فخاری',
+    address: { province: 'خراسان رضوی', city: 'چناران', address: 'چناران، جاده قوچان' },
+    contact: { phone: '09154445566' }, grade: 'B', capacity: 29000, avgConversionRatio: 1.7, experienceYears: 12, rating: 4.2, active: true,
+    description: 'سالن‌های مدرن با نورپردازی LED — کاهش استرس طیور',
+  },
+  {
+    id: 'farm-35', name: 'مرغداری بینالود', ownerName: 'سعید گرامی',
+    address: { province: 'خراسان رضوی', city: 'نیشابور', address: 'نیشابور، جاده بار' },
+    contact: { phone: '09158889900' }, grade: 'A', capacity: 43000, avgConversionRatio: 1.49, experienceYears: 24, rating: 4.7, active: true,
+    description: 'برترین مرغداری شرق کشور — دارای آزمایشگاه کنترل کیفیت',
+  },
+  {
+    id: 'farm-36', name: 'مرغداری کاشمر', ownerName: 'داریوش رزمجو',
+    address: { province: 'خراسان رضوی', city: 'کاشمر', address: 'کاشمر، جاده بردسکن' },
+    contact: { phone: '09156667788' }, grade: 'B', capacity: 19000, avgConversionRatio: 1.83, experienceYears: 10, rating: 3.9, active: true,
+    description: 'مدیریت خانوادگی با ۳ نسل تجربه — بازار هدف: مشهد و تهران',
+  },
+  // ── Mazandaran extras ──
+  {
+    id: 'farm-37', name: 'مرغداری خزر', ownerName: 'افشین بارانی',
+    address: { province: 'مازندران', city: 'آمل', address: 'آمل، جاده محمودآباد' },
+    contact: { phone: '09112223344' }, grade: 'A', capacity: 36000, avgConversionRatio: 1.58, experienceYears: 17, rating: 4.5, active: true,
+    description: 'مرغداری ساحلی با تهویه عالی — رطوبت کنترل‌شده اتوماتیک',
+  },
+  {
+    id: 'farm-38', name: 'مرغداری البرز شمالی', ownerName: 'پیمان جویباری',
+    address: { province: 'مازندران', city: 'قائم‌شهر', address: 'قائم‌شهر، جاده ساری' },
+    contact: { phone: '09113334466' }, grade: 'B', capacity: 21000, avgConversionRatio: 1.75, experienceYears: 8, rating: 4.0, active: true,
+    description: 'نزدیک به بنادر شمال — دسترسی آسان به نهاده‌های وارداتی',
+  },
+  {
+    id: 'farm-39', name: 'مرغداری چالوس', ownerName: 'شهلا رضایی',
+    address: { province: 'مازندران', city: 'چالوس', address: 'چالوس، جاده مرزن‌آباد' },
+    contact: { phone: '09114445577' }, grade: 'C', capacity: 10000, avgConversionRatio: 2.05, experienceYears: 4, rating: 3.4, active: true,
+    description: 'مرغداری کوهستانی — محدودیت ظرفیت به دلیل شیب زمین',
+  },
+  {
+    id: 'farm-40', name: 'مرغداری تنکابن', ownerName: 'سیروس مهرانی',
+    address: { province: 'مازندران', city: 'تنکابن', address: 'تنکابن، جاده رامسر' },
+    contact: { phone: '09115556688' }, grade: 'B', capacity: 27000, avgConversionRatio: 1.69, experienceYears: 13, rating: 4.2, active: true,
+    description: 'غرب مازندران — بازار فروش تضمینی با کشتارگاه رشت',
+  },
+  {
+    id: 'farm-41', name: 'مرغداری بهشهر', ownerName: 'کاوه لاریجانی',
+    address: { province: 'مازندران', city: 'بهشهر', address: 'بهشهر، جاده گلوگاه' },
+    contact: { phone: '09117771122' }, grade: 'A', capacity: 41000, avgConversionRatio: 1.51, experienceYears: 22, rating: 4.6, active: true,
+    description: 'بزرگترین واحد شرق استان — صادرات مرغ به عراق و افغانستان',
+  },
+  // ── Fars extras ──
+  {
+    id: 'farm-42', name: 'مرغداری تخت جمشید', ownerName: 'کوروش هخامنش',
+    address: { province: 'فارس', city: 'مرودشت', address: 'مرودشت، جاده تخت جمشید' },
+    contact: { phone: '09171112233' }, grade: 'A', capacity: 44000, avgConversionRatio: 1.47, experienceYears: 26, rating: 4.8, active: true,
+    description: 'قدیمی‌ترین مرغداری استان — برنده ۵ دوره جایزه بهره‌وری',
+  },
+  {
+    id: 'farm-43', name: 'مرغداری جهرم', ownerName: 'آرمان کشاورز',
+    address: { province: 'فارس', city: 'جهرم', address: 'جهرم، جاده لار' },
+    contact: { phone: '09172224455' }, grade: 'B', capacity: 23000, avgConversionRatio: 1.74, experienceYears: 11, rating: 4.1, active: true,
+    description: 'جنوب فارس — اقلیم گرم، مجهز به سیستم خنک‌کننده تبخیری',
+  },
+  {
+    id: 'farm-44', name: 'مرغداری کازرون', ownerName: 'لیلا شریفی',
+    address: { province: 'فارس', city: 'کازرون', address: 'کازرون، جاده بیشاپور' },
+    contact: { phone: '09173336677' }, grade: 'C', capacity: 15000, avgConversionRatio: 1.93, experienceYears: 6, rating: 3.6, active: true,
+    description: 'در حال ارتقا به گرید B — نصب تجهیزات دان‌ریز اتوماتیک',
+  },
+  {
+    id: 'farm-45', name: 'مرغداری لارستان', ownerName: 'رهام عباسی',
+    address: { province: 'فارس', city: 'لار', address: 'لار، جاده بندرعباس' },
+    contact: { phone: '09174448899' }, grade: 'B', capacity: 34000, avgConversionRatio: 1.66, experienceYears: 15, rating: 4.4, active: true,
+    description: 'قطب جنوب استان — نزدیک به بازارهای صادراتی خلیج فارس',
+  },
+  {
+    id: 'farm-46', name: 'مرغداری نورآباد', ownerName: 'فریدون پارسا',
+    address: { province: 'فارس', city: 'نورآباد', address: 'نورآباد ممسنی، جاده شیراز' },
+    contact: { phone: '09175550011' }, grade: 'C', capacity: 10500, avgConversionRatio: 2.1, experienceYears: 3, rating: 3.3, active: true,
+    description: 'واحد نوساز — پتانسیل رشد بالا با حمایت جهاد کشاورزی',
+  },
+  // ── Alborz extras ──
+  {
+    id: 'farm-47', name: 'مرغداری مهر', ownerName: 'شهاب الدین فرهادی',
+    address: { province: 'البرز', city: 'اشتهارد', address: 'اشتهارد، شهرک صنعتی' },
+    contact: { phone: '09121119988' }, grade: 'B', capacity: 17000, avgConversionRatio: 1.8, experienceYears: 6, rating: 3.8, active: true,
+    description: 'نزدیک به آزادراه — حمل آسان به تهران و کرج',
+  },
+  {
+    id: 'farm-48', name: 'مرغداری طالقان', ownerName: 'مهیار کیانی',
+    address: { province: 'البرز', city: 'طالقان', address: 'طالقان، جاده زیاران' },
+    contact: { phone: '09122223344' }, grade: 'C', capacity: 12000, avgConversionRatio: 1.98, experienceYears: 5, rating: 3.5, active: true,
+    description: 'آب و هوای خنک کوهپایه — کاهش مصرف انرژی سرمایشی',
+  },
+  {
+    id: 'farm-49', name: 'مرغداری فردیس', ownerName: 'بهروز نعمتی',
+    address: { province: 'البرز', city: 'فردیس', address: 'فردیس، جاده ملارد' },
+    contact: { phone: '09123335566' }, grade: 'B', capacity: 33000, avgConversionRatio: 1.64, experienceYears: 16, rating: 4.3, active: true,
+    description: 'سیستم تمام هوشمند — پایش ۲۴ ساعته دما و رطوبت',
+  },
+  // ── East Azerbaijan extras ──
+  {
+    id: 'farm-50', name: 'مرغداری سهند', ownerName: 'یاشار محمدی',
+    address: { province: 'آذربایجان شرقی', city: 'مراغه', address: 'مراغه، جاده بناب' },
+    contact: { phone: '09141112233' }, grade: 'A', capacity: 39000, avgConversionRatio: 1.52, experienceYears: 19, rating: 4.5, active: true,
+    description: 'تأمین‌کننده اصلی بازار تبریز — مجهز به کشتارگاه اختصاصی',
+  },
+  {
+    id: 'farm-51', name: 'مرغداری ارس', ownerName: 'کامران حیدری',
+    address: { province: 'آذربایجان شرقی', city: 'جلفا', address: 'جلفا، منطقه آزاد ارس' },
+    contact: { phone: '09142223344' }, grade: 'B', capacity: 20000, avgConversionRatio: 1.76, experienceYears: 10, rating: 4.0, active: true,
+    description: 'منطقه آزاد — معافیت گمرکی نهاده‌های وارداتی',
+  },
+  // ── Gilan extras ──
+  {
+    id: 'farm-52', name: 'مرغداری آستارا', ownerName: 'فرناز احمدی',
+    address: { province: 'گیلان', city: 'آستارا', address: 'آستارا، جاده تالش' },
+    contact: { phone: '09116668899' }, grade: 'C', capacity: 11000, avgConversionRatio: 2.03, experienceYears: 4, rating: 3.4, active: true,
+    description: 'شمالی‌ترین واحد — رطوبت بالا، نیازمند تهویه ویژه',
+  },
+  {
+    id: 'farm-53', name: 'مرغداری لاهیجان', ownerName: 'کیوان امینیان',
+    address: { province: 'گیلان', city: 'لاهیجان', address: 'لاهیجان، جاده لنگرود' },
+    contact: { phone: '09117772233' }, grade: 'B', capacity: 25000, avgConversionRatio: 1.72, experienceYears: 12, rating: 4.1, active: true,
+    description: 'چای‌کار سابق، مرغدار فعلی — تلفیق کشاورزی و دامپروری',
+  },
+  // ── Khuzestan extras ──
+  {
+    id: 'farm-54', name: 'مرغداری دزفول', ownerName: 'ساسان بختیاری',
+    address: { province: 'خوزستان', city: 'دزفول', address: 'دزفول، جاده شوشتر' },
+    contact: { phone: '09161112233' }, grade: 'B', capacity: 28000, avgConversionRatio: 1.71, experienceYears: 13, rating: 4.2, active: true,
+    description: 'شمال خوزستان — آب و هوای معتدل‌تر نسبت به جنوب استان',
+  },
+  {
+    id: 'farm-55', name: 'مرغداری آبادان', ownerName: 'هومن بحرانی',
+    address: { province: 'خوزستان', city: 'آبادان', address: 'آبادان، جاده خرمشهر' },
+    contact: { phone: '09162223344' }, grade: 'C', capacity: 14000, avgConversionRatio: 2.08, experienceYears: 5, rating: 3.3, active: true,
+    description: 'اقلیم فوق‌گرم — سیستم سرمایش ۲۴ ساعته با ژنراتور اضطراری',
+  },
+  // ── Yazd extras ──
+  {
+    id: 'farm-56', name: 'مرغداری اردکان', ownerName: 'بیژن دهقان',
+    address: { province: 'یزد', city: 'اردکان', address: 'اردکان، جاده نائین' },
+    contact: { phone: '09131117788' }, grade: 'B', capacity: 19000, avgConversionRatio: 1.81, experienceYears: 9, rating: 3.9, active: true,
+    description: 'معماری کویری — عایق حرارتی طبیعی، مصرف انرژی پایین',
+  },
+  // ── Qom extras ──
+  {
+    id: 'farm-57', name: 'مرغداری حرم', ownerName: 'مجید رضویان',
+    address: { province: 'قم', city: 'قم', address: 'قم، جاده گرمسار' },
+    contact: { phone: '09121110022' }, grade: 'B', capacity: 26000, avgConversionRatio: 1.67, experienceYears: 14, rating: 4.3, active: true,
+    description: 'نزدیک به بازار مصرف تهران و قم — کاهش هزینه حمل',
+  },
+  // ── Kerman extras ──
+  {
+    id: 'farm-58', name: 'مرغداری رفسنجان', ownerName: 'پدرام موسوی',
+    address: { province: 'کرمان', city: 'رفسنجان', address: 'رفسنجان، جاده کرمان' },
+    contact: { phone: '09134447788' }, grade: 'C', capacity: 12000, avgConversionRatio: 2.04, experienceYears: 4, rating: 3.4, active: true,
+    description: 'تأمین‌کننده پسته‌کاران منطقه — ضایعات پسته در جیره طیور',
+  },
+  // ── Hamedan extras ──
+  {
+    id: 'farm-59', name: 'مرغداری الوند', ownerName: 'شیرین کرمی',
+    address: { province: 'همدان', city: 'همدان', address: 'همدان، جاده کرمانشاه' },
+    contact: { phone: '09181112233' }, grade: 'B', capacity: 21000, avgConversionRatio: 1.73, experienceYears: 10, rating: 4.0, active: true,
+    description: 'اقلیم سرد و خشک — کیفیت بالای لاشه در فصول سرد',
+  },
+  {
+    id: 'farm-60', name: 'مرغداری ملایر', ownerName: 'ایرج گودرزی',
+    address: { province: 'همدان', city: 'ملایر', address: 'ملایر، جاده اراک' },
+    contact: { phone: '09182224455' }, grade: 'C', capacity: 8000, avgConversionRatio: 2.12, experienceYears: 2, rating: 3.2, active: true,
+    description: 'واحد کوچک با پتانسیل توسعه — زمین ۵ هکتاری در اختیار',
+  },
+  // ── Kermanshah extras ──
+  {
+    id: 'farm-61', name: 'مرغداری بیستون', ownerName: 'اردشیر کرمانشاهی',
+    address: { province: 'کرمانشاه', city: 'کرمانشاه', address: 'کرمانشاه، جاده بیستون' },
+    contact: { phone: '09183331122' }, grade: 'B', capacity: 30000, avgConversionRatio: 1.69, experienceYears: 15, rating: 4.2, active: true,
+    description: 'غرب کشور — بازار عراق در دسترس، پتانسیل صادراتی بالا',
+  },
 ];
