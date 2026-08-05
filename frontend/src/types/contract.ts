@@ -46,6 +46,8 @@ export interface Collateral {
   farmId: string;
   type: string;
   value?: number;
+  /** Bank name — set when type is 'guarantee' */
+  bankName?: string;
   status: 'pending' | 'provided' | 'verified';
   submittedAt: string;
 }
@@ -87,4 +89,26 @@ export const IRAN_PROVINCES = [
   'تهران', 'اصفهان', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی',
   'مازندران', 'البرز', 'خوزستان', 'گیلان', 'کرمان',
   'قم', 'قزوین', 'سمنان', 'یزد', 'همدان', 'کردستان', 'کرمانشاه',
+];
+
+export const IRANIAN_BANKS = [
+  { id: 'melli', label: 'بانک ملی ایران' },
+  { id: 'sepah', label: 'بانک سپه' },
+  { id: 'keshavarzi', label: 'بانک کشاورزی' },
+  { id: 'maskan', label: 'بانک مسکن' },
+  { id: 'tejarat', label: 'بانک تجارت' },
+  { id: 'mellat', label: 'بانک ملت' },
+  { id: 'saderat', label: 'بانک صادرات' },
+  { id: 'refah', label: 'بانک رفاه' },
+  { id: 'parsian', label: 'بانک پارسیان' },
+  { id: 'pasargad', label: 'بانک پاسارگاد' },
+  { id: 'eghtesad', label: 'بانک اقتصاد نوین' },
+  { id: 'saman', label: 'بانک سامان' },
+  { id: 'sarmayeh', label: 'بانک سرمایه' },
+  { id: 'shahr', label: 'بانک شهر' },
+  { id: 'day', label: 'بانک دی' },
+  { id: 'ansar', label: 'بانک انصار' },
+  { id: 'mehr', label: 'بانک مهر ایران' },
+  { id: 'ayandeh', label: 'بانک آینده' },
+  { id: 'sina', label: 'بانک سینا' },
 ];
