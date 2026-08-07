@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Radio, Button, InputNumber, Typography, Space, message, Select, Tag, Divider, Empty } from 'antd';
+import { Card, Radio, Button, InputNumber, Typography, Space, message, Tag, Divider, Empty } from 'antd';
 import {
   CheckCircleOutlined,
   SafetyOutlined,
@@ -253,24 +253,54 @@ export function CollateralPage() {
         {/* Bank selection — shown only for bank guarantee */}
         {type === 'guarantee' && (
           <Card style={{ marginBottom: 12, borderRadius: 12 }}>
-            <Title level={5} style={{ marginBottom: 12 }}>
+            <Title level={5} style={{ marginBottom: 4 }}>
               <BankOutlined style={{ marginLeft: 6 }} />
               انتخاب بانک صادرکننده ضمانت‌نامه
             </Title>
-            <Text type="secondary" style={{ display: 'block', marginBottom: 10, fontSize: 12 }}>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 12 }}>
               بانکی که از آن ظرفیت دریافت ضمانت‌نامه دارید را انتخاب کنید
             </Text>
-            <Select
-              value={bankId}
-              onChange={(v) => setBankId(v)}
-              placeholder="انتخاب بانک..."
-              style={{ width: '100%' }}
-              size="large"
-              options={IRANIAN_BANKS.map((bank) => ({
-                value: bank.id,
-                label: bank.label,
-              }))}
-            />
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 8,
+            }}>
+              {IRANIAN_BANKS.map((bank) => {
+                const isSelected = bankId === bank.id;
+                return (
+                  <div
+                    key={bank.id}
+                    onClick={() => setBankId(bank.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '10px 12px',
+                      borderRadius: 10,
+                      border: isSelected ? '2px solid #1677ff' : '1px solid #e8e8e8',
+                      background: isSelected ? '#e6f4ff' : '#fff',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      minHeight: 44,
+                    }}
+                  >
+                    <BankOutlined style={{
+                      fontSize: 16,
+                      color: isSelected ? '#1677ff' : '#8c8c8c',
+                      flexShrink: 0,
+                    }} />
+                    <Text style={{
+                      fontSize: 12,
+                      fontWeight: isSelected ? 600 : 400,
+                      color: isSelected ? '#1677ff' : '#434343',
+                      lineHeight: 1.3,
+                    }}>
+                      {bank.label}
+                    </Text>
+                  </div>
+                );
+              })}
+            </div>
           </Card>
         )}
 
