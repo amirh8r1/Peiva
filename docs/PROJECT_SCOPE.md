@@ -19,11 +19,11 @@
 - **مزرعه‌دار**: مشاهده پیشنهادهای قرارداد، ثبت درصد مشارکت، تأمین وثیقه
 - **تأمین‌کننده نهاده**: ایجاد زنجیره، تعریف شرایط قرارداد، تأیید/رد مزرعه‌داران
 
-### Mobile-First Design
-- حذف سایدبار کامل
-- Top App Bar + Drawer (پترن موبایلی)
-- max-width: 480px — طراحی بهینه برای تلفن همراه
-- سویچ نقش در هدر با Segmented control
+### Responsive Design (پاسخگویی)
+- **Breakpoint: ۷۶۸px** — طراحی بسته به اندازه صفحه «سینک» می‌شود
+- **موبایل (<۷۶۸px):** Top App Bar + BottomNav با FAB، شل max-width 480 — طراحی فعلی موبایل دست‌نخورده
+- **دسکتاپ (≥۷۶۸px):** سایدبار راست (Menu تیره) + هدر + محتوای وسط max-width 1100
+- استک کارت‌ها در دسکتاپ گرید `auto-fill minmax`؛ لیست قراردادها با `List grid`؛ فرم‌ها در ستون ۶۴۰px وسط‌چین؛ CTA ها max-width ۵۲۰ وسط‌چین
 
 ## قوانین توسعه
 
@@ -39,10 +39,10 @@
 - sanitize داده‌های mock
 - آماده‌سازی ساختار برای audit log
 
-### ۴. Mobile-First
-- طراحی اول برای عرض ۳۶۰-۴۸۰px
-- max-width container با box-shadow
-- فضای بهینه، بدون شلوغی
+### ۴. Responsive — گوشی و مانیتور
+- زیر ۷۶۸px: طراحی موبایل برای عرض ۳۶۰-۴۸۰px (max-width container، نوار پایین)
+- از ۷۶۸px به بالا: پترن دسکتاپ (سایدبار راست + گرید کارت‌ها + محتوای وسط)
+- منطق ریسپانسیو فقط از ابزارهای مشترک `useIsDesktop()` / `responsiveGrid()` / `centeredCTA()` — هرگز `window.innerWidth` ad-hoc
 
 ### ۵. Reusability
 - `SelectionCard` جنریک برای تمام entity types
@@ -78,4 +78,4 @@ docker compose -f deploy/docker-compose.yml up --build -d
 
 ---
 
-*آخرین به‌روزرسانی: ۱۴۰۴/۰۵/۰۱*
+*آخرین به‌روزرسانی: ۱۴۰۵/۰۵/۲۲*

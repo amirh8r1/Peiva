@@ -10,6 +10,8 @@ import { formatNumber, parsePersianNumber, toPersianDigits } from '@/utils/forma
 import { jalaliDatePickerLocale } from '@/utils/jalaliDatePickerLocale';
 import { CONTRACT_TYPE_LABELS, TERM_TEMPLATES, PROFIT_METHODS, COLLATERAL_TYPE_LIST, IRAN_PROVINCES } from '@/types';
 import { mockFarms } from '@/mocks';
+import { useIsDesktop } from '@/hooks/useResponsive';
+import { responsiveGrid } from '@/utils/responsive';
 import type { Contract, Farm } from '@/types';
 
 const { Text } = Typography;
@@ -69,6 +71,9 @@ function PeriodStep() {
         locale={jalaliDatePickerLocale}
         size="large"
         style={{ width: '100%', borderRadius: 10 }}
+        placement="bottomLeft"
+        showToday={false}
+        popupAlign={{ offset: [0, 4], overflow: { adjustX: true, adjustY: false } }}
         format={(d) => toPersianDigits((d as any).format('YYYY/MM/DD'))}
         value={p.deliveryDate ? (dayjs as any)(p.deliveryDate, { jalali: true }) : null}
         onChange={(d) => {
@@ -169,6 +174,7 @@ function CollateralTypesStep() {
 
 function FarmSelectionStep() {
   const { state, dispatch } = useChainWizard();
+  const isDesktop = useIsDesktop();
   const totalChicks = state.periods.reduce((s, p) => s + (p.chickCount || 0), 0);
 
   // Filter farms: same province + enough capacity
@@ -183,8 +189,9 @@ function FarmSelectionStep() {
       <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
         مزارع منطبق با شرایط ({formatNumber(eligible.length)} مورد) — استان {state.region}، ظرفیت ≥ {formatNumber(totalChicks)}
       </Text>
+      <div style={isDesktop ? responsiveGrid(360, 16) : undefined}>
       {eligible.map((farm) => (
-        <div key={farm.id} style={{ marginBottom: 10 }}>
+        <div key={farm.id} style={{ marginBottom: isDesktop ? 0 : 10 }}>
           <SelectionCard<Farm>
             item={farm}
             selected={state.selectedFarmIds.includes(farm.id)}
@@ -210,6 +217,7 @@ function FarmSelectionStep() {
           />
         </div>
       ))}
+      </div>
     </div>
   );
 }

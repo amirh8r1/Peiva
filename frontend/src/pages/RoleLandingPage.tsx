@@ -1,16 +1,19 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, Typography } from 'antd';
 import { ApartmentOutlined, TeamOutlined } from '@ant-design/icons';
+import { useIsDesktop } from '@/hooks/useResponsive';
 
 const { Title, Text } = Typography;
 
 export function RoleLandingPage() {
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
 
   return (
     <div style={{
-      maxWidth: 400, margin: '0 auto', minHeight: '100vh',
-      display: 'flex', flexDirection: 'column', justifyContent: 'center',
+      maxWidth: isDesktop ? 720 : 400, margin: '0 auto', minHeight: '100vh',
+      display: 'flex', flexDirection: isDesktop ? 'row' : 'column', justifyContent: 'center',
+      alignItems: isDesktop ? 'center' : undefined,
       padding: 24, gap: 20,
     }}>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
@@ -25,7 +28,7 @@ export function RoleLandingPage() {
         </Text>
       </div>
 
-      <Card hoverable style={{ borderRadius: 12, border: '2px solid #389e0d' }}
+      <Card hoverable style={{ borderRadius: 12, border: '2px solid #389e0d', ...(isDesktop ? { flex: 1 } : {}) }}
         onClick={() => navigate('/supplier')}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <ApartmentOutlined style={{ fontSize: 36, color: '#389e0d' }} />
@@ -36,7 +39,7 @@ export function RoleLandingPage() {
         </div>
       </Card>
 
-      <Card hoverable style={{ borderRadius: 12, border: '2px solid #1677ff' }}
+      <Card hoverable style={{ borderRadius: 12, border: '2px solid #1677ff', ...(isDesktop ? { flex: 1 } : {}) }}
         onClick={() => navigate('/farm')}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <TeamOutlined style={{ fontSize: 36, color: '#1677ff' }} />

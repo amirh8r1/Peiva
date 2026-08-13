@@ -2,8 +2,11 @@ import { Button, Typography, Progress } from 'antd';
 import { ArrowRightOutlined, ArrowLeftOutlined, CloseOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useChainWizard } from '../context/ChainWizardContext';
+import { useIsDesktop } from '@/hooks/useResponsive';
 
 const { Text } = Typography;
+
+const WIZARD_COLUMN_MAX = 640;
 
 interface ChainStepperProps { children: React.ReactNode; onSubmit: () => void; isSubmitting?: boolean; }
 
@@ -22,6 +25,7 @@ function stepTitle(state: ReturnType<typeof useChainWizard>['state'], ctx: Retur
 export function ChainStepper({ children, onSubmit, isSubmitting }: ChainStepperProps) {
   const ctx = useChainWizard();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const { state } = ctx;
   const isLast = state.currentStep === ctx.totalStepCount - 1;
   const pct = Math.round(((state.currentStep + 1) / ctx.totalStepCount) * 100);
@@ -37,8 +41,17 @@ export function ChainStepper({ children, onSubmit, isSubmitting }: ChainStepperP
       {!ctx.canProceed && ctx.proceedBlockReason && (
         <Text type="warning" style={{ fontSize: 11, marginBottom: 4, flexShrink: 0, display: 'block' }}>{ctx.proceedBlockReason}</Text>
       )}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, paddingBottom: 60 }}>{children}</div>
-      <div style={{ position: 'fixed', bottom: 70, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, padding: '8px 12px', background: 'linear-gradient(transparent, #f5f5f5 30%)', display: 'flex', gap: 8, zIndex: 101 }}>
+      {/* key=currentStep → اسکرول هر گام از بالا شروع می‌شود */}
+      <div key={state.currentStep} style={{
+        flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0,
+        width: '100%', ...(isDesktop ? { maxWidth: WIZARD_COLUMN_MAX, margin: '0 auto' } : {}),
+        paddingBottom: isDesktop ? 0 : 60,
+      }}>{children}</div>
+      {/* موبایل: نوار fixed بالای BottomNav | دسکتاپ: آخرین فرزند flex که پایین ستون می‌چسبد */}
+      <div style={isDesktop
+        ? { flexShrink: 0, display: 'flex', gap: 8, padding: '12px 0', width: '100%', maxWidth: WIZARD_COLUMN_MAX, margin: '0 auto' }
+        : { position: 'fixed', bottom: 70, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, padding: '8px 12px', background: 'linear-gradient(transparent, #f5f5f5 30%)', display: 'flex', gap: 8, zIndex: 101 }}
+      >
         {state.currentStep > 0 && <Button onClick={ctx.goPrev} icon={<ArrowRightOutlined />} size="large">قبل</Button>}
         {isLast ? (
           <Button type="primary" onClick={onSubmit} disabled={!ctx.canProceed} loading={isSubmitting} size="large" block style={{ height: 44 }}>تأیید و ارسال به مزرعه‌داران</Button>

@@ -12,6 +12,7 @@ import {
 import { CheckCircleFilled, InfoCircleOutlined } from '@ant-design/icons';
 import type { QualityGrade } from '@/types';
 import { gradeColorMap } from '@/types';
+import { useIsDesktop } from '@/hooks/useResponsive';
 
 const { Text } = Typography;
 
@@ -51,6 +52,7 @@ export function SelectionCard<T extends { id: string; active?: boolean; descript
   grade,
 }: SelectionCardProps<T>) {
   const { token } = theme.useToken();
+  const isDesktop = useIsDesktop();
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   return (
@@ -191,10 +193,10 @@ export function SelectionCard<T extends { id: string; active?: boolean; descript
             بستن
           </Button>
         }
-        width={520}
+        width={isDesktop ? 640 : 520}
       >
         {details && details.length > 0 && (
-          <Descriptions column={1} bordered size="small" style={{ marginBottom: 16 }}>
+          <Descriptions column={isDesktop ? 2 : 1} bordered size="small" style={{ marginBottom: 16 }}>
             {details.map((d) => (
               <Descriptions.Item key={d.label} label={d.label}>
                 {d.value}

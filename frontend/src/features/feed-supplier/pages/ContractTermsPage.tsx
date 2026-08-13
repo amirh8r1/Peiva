@@ -5,6 +5,8 @@ import { ArrowRightOutlined } from '@ant-design/icons';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber } from '@/utils/format';
 import { CONTRACT_TYPE_LABELS } from '@/types';
+import { useIsDesktop } from '@/hooks/useResponsive';
+import { centeredCTA } from '@/utils/responsive';
 import type { Contract } from '@/types';
 
 const { Text, Title } = Typography;
@@ -13,6 +15,7 @@ const { TextArea } = Input;
 export function ContractTermsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const [type, setType] = useState<Contract['contractType']>('commission');
   const [profitMin, setProfitMin] = useState(30);
   const [terms, setTerms] = useState('');
@@ -39,7 +42,7 @@ export function ContractTermsPage() {
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       <PageHeader title="تعریف شرایط قرارداد" subtitle="نوع، شرایط و تسهیم منافع را مشخص کنید" />
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div style={{ flex: 1, overflowY: 'auto', width: '100%', ...(isDesktop ? { maxWidth: 640, margin: '0 auto' } : {}) }}>
         {/* Contract type */}
         <Card style={{ marginBottom: 12 }}>
           <Title level={5}>نوع قرارداد</Title>
@@ -85,7 +88,7 @@ export function ContractTermsPage() {
           </div>
         </Card>
 
-        <Button type="primary" block size="large" onClick={handleSubmit}>
+        <Button type="primary" block size="large" onClick={handleSubmit} style={centeredCTA(isDesktop)}>
           تأیید و ارسال به مزرعه‌داران
         </Button>
       </div>

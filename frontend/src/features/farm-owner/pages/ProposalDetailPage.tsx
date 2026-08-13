@@ -13,12 +13,15 @@ import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber, toPersianDigits } from '@/utils/format';
 import { CONTRACT_TYPE_LABELS, TERM_TEMPLATES, PROFIT_METHODS, COLLATERAL_TYPE_LIST } from '@/types';
+import { useIsDesktop } from '@/hooks/useResponsive';
+import { responsiveGrid, centeredCTA } from '@/utils/responsive';
 
 const { Text, Title } = Typography;
 
 export function ProposalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const { data } = useData();
 
   const contract = data.contracts.find((c) => c.id === id);
@@ -43,10 +46,10 @@ export function ProposalDetailPage() {
       <PageHeader title={contract.name} subtitle="جزئیات قرارداد" extra={
         <Button icon={<ArrowRightOutlined />} onClick={() => navigate('/farm/proposals')}>بازگشت</Button>
       } />
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 80 }}>
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: isDesktop ? 24 : 80 }}>
         {/* ── Summary grid ── */}
         <Card size="small" style={{ marginBottom: 12, borderRadius: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr', gap: 8 }}>
             <div style={summaryItemStyle}>
               <FileTextOutlined style={{ fontSize: 18, color: '#1677ff' }} />
               <div>
@@ -84,12 +87,13 @@ export function ProposalDetailPage() {
           title={<Space><CalendarOutlined /><span>دوره‌های پرورش</span></Space>}
           style={{ marginBottom: 12, borderRadius: 12 }}
         >
+          <div style={isDesktop ? responsiveGrid(480, 12) : undefined}>
           {contract.periods.map((p, idx) => (
             <Card
               key={p.index}
               size="small"
               style={{
-                marginBottom: idx < contract.periods.length - 1 ? 8 : 0,
+                marginBottom: !isDesktop && idx < contract.periods.length - 1 ? 8 : 0,
                 borderRadius: 10,
                 background: '#fafafa',
                 border: '1px solid #f0f0f0',
@@ -117,6 +121,7 @@ export function ProposalDetailPage() {
               </div>
             </Card>
           ))}
+          </div>
         </Card>
 
         {/* ── Terms ── */}
@@ -184,7 +189,7 @@ export function ProposalDetailPage() {
           size="large"
           icon={<SafetyOutlined />}
           onClick={() => navigate(`/farm/collateral/${contract.id}`)}
-          style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 600 }}
+          style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 600, ...centeredCTA(isDesktop) }}
         >
           تأمین تضامین و نهایی کردن قرارداد
         </Button>

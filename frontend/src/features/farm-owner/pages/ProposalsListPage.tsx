@@ -4,11 +4,14 @@ import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber } from '@/utils/format';
 import { CONTRACT_TYPE_LABELS } from '@/types';
+import { useIsDesktop } from '@/hooks/useResponsive';
+import { responsiveGrid } from '@/utils/responsive';
 
 const { Text, Title } = Typography;
 
 export function ProposalsListPage() {
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const { data } = useData();
   const finIds = new Set(data.contracts.filter((c) => c.status === 'finalized').map((c) => c.id));
   const needCollateral = data.proposals.filter((p) => p.status === 'accepted' && !finIds.has(p.contractId));
@@ -18,26 +21,28 @@ export function ProposalsListPage() {
   return (
     <>
       <PageHeader title="قراردادهای پیشنهادی" />
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
         {needCollateral.length > 0 && (
           <>
             <Title level={5}>در انتظار تأمین تضامین</Title>
-            {needCollateral.map((p) => (
-              <Card key={p.id} style={{ marginBottom: 10, background: '#fff7e6', borderRadius: 10, border: '1px solid #faad14' }}>
-                <Text strong>{p.contractName}</Text>
-                <Tag color="warning" style={{ float: 'left' }}>تأیید شده</Tag>
-                <Button type="primary" size="small" block style={{ marginTop: 8 }}
-                  onClick={() => navigate(`/farm/collateral/${p.contractId}`)}>تأمین تضامین</Button>
-              </Card>
-            ))}
+            <div style={isDesktop ? responsiveGrid(360, 16) : undefined}>
+              {needCollateral.map((p) => (
+                <Card key={p.id} style={{ marginBottom: isDesktop ? 0 : 10, background: '#fff7e6', borderRadius: 10, border: '1px solid #faad14' }}>
+                  <Text strong>{p.contractName}</Text>
+                  <Tag color="warning" style={{ float: 'left' }}>تأیید شده</Tag>
+                  <Button type="primary" size="small" block style={{ marginTop: 8 }}
+                    onClick={() => navigate(`/farm/collateral/${p.contractId}`)}>تأمین تضامین</Button>
+                </Card>
+              ))}
+            </div>
           </>
         )}
 
         {sent.length > 0 && (
           <>
             <Title level={5} style={{ marginTop: 16 }}>قراردادهای ارسال شده</Title>
-            <List dataSource={sent} renderItem={(c) => (
-              <Card hoverable size="small" style={{ marginBottom: 6, borderRadius: 8 }} onClick={() => navigate(`/farm/proposals/${c.id}`)}>
+            <List dataSource={sent} grid={{ gutter: [12, isDesktop ? 12 : 6], xs: 1, md: 2, xl: 3 }} renderItem={(c) => (
+              <Card hoverable size="small" style={{ borderRadius: 8 }} onClick={() => navigate(`/farm/proposals/${c.id}`)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div>
                     <Text strong>{c.name}</Text>
@@ -56,12 +61,14 @@ export function ProposalsListPage() {
         {finalized.length > 0 && (
           <>
             <Title level={5} style={{ marginTop: 16 }}>نهایی شده</Title>
-            {finalized.map((c) => (
-              <Card key={c.id} size="small" style={{ marginBottom: 6, borderRadius: 8, background: '#f6ffed' }}>
-                <Text strong>{c.name}</Text>
-                <Tag color="success" style={{ float: 'left' }}>نهایی</Tag>
-              </Card>
-            ))}
+            <div style={isDesktop ? responsiveGrid(360, 16) : undefined}>
+              {finalized.map((c) => (
+                <Card key={c.id} size="small" style={{ marginBottom: isDesktop ? 0 : 6, borderRadius: 8, background: '#f6ffed' }}>
+                  <Text strong>{c.name}</Text>
+                  <Tag color="success" style={{ float: 'left' }}>نهایی</Tag>
+                </Card>
+              ))}
+            </div>
           </>
         )}
 

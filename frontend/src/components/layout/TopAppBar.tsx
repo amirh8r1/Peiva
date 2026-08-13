@@ -1,14 +1,12 @@
-import { Layout, Typography, Button } from 'antd';
-import { ArrowRightOutlined } from '@ant-design/icons';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Layout, Typography } from 'antd';
+import { useLocation } from 'react-router-dom';
+import { panelTitle, LogoutButton } from './navItems';
 
 const { Header: AntHeader } = Layout;
 const { Text } = Typography;
 
 export function TopAppBar() {
-  const navigate = useNavigate();
   const location = useLocation();
-  const isSupplier = location.pathname.startsWith('/supplier');
 
   return (
     <AntHeader style={{
@@ -18,11 +16,9 @@ export function TopAppBar() {
     }}>
       <div style={{ width: 48 }} />
       <Text strong style={{ fontSize: 14 }}>
-        {isSupplier ? 'پنل تأمین‌کننده' : 'پنل مزرعه‌دار'}
+        {panelTitle(location.pathname)}
       </Text>
-      <Button type="text" icon={<ArrowRightOutlined />} onClick={() => navigate('/')} style={{ fontSize: 14 }}>
-        خروج
-      </Button>
+      <LogoutButton />
     </AntHeader>
   );
 }

@@ -16,6 +16,8 @@ import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber, parsePersianNumber, toPersianDigits } from '@/utils/format';
 import { COLLATERAL_TYPE_LIST, CONTRACT_TYPE_LABELS, TERM_TEMPLATES, PROFIT_METHODS, IRANIAN_BANKS } from '@/types';
+import { useIsDesktop } from '@/hooks/useResponsive';
+import { centeredCTA } from '@/utils/responsive';
 
 const { Text, Title } = Typography;
 
@@ -24,6 +26,7 @@ type Step = 'form' | 'confirm';
 export function CollateralPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const { data, dispatch } = useData();
   const [step, setStep] = useState<Step>('form');
   const [type, setType] = useState('check');
@@ -96,15 +99,16 @@ export function CollateralPage() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <PageHeader title="تأیید نهایی" subtitle="خلاصه شرایط قرارداد و وثایق" />
-        <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 80 }}>
+        {/* key=step → هنگام تعویض گام اسکرول کانتینر از نو ساخته می‌شود و صفحه از بالا دیده می‌شود */}
+        <div key="confirm" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: isDesktop ? 24 : 80 }}>
 
           {/* ── Contract summary ── */}
           <Card
             title={<Space><FileTextOutlined /><span>خلاصه قرارداد</span></Space>}
             style={{ marginBottom: 12, borderRadius: 12 }}
           >
-            {/* Basic info — two per row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+            {/* Basic info — two per row mobile، چهار ستون دسکتاپ */}
+            <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr', gap: 8, marginBottom: 16 }}>
               <div style={summaryItemStyle}>
                 <FileTextOutlined style={{ fontSize: 20, color: '#1677ff', flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
@@ -208,26 +212,26 @@ export function CollateralPage() {
             )}
           </Card>
 
-          {/* ── Action buttons ── */}
-          <Button
-            type="primary"
-            block
-            size="large"
-            icon={<CheckCircleOutlined />}
-            onClick={handleFinalSubmit}
-            style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 600, marginBottom: 10 }}
-          >
-            تایید نهایی و ثبت قرارداد
-          </Button>
-          <Button
-            block
-            size="large"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => setStep('form')}
-            style={{ height: 44, borderRadius: 12 }}
-          >
-            بازگشت و ویرایش
-          </Button>
+          {/* ── Action buttons — یک سطر: بازگشت سمت راست، تایید سمت چپ ── */}
+          <div style={{ display: 'flex', gap: 8, ...(isDesktop ? { maxWidth: 520, margin: '16px auto 0' } : {}) }}>
+            <Button
+              size="large"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => setStep('form')}
+              style={{ height: 48, borderRadius: 12, flexShrink: 0, paddingInline: 16 }}
+            >
+              بازگشت و ویرایش
+            </Button>
+            <Button
+              type="primary"
+              size="large"
+              icon={<CheckCircleOutlined />}
+              onClick={handleFinalSubmit}
+              style={{ flex: 1, height: 48, borderRadius: 12, fontSize: 15, fontWeight: 600, minWidth: 0 }}
+            >
+              تایید نهایی و ثبت قرارداد
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -237,7 +241,7 @@ export function CollateralPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       <PageHeader title="تأمین تضامین" />
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 80 }}>
+      <div key="form" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: isDesktop ? 24 : 80 }}>
         {/* Collateral type selection */}
         <Card style={{ marginBottom: 12, borderRadius: 12 }}>
           <Title level={5} style={{ marginBottom: 12 }}>نوع تضمین</Title>
@@ -262,7 +266,7 @@ export function CollateralPage() {
             </Text>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
+              gridTemplateColumns: isDesktop ? 'repeat(auto-fill, minmax(220px, 1fr))' : '1fr 1fr',
               gap: 8,
             }}>
               {IRANIAN_BANKS.map((bank) => {
@@ -324,7 +328,7 @@ export function CollateralPage() {
           block
           size="large"
           onClick={handleGoToConfirm}
-          style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 600 }}
+          style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 600, ...centeredCTA(isDesktop) }}
         >
           ادامه و مشاهده خلاصه قرارداد
         </Button>
