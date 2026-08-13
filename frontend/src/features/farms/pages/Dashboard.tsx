@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button, Card, Typography, Tag, Empty, Badge, Space } from 'antd';
 import { BellOutlined } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
@@ -6,11 +6,38 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber } from '@/utils/format';
 import { CONTRACT_TYPE_LABELS } from '@/types';
 import { useIsDesktop } from '@/hooks/useResponsive';
+import { useRole } from '@/hooks/useRole';
 import { responsiveGrid } from '@/utils/responsive';
+import { getPendingActions } from '@/features/progress/utils/progress.utils';
+import type { ProgressRole } from '@/types';
 
 const { Text } = Typography;
 
-function useIsSupplier() { return useLocation().pathname.startsWith('/supplier'); }
+/** بخش «پیگیری قراردادها» — آیتم‌های قابل اقدام فلو پراگرس (مشترک بین دو نقش). */
+function ProgressFollowups({ role }: { role: ProgressRole }) {
+  const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
+  const { data } = useData();
+  const pending = getPendingActions(data, role);
+  if (pending.length === 0) return null;
+
+  return (
+    <>
+      <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>پیگیری قراردادها</Text>
+      <div style={isDesktop ? responsiveGrid(320, 12) : undefined}>
+        {pending.map((a) => (
+          <Card key={a.id}
+            style={{ marginBottom: isDesktop ? 0 : 10, background: '#fff7e6', borderRadius: 10, border: '1px solid #faad14', cursor: 'pointer' }}
+            onClick={() => navigate(`/${role}/contracts/${a.contractId}/progress`)}>
+            <Space><Badge status="warning" /><Text strong>{a.stepLabel}</Text></Space>
+            <Text style={{ display: 'block', marginTop: 4, fontSize: 12 }}>{a.contractName} — {a.verb}</Text>
+            <Button type="primary" size="small" block style={{ marginTop: 8 }}>پیگیری</Button>
+          </Card>
+        ))}
+      </div>
+    </>
+  );
+}
 
 function FarmOwnerDashboard() {
   const navigate = useNavigate();
@@ -29,6 +56,7 @@ function FarmOwnerDashboard() {
         needCollateral.length > 0 ? <Badge count={formatNumber(needCollateral.length)}><BellOutlined style={{ fontSize: 20, color: '#faad14' }} /></Badge> : null
       } />
       <div style={{ flex: 1, overflowY: 'auto' }}>
+        <ProgressFollowups role="farm" />
         {hasAny && (
           <div style={isDesktop ? responsiveGrid(320, 12) : undefined}>
             {needCollateral.length > 0 && needCollateral.map((p) => (
@@ -75,6 +103,7 @@ function SupplierDashboard() {
     <>
       <PageHeader title="داشبورد تأمین‌کننده" />
       <div style={{ flex: 1, overflowY: 'auto' }}>
+        <ProgressFollowups role="supplier" />
         {hasAny && (
           <div style={isDesktop ? responsiveGrid(320, 12) : undefined}>
             {sent.length > 0 && sent.map((c) => (
@@ -107,5 +136,5 @@ function SupplierDashboard() {
 }
 
 export function DashboardPage() {
-  return useIsSupplier() ? <SupplierDashboard /> : <FarmOwnerDashboard />;
+  return useRole() === 'supplier' ? <SupplierDashboard /> : <FarmOwnerDashboard />;
 }

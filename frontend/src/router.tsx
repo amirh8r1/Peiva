@@ -9,6 +9,7 @@ import { CollateralPage } from '@/features/farm-owner/pages/CollateralPage';
 import { FarmOwnerContractsPage } from '@/features/farm-owner/pages/ContractsPage';
 import { FarmApprovalPage } from '@/features/feed-supplier/pages/FarmApprovalPage';
 import { SupplierContractsPage } from '@/features/feed-supplier/pages/ContractsPage';
+import { ContractProgressPage } from '@/features/progress/pages/ContractProgressPage';
 
 export function AppRouter() {
   return (
@@ -20,6 +21,7 @@ export function AppRouter() {
         <Route path="/supplier" element={<DashboardPage />} />
         <Route path="/supplier/contracts/new" element={<CreateChainPage />} />
         <Route path="/supplier/contracts/:id/farms" element={<FarmApprovalPage />} />
+        <Route path="/supplier/contracts/:id/progress" element={<ContractProgressPage />} />
         <Route path="/supplier/contracts" element={<SupplierContractsPage />} />
       </Route>
 
@@ -29,6 +31,7 @@ export function AppRouter() {
         <Route path="/farm/proposals" element={<ProposalsListPage />} />
         <Route path="/farm/proposals/:id" element={<ProposalDetailPage />} />
         <Route path="/farm/collateral/:id" element={<CollateralPage />} />
+        <Route path="/farm/contracts/:id/progress" element={<ContractProgressPage />} />
         <Route path="/farm/contracts" element={<FarmOwnerContractsPage />} />
       </Route>
 
