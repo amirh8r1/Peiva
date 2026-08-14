@@ -16,14 +16,17 @@ const EVENT_META: Record<ProgressEvent['type'], { label: string; color: string }
   confirmed: { label: 'تأیید', color: 'green' },
   rejected: { label: 'رد', color: 'red' },
   document: { label: 'بارگذاری سند', color: 'gray' },
+  announced: { label: 'اعلام مشخصات', color: 'blue' },
+  updated: { label: 'به‌روزرسانی مشخصات', color: 'blue' },
 };
 
 function roleHint(step: ContractProgressStep): string | null {
   if (step.status === 'claimed' && step.claimedBy) {
     const responder = STEP_ROLES[step.key].responder;
+    if (responder === null) return `${ROLE_LABELS[step.claimedBy]} ثبت کرده`;
     return responder === 'both'
       ? 'در انتظار اقدام هر دو طرف'
-      : `${ROLE_LABELS[step.claimedBy]} ثبت کرده — در انتظار بازخورد ${ROLE_LABELS[responder as keyof typeof ROLE_LABELS]}`;
+      : `${ROLE_LABELS[step.claimedBy]} ثبت کرده — در انتظار بازخورد ${ROLE_LABELS[responder]}`;
   }
   if (step.status === 'rejected') return 'بازخورد رد دریافت شده — نیاز به اصلاح و ارسال مجدد';
   return null;

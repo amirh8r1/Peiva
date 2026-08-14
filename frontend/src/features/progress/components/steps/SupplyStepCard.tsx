@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Alert, Button, DatePicker, InputNumber, Typography, message } from 'antd';
+import { Alert, Button, Form, Typography, message } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
 import { StepCard, SummaryRow } from '../StepCard';
 import { FeedbackActions } from '../FeedbackActions';
 import { useStepFeedback } from '../../hooks/useStepFeedback';
-import { makeEvent, todayJalali, numberFieldProps, jalaliDatePickerProps } from '../../utils/progress.utils';
+import { makeEvent, todayJalali } from '../../utils/progress.utils';
+import { NumberField, DateField } from '../fields';
 import { toPersianDigits, formatNumber } from '@/utils/format';
 import dayjs from '@/utils/dayjs';
 import type { ContractProgressStep, ProgressRole, SupplyPayload } from '@/types';
@@ -17,30 +17,35 @@ interface Props {
   onUpsert: (next: ContractProgressStep) => void;
 }
 
-/** گام ۱ — تأمین نهاده و جوجه: ادعای تأمین‌کننده، تأیید/رد مزرعه‌دار. */
+interface ClaimFormValues {
+  chickCount: number;
+  feedAmount: number;
+  suppliedAt: { format: (f: string) => string };
+}
+
+/** گام ۱ — تحویل نهاده و جوجه: ادعای تأمین‌کننده، تأیید/رد دریافت مزرعه‌دار. */
 export function SupplyStepCard({ step, role, onUpsert }: Props) {
   const { confirm, reject } = useStepFeedback(step, role, onUpsert);
-  const [chickCount, setChickCount] = useState<number | null>(step.payload.chickCount || null);
-  const [feedAmount, setFeedAmount] = useState<number | null>(step.payload.feedAmount || null);
-  const [suppliedAt, setSuppliedAt] = useState<string>(step.payload.suppliedAt || '');
+  const [form] = Form.useForm<ClaimFormValues>();
 
   const isSupplier = role === 'supplier';
   const canClaim = isSupplier && (step.status === 'idle' || step.status === 'rejected');
 
-  const handleClaim = () => {
-    if (!chickCount || chickCount <= 0) return message.warning('تعداد جوجه را وارد کنید');
-    if (!feedAmount || feedAmount <= 0) return message.warning('مقدار دان را وارد کنید');
-    if (!suppliedAt) return message.warning('تاریخ تأمین را انتخاب کنید');
-    const payload: SupplyPayload = { chickCount, feedAmount, suppliedAt };
+  const handleClaim = async (values: ClaimFormValues) => {
+    const payload: SupplyPayload = {
+      chickCount: values.chickCount,
+      feedAmount: values.feedAmount,
+      suppliedAt: values.suppliedAt.format('YYYY/MM/DD'),
+    };
     onUpsert({
       ...step, status: 'claimed', claimedBy: 'supplier', claimedAt: todayJalali(), payload,
       events: [...step.events, makeEvent('supplier', 'claimed')],
     });
-    message.success('ادعای تأمین ثبت شد و برای مزرعه‌دار ارسال گردید.');
+    message.success('ادعای تحویل نهاده ثبت شد و برای مزرعه‌دار ارسال گردید.');
   };
 
   return (
-    <StepCard step={step} stepLabel="تأمین نهاده و جوجه">
+    <StepCard step={step} stepLabel="تحویل نهاده و جوجه">
       {/* ادعای تأمین‌کننده */}
       {canClaim && (
         <>
@@ -49,21 +54,43 @@ export function SupplyStepCard({ step, role, onUpsert }: Props) {
               message="نظر مزرعه‌دار" description={step.rejectedNote || 'ادعای شما رد شده است.'} />
           )}
           <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-            جزئیات تأمین نهاده و جوجه را ثبت کنید
+            جزئیات نهاده و جوجه‌ای که به مزرعه تحویل داده‌اید را ثبت کنید؛ مزرعه‌دار دریافت را تأیید یا رد می‌کند.
           </Text>
-          <InputNumber value={chickCount ?? undefined} {...numberFieldProps}
-            placeholder="تعداد جوجه (قطعه)" onChange={(v) => setChickCount(v ?? null)} />
-          <InputNumber value={feedAmount ?? undefined} {...numberFieldProps}
-            placeholder="مقدار دان (کیلوگرم)" onChange={(v) => setFeedAmount(v ?? null)} />
-          <DatePicker
-            {...jalaliDatePickerProps}
-            placeholder="تاریخ تأمین"
-            value={suppliedAt ? (dayjs as any)(suppliedAt, { jalali: true }) : null}
-            onChange={(d) => setSuppliedAt(d ? (d as { format: (f: string) => string }).format('YYYY/MM/DD') : '')}
-          />
-          <Button type="primary" size="large" block icon={<SendOutlined />} style={{ marginTop: 4 }} onClick={handleClaim}>
-            ثبت ادعای تأمین
-          </Button>
+          <Form
+            form={form}
+            layout="vertical"
+            initialValues={{
+              chickCount: step.payload.chickCount || undefined,
+              feedAmount: step.payload.feedAmount || undefined,
+              suppliedAt: step.payload.suppliedAt ? (dayjs as any)(step.payload.suppliedAt, { jalali: true }) : undefined,
+            }}
+            onFinish={handleClaim}
+          >
+            <Form.Item
+              name="chickCount"
+              rules={[
+                { required: true, message: 'تعداد جوجه را وارد کنید' },
+                { type: 'number', min: 1, message: 'تعداد باید حداقل ۱ باشد' },
+              ]}
+            >
+              <NumberField label="تعداد جوجه" unit="قطعه" hint="تعداد جوجه‌های تحویل داده‌شده به مزرعه" />
+            </Form.Item>
+            <Form.Item
+              name="feedAmount"
+              rules={[
+                { required: true, message: 'مقدار دان را وارد کنید' },
+                { type: 'number', min: 1, message: 'مقدار باید حداقل ۱ باشد' },
+              ]}
+            >
+              <NumberField label="مقدار دان" unit="کیلوگرم" hint="مقدار کل دان تحویل داده‌شده" />
+            </Form.Item>
+            <Form.Item name="suppliedAt" rules={[{ required: true, message: 'تاریخ تحویل را انتخاب کنید' }]}>
+              <DateField label="تاریخ تحویل نهاده و جوجه" hint="تاریخی که نهاده و جوجه تحویل مزرعه می‌شود" />
+            </Form.Item>
+            <Button type="primary" size="large" block icon={<SendOutlined />} htmlType="submit">
+              ثبت ادعای تحویل نهاده
+            </Button>
+          </Form>
         </>
       )}
 
@@ -72,7 +99,7 @@ export function SupplyStepCard({ step, role, onUpsert }: Props) {
         <>
           <SummaryRow label="تعداد جوجه" value={`${formatNumber(step.payload.chickCount)} قطعه`} />
           <SummaryRow label="مقدار دان" value={`${formatNumber(step.payload.feedAmount)} کیلوگرم`} />
-          <SummaryRow label="تاریخ تأمین" value={toPersianDigits(step.payload.suppliedAt)} />
+          <SummaryRow label="تاریخ تحویل" value={toPersianDigits(step.payload.suppliedAt)} />
           <FeedbackActions
             allowReject
             confirmLabel="تأیید دریافت نهاده و جوجه"
@@ -87,7 +114,7 @@ export function SupplyStepCard({ step, role, onUpsert }: Props) {
         <>
           <SummaryRow label="تعداد جوجه" value={`${formatNumber(step.payload.chickCount)} قطعه`} />
           <SummaryRow label="مقدار دان" value={`${formatNumber(step.payload.feedAmount)} کیلوگرم`} />
-          <SummaryRow label="تاریخ تأمین" value={toPersianDigits(step.payload.suppliedAt)} />
+          <SummaryRow label="تاریخ تحویل" value={toPersianDigits(step.payload.suppliedAt)} />
           <SummaryRow label="تأیید دریافت" value={`توسط مزرعه‌دار — ${toPersianDigits(step.confirmedAt ?? '')}`} />
         </>
       )}

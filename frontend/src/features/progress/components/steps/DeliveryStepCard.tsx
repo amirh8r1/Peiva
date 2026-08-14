@@ -1,7 +1,11 @@
-import { Button, List, Tag, Typography, Upload, message } from 'antd';
-import { CheckOutlined, DeleteOutlined, FileOutlined, UploadOutlined } from '@ant-design/icons';
+import { useState } from 'react';
+import { Alert, Button, Form, List, Tag, Typography, Upload, message } from 'antd';
+import { CheckOutlined, DeleteOutlined, FileOutlined, SendOutlined, UploadOutlined } from '@ant-design/icons';
 import { StepCard, SummaryRow } from '../StepCard';
-import { makeEvent, makeUploadedDoc } from '../../utils/progress.utils';
+import { FeedbackActions } from '../FeedbackActions';
+import { useStepFeedback } from '../../hooks/useStepFeedback';
+import { makeEvent, makeUploadedDoc, todayJalali } from '../../utils/progress.utils';
+import { NumberField } from '../fields';
 import { formatNumber } from '@/utils/format';
 import { ROLE_LABELS } from '@/types';
 import type { ContractProgressStep, DeliveryPayload, ProgressRole, UploadedDoc } from '@/types';
@@ -17,49 +21,54 @@ interface Props {
   onUpsert: (next: ContractProgressStep) => void;
 }
 
+interface ClaimFormValues {
+  chickenCount: number;
+  totalWeight: number;
+}
+
 const formatSize = (bytes: number) =>
   bytes >= 1024 * 1024 ? `${formatNumber(bytes / (1024 * 1024), 1)} مگابایت` : `${formatNumber(bytes / 1024, 1)} کیلوبایت`;
 
-/** گام ۴ — تحویل و تأیید نهایی: بارگذاری اسناد و تأیید مستقل هر دو طرف؛ با تأیید هر دو، گام تکمیل می‌شود. */
+/** گام ۴ — تحویل و تأیید نهایی: مزرعه‌دار ادعای تحویل (تعداد + وزن + اسناد) می‌کند،
+ *  تأمین‌کننده تأیید/رد می‌کند؛ با تأیید، گام تکمیل می‌شود. */
 export function DeliveryStepCard({ step, role, onUpsert }: Props) {
-  const myKey = role === 'supplier' ? 'supplierDocs' : 'farmDocs';
-  const otherKey = role === 'supplier' ? 'farmDocs' : 'supplierDocs';
-  const myConfirmKey = role === 'supplier' ? 'supplierConfirmed' : 'farmConfirmed';
-  const otherConfirmKey = role === 'supplier' ? 'farmConfirmed' : 'supplierConfirmed';
+  const { confirm, reject } = useStepFeedback(step, role, onUpsert);
+  const [form] = Form.useForm<ClaimFormValues>();
+  const [docs, setDocs] = useState<UploadedDoc[]>(step.payload.farmDocs);
 
-  const upsert = (payload: DeliveryPayload, extraEvent?: { by: ProgressRole; type: 'document' | 'confirmed'; note?: string }) => {
-    onUpsert({
-      ...step,
-      status: payload.supplierConfirmed && payload.farmConfirmed ? 'done' : 'claimed',
-      payload,
-      events: extraEvent ? [...step.events, makeEvent(extraEvent.by, extraEvent.type, extraEvent.note)] : step.events,
-    });
-  };
+  const isFarm = role === 'farm';
+  const canClaim = isFarm && (step.status === 'idle' || step.status === 'rejected');
+  const canRespond = !isFarm && step.status === 'claimed';
 
   const handleAddDoc = (file: File) => {
     const ext = file.name.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] ?? '';
     if (!ACCEPTED_EXT.includes(ext)) return message.warning('فرمت مجاز: تصویر (JPG/PNG/WebP) یا PDF');
     if (file.size > MAX_SIZE) return message.warning('حداکثر حجم هر سند ۵ مگابایت است');
-    const doc = makeUploadedDoc(file, role);
-    upsert({ ...step.payload, [myKey]: [...step.payload[myKey], doc] } as DeliveryPayload, { by: role, type: 'document', note: doc.name });
+    setDocs((prev) => [...prev, makeUploadedDoc(file, 'farm')]);
     message.success('سند بارگذاری شد.');
   };
 
-  const handleRemoveDoc = (docId: string) => {
-    upsert({ ...step.payload, [myKey]: step.payload[myKey].filter((d) => d.id !== docId) } as DeliveryPayload);
+  const handleRemoveDoc = (docId: string) => setDocs((prev) => prev.filter((d) => d.id !== docId));
+
+  const handleClaim = async (values: ClaimFormValues) => {
+    if (docs.length === 0) return message.warning('حداقل یک سند (وزن‌کشی/باسکول و...) بارگذاری کنید');
+    const payload: DeliveryPayload = {
+      chickenCount: values.chickenCount,
+      totalWeight: values.totalWeight,
+      farmDocs: docs,
+      supplierConfirmed: false,
+    };
+    onUpsert({
+      ...step, status: 'claimed', claimedBy: 'farm', claimedAt: todayJalali(), payload,
+      events: [...step.events, makeEvent('farm', 'claimed')],
+    });
+    message.success('مشخصات تحویل ثبت شد و برای تأمین‌کننده ارسال گردید.');
   };
 
-  const handleConfirm = () => {
-    if (step.payload[myKey].length === 0) return message.warning('حداقل یک سند (وزن‌کشی/باسکول و...) بارگذاری کنید');
-    const next = { ...step.payload, [myConfirmKey]: true } as DeliveryPayload;
-    upsert(next, { by: role, type: 'confirmed' });
-    message.success('تأیید شما ثبت شد.');
-  };
-
-  const docList = (docs: UploadedDoc[], removable: boolean) => (
+  const docList = (list: UploadedDoc[], removable: boolean) => (
     <List
       size="small"
-      dataSource={docs}
+      dataSource={list}
       locale={{ emptyText: 'سندی بارگذاری نشده است' }}
       renderItem={(doc) => (
         <List.Item
@@ -73,56 +82,123 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
     />
   );
 
+  const deliverySummary = (
+    <>
+      <SummaryRow label="تعداد مرغ تحویلی" value={`${formatNumber(step.payload.chickenCount)} قطعه`} />
+      <SummaryRow label="وزن کل تحویلی" value={`${formatNumber(step.payload.totalWeight)} کیلوگرم`} />
+      <SummaryRow label="اسناد مزرعه‌دار" value={`${formatNumber(step.payload.farmDocs.length)} سند`} />
+    </>
+  );
+
   // ── خلاصه نهایی ──
   if (step.status === 'done') {
     return (
       <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
-        <SummaryRow label="اسناد تأمین‌کننده" value={`${formatNumber(step.payload.supplierDocs.length)} سند`} />
-        <SummaryRow label="اسناد مزرعه‌دار" value={`${formatNumber(step.payload.farmDocs.length)} سند`} />
+        {deliverySummary}
         <div style={{ marginTop: 8 }}>
-          <Tag color="success">تأیید نهایی هر دو طرف ثبت شد</Tag>
+          <Tag color="success">تأیید نهایی تحویل ثبت شد</Tag>
         </div>
       </StepCard>
     );
   }
 
-  return (
-    <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
-      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-        مدارک وزن‌کشی (باسکول) و اسناد مربوطه را بارگذاری کنید؛ تکمیل این گام به تأیید هر دو طرف نیاز دارد.
-      </Text>
+  // ── ادعای مزرعه‌دار ──
+  if (canClaim) {
+    return (
+      <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
+        {step.status === 'rejected' && (
+          <Alert type="error" showIcon style={{ marginBottom: 12 }}
+            message="نظر تأمین‌کننده" description={step.rejectedNote || 'ادعای شما رد شده است.'} />
+        )}
+        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+          تعداد و وزن مرغ‌های تحویل داده‌شده را ثبت و مدارک وزن‌کشی (باسکول) را بارگذاری کنید؛ تأیید نهایی با تأمین‌کننده است.
+        </Text>
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            chickenCount: step.payload.chickenCount || undefined,
+            totalWeight: step.payload.totalWeight || undefined,
+          }}
+          onFinish={handleClaim}
+        >
+          <Form.Item
+            name="chickenCount"
+            rules={[
+              { required: true, message: 'تعداد مرغ تحویلی را وارد کنید' },
+              { type: 'number', min: 1, message: 'تعداد باید حداقل ۱ باشد' },
+            ]}
+          >
+            <NumberField label="تعداد مرغ تحویلی" unit="قطعه" hint="تعداد مرغ‌های تحویل داده‌شده به تأمین‌کننده" />
+          </Form.Item>
+          <Form.Item
+            name="totalWeight"
+            rules={[
+              { required: true, message: 'وزن کل تحویلی را وارد کنید' },
+              { type: 'number', min: 1, message: 'وزن باید حداقل ۱ باشد' },
+            ]}
+          >
+            <NumberField label="وزن کل تحویلی" unit="کیلوگرم" hint="وزن کل مرغ‌های تحویل داده‌شده (توزین باسکول)" />
+          </Form.Item>
 
-      {/* اسناد من */}
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-          <Text strong style={{ fontSize: 13 }}>اسناد شما ({ROLE_LABELS[role]})</Text>
-          <Upload beforeUpload={(file) => { handleAddDoc(file); return false; }} showUploadList={false} multiple accept=".jpg,.jpeg,.png,.pdf">
+          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>مدارک تحویل</Text>
+          <Upload beforeUpload={(file) => { handleAddDoc(file); return false; }} showUploadList={false} multiple accept=".jpg,.jpeg,.png,.webp,.pdf">
             <Button size="small" icon={<UploadOutlined />}>بارگذاری سند</Button>
           </Upload>
-        </div>
-        {docList(step.payload[myKey], true)}
-      </div>
+          <Text type="secondary" style={{ fontSize: 11, display: 'block', margin: '4px 0 8px' }}>
+            تصویر (JPG/PNG/WebP) یا PDF — حداکثر ۵ مگابایت
+          </Text>
+          {docList(docs, true)}
 
-      {/* اسناد طرف مقابل */}
-      <div style={{ marginBottom: 12 }}>
-        <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>
-          اسناد {ROLE_LABELS[role === 'supplier' ? 'farm' : 'supplier']}
-        </Text>
-        {docList(step.payload[otherKey], false)}
-      </div>
+          <Button type="primary" size="large" block icon={<SendOutlined />} htmlType="submit" style={{ marginTop: 12 }}>
+            ثبت مشخصات تحویل
+          </Button>
+        </Form>
+      </StepCard>
+    );
+  }
 
-      <Button
-        type="primary" size="large" block icon={<CheckOutlined />}
-        disabled={step.payload[myConfirmKey]}
-        onClick={handleConfirm}
-      >
-        {step.payload[myConfirmKey] ? 'تأیید شما ثبت شده' : `تأیید تحویل (${ROLE_LABELS[role]})`}
-      </Button>
-      {step.payload[myConfirmKey] && !step.payload[otherConfirmKey] && (
-        <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 6 }}>
-          منتظر تأیید {ROLE_LABELS[role === 'supplier' ? 'farm' : 'supplier']} هستید.
+  // ── تأیید/رد تأمین‌کننده ──
+  if (canRespond) {
+    return (
+      <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
+        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+          مزرعه‌دار مشخصات تحویل را ثبت کرده است؛ صحت آن را بررسی و تأیید نهایی کنید.
         </Text>
-      )}
+        {deliverySummary}
+        {docList(step.payload.farmDocs, false)}
+        <FeedbackActions
+          allowReject
+          confirmLabel="تأیید نهایی تحویل"
+          onConfirm={() => { confirm({ supplierConfirmed: true }); message.success('تحویل تأیید نهایی شد.'); }}
+          onReject={(note) => { reject(note); message.success('رد ثبت شد.'); }}
+        />
+      </StepCard>
+    );
+  }
+
+  // ── حالت‌های انتظار ──
+  if (step.status === 'rejected' && !isFarm) {
+    return (
+      <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
+        <Alert type="warning" showIcon style={{ marginBottom: 12 }}
+          message="ادعای تحویل رد شده است" description={step.rejectedNote || ''} />
+        <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+          در انتظار اصلاح و ارسال مجدد توسط مزرعه‌دار...
+        </Text>
+      </StepCard>
+    );
+  }
+
+  // farm + claimed / supplier + idle
+  return (
+    <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
+      <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+        {isFarm
+          ? 'ادعای تحویل شما ثبت شده — در انتظار تأیید نهایی تأمین‌کننده...'
+          : `در انتظار ثبت مشخصات تحویل توسط ${ROLE_LABELS.farm}...`}
+      </Text>
+      {step.status === 'claimed' && deliverySummary}
     </StepCard>
   );
 }

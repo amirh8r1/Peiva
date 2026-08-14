@@ -1,12 +1,9 @@
 import { useState } from 'react';
-import { Alert, Button, Checkbox, DatePicker, Input, Select, Typography, message } from 'antd';
-import { SendOutlined } from '@ant-design/icons';
+import { Alert, Button, Checkbox, Form, Typography, message } from 'antd';
+import { EditOutlined, SendOutlined } from '@ant-design/icons';
 import { StepCard, SummaryRow } from '../StepCard';
-import { FeedbackActions } from '../FeedbackActions';
-import { useStepFeedback } from '../../hooks/useStepFeedback';
-import {
-  makeEvent, todayJalali, isBeforeJalali, addDaysJalali, jalaliDatePickerProps,
-} from '../../utils/progress.utils';
+import { makeEvent, todayJalali } from '../../utils/progress.utils';
+import { TextField, SelectField, DateField } from '../fields';
 import { toEnglishDigits, toPersianDigits } from '@/utils/format';
 import dayjs from '@/utils/dayjs';
 import type { ContractProgressStep, DriverPayload, ProgressRole } from '@/types';
@@ -18,133 +15,203 @@ const VEHICLE_TYPES = ['کامیون', 'کامیونت', 'وانت', 'نیسان
 interface Props {
   step: Extract<ContractProgressStep, { key: 'driver' }>;
   role: ProgressRole;
-  /** زودترین تاریخ مجاز مراجعه از گام برداشت (قانون حداقل ۷ روز). */
-  earliestPickup?: string;
+  /** تاریخ بارگیری مصوب گام برداشت — پیش‌فرض فیلد تاریخ در فرم اعلام. */
+  initialPickupDate?: string;
+  /** گام تحویل done شده؟ (بعد از آن ویرایش ممنوع است) */
+  deliveryDone: boolean;
   onUpsert: (next: ContractProgressStep) => void;
 }
 
-/** گام ۳ — راننده و خودرو: ادعای تأمین‌کننده با اعتبارسنجی سخت ۷ روز، تأیید/رد مزرعه‌دار. */
-export function DriverStepCard({ step, role, earliestPickup, onUpsert }: Props) {
-  const { confirm, reject } = useStepFeedback(step, role, onUpsert);
-  const [driverName, setDriverName] = useState(step.payload.driverName);
-  const [driverPhone, setDriverPhone] = useState(step.payload.driverPhone);
-  const [plateNumber, setPlateNumber] = useState(step.payload.plateNumber);
-  const [vehicleType, setVehicleType] = useState(step.payload.vehicleType);
-  const [isSupervisor, setIsSupervisor] = useState(step.payload.isDriverSupervisor);
-  const [supervisorName, setSupervisorName] = useState(step.payload.supervisorName ?? '');
-  const [supervisorPhone, setSupervisorPhone] = useState(step.payload.supervisorPhone ?? '');
-  const [pickupDate, setPickupDate] = useState(step.payload.pickupDate);
+interface DriverFormValues {
+  driverName: string;
+  driverPhone: string;
+  plateNumber: string;
+  vehicleType: string;
+  isDriverSupervisor: boolean;
+  supervisorName?: string;
+  supervisorPhone?: string;
+  pickupDate: { format: (f: string) => string };
+}
+
+/** شماره تماس معتبر: ۱۱ رقم که با ۰ شروع می‌شود. */
+function validatePhone(label: string) {
+  return (_: unknown, value?: string) => {
+    const digits = toEnglishDigits(value ?? '').replace(/\D/g, '');
+    if (digits.length === 11 && digits.startsWith('0')) return Promise.resolve();
+    return Promise.reject(new Error(`${label} معتبر نیست (نمونه: ۰۹۱۲۳۴۵۶۷۸۹)`));
+  };
+}
+
+function toPayload(values: DriverFormValues): DriverPayload {
+  return {
+    driverName: values.driverName.trim(),
+    driverPhone: values.driverPhone.trim(),
+    plateNumber: values.plateNumber.trim(),
+    vehicleType: values.vehicleType,
+    isDriverSupervisor: values.isDriverSupervisor,
+    supervisorName: values.isDriverSupervisor ? undefined : values.supervisorName?.trim(),
+    supervisorPhone: values.isDriverSupervisor ? undefined : values.supervisorPhone?.trim(),
+    pickupDate: values.pickupDate.format('YYYY/MM/DD'),
+  };
+}
+
+/** گام ۳ — اعلام مشخصات دریافت‌کننده (۲۴ ساعت قبل از تحویل):
+ *  تأمین‌کننده اعلام می‌کند و گام همان‌جا تکمیل می‌شود؛ مزرعه‌دار فقط نوتیف می‌گیرد.
+ *  تا تکمیل گام تحویل، تأمین‌کننده می‌تواند مشخصات را ویرایش کند. */
+export function DriverStepCard({ step, role, initialPickupDate, deliveryDone, onUpsert }: Props) {
+  const [editing, setEditing] = useState(false);
 
   const isSupplier = role === 'supplier';
-  const canClaim = isSupplier && (step.status === 'idle' || step.status === 'rejected');
+  const announced = step.status === 'done';
+  const canAnnounce = isSupplier && step.status === 'idle';
+  const canEdit = isSupplier && announced && !deliveryDone;
+  const mode: 'announce' | 'edit' = editing ? 'edit' : 'announce';
 
-  const handleClaim = () => {
-    if (!driverName.trim()) return message.warning('نام راننده را وارد کنید');
-    if (toEnglishDigits(driverPhone).replace(/\D/g, '').length < 10) return message.warning('شماره تماس راننده معتبر نیست');
-    if (!plateNumber.trim()) return message.warning('پلاک خودرو را وارد کنید');
-    if (!vehicleType) return message.warning('نوع خودرو را انتخاب کنید');
-    if (!pickupDate) return message.warning('تاریخ مراجعه را انتخاب کنید');
-    // قانون سخت: حداقل ۷ روز بعد از تأیید برداشت
-    if (earliestPickup && isBeforeJalali(pickupDate, earliestPickup)) {
-      return message.warning(`تاریخ مراجعه باید از ${toPersianDigits(earliestPickup)} به بعد باشد (حداقل ۷ روز بعد از تأیید برداشت)`);
+  const handleSubmit = async (values: DriverFormValues) => {
+    const payload = toPayload(values);
+    if (mode === 'edit') {
+      onUpsert({
+        ...step, payload,
+        events: [...step.events, makeEvent('supplier', 'updated')],
+      });
+      setEditing(false);
+      message.success('مشخصات دریافت‌کننده به‌روزرسانی شد.');
+    } else {
+      onUpsert({
+        ...step, status: 'done', claimedBy: 'supplier', claimedAt: todayJalali(), payload,
+        events: [...step.events, makeEvent('supplier', 'announced')],
+      });
+      message.success('مشخصات دریافت‌کننده اعلام شد.');
     }
-    if (!isSupervisor && (!supervisorName.trim() || toEnglishDigits(supervisorPhone).replace(/\D/g, '').length < 10)) {
-      return message.warning('مشخصات ناظر را کامل وارد کنید (یا گزینه «ناظر همان راننده است» را فعال کنید)');
-    }
-    // هشدار نرم قانون ۲۴ ساعت
-    if (isBeforeJalali(pickupDate, addDaysJalali(todayJalali(), 1))) {
-      message.warning('طبق قانون، مشخصات راننده باید حداقل ۲۴ ساعت قبل از ارسال ثبت شود — در تاریخ انتخابی این شرط برقرار نیست.');
-    }
-    const payload: DriverPayload = {
-      driverName: driverName.trim(), driverPhone: driverPhone.trim(), plateNumber: plateNumber.trim(),
-      vehicleType, isDriverSupervisor: isSupervisor,
-      supervisorName: isSupervisor ? undefined : supervisorName.trim(),
-      supervisorPhone: isSupervisor ? undefined : supervisorPhone.trim(),
-      pickupDate,
-    };
-    onUpsert({
-      ...step, status: 'claimed', claimedBy: 'supplier', claimedAt: todayJalali(), payload,
-      events: [...step.events, makeEvent('supplier', 'claimed')],
-    });
-    message.success('مشخصات راننده ثبت شد و برای مزرعه‌دار ارسال گردید.');
   };
 
+  // ── خلاصه (farm همیشه؛ supplier بعد از اعلام وقتی ویرایش فعال نیست) ──
+  const summary = (
+    <>
+      <SummaryRow label="راننده / دریافت‌کننده" value={step.payload.driverName} />
+      <SummaryRow label="شماره تماس" value={toPersianDigits(step.payload.driverPhone)} />
+      <SummaryRow label="خودرو" value={`${step.payload.vehicleType} — ${step.payload.plateNumber}`} />
+      <SummaryRow
+        label="ناظر همراه"
+        value={step.payload.isDriverSupervisor ? 'خود راننده' : `${step.payload.supervisorName ?? ''} (${toPersianDigits(step.payload.supervisorPhone ?? '')})`}
+      />
+      <SummaryRow label="تاریخ بارگیری" value={toPersianDigits(step.payload.pickupDate)} />
+    </>
+  );
+
+  if (!isSupplier && announced) {
+    return (
+      <StepCard step={step} stepLabel="اعلام مشخصات دریافت‌کننده">
+        {summary}
+        <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 8 }}>
+          این اعلام صرفاً جهت اطلاع شماست — اقدام دیگری لازم نیست.
+        </Text>
+      </StepCard>
+    );
+  }
+
+  if (!isSupplier && !announced) {
+    return (
+      <StepCard step={step} stepLabel="اعلام مشخصات دریافت‌کننده">
+        <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+          در انتظار اعلام مشخصات دریافت‌کننده توسط تأمین‌کننده (۲۴ ساعت قبل از بارگیری)...
+        </Text>
+      </StepCard>
+    );
+  }
+
+  if (isSupplier && announced && !editing) {
+    return (
+      <StepCard step={step} stepLabel="اعلام مشخصات دریافت‌کننده">
+        {summary}
+        {canEdit && (
+          <Button size="small" icon={<EditOutlined />} style={{ marginTop: 8 }} onClick={() => setEditing(true)}>
+            ویرایش مشخصات
+          </Button>
+        )}
+        {!canEdit && (
+          <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 8 }}>
+            پس از تکمیل تحویل، ویرایش مشخصات ممکن نیست.
+          </Text>
+        )}
+      </StepCard>
+    );
+  }
+
+  // ── فرم اعلام / ویرایش (supplier) ──
+  const isSupervisorChecked = (v?: boolean) => !!v;
   return (
-    <StepCard step={step} stepLabel="راننده و خودرو">
-      {/* ادعای تأمین‌کننده */}
-      {canClaim && (
-        <>
-          {step.status === 'rejected' && (
-            <Alert type="error" showIcon style={{ marginBottom: 12 }}
-              message="نظر مزرعه‌دار" description={step.rejectedNote || 'ادعای شما رد شده است.'} />
-          )}
-          {earliestPickup && (
-            <Alert type="info" showIcon style={{ marginBottom: 12 }}
-              message={`زودترین تاریخ مجاز مراجعه: ${toPersianDigits(earliestPickup)}`}
-              description="تاریخ مراجعه باید حداقل ۷ روز بعد از تأیید برداشت باشد." />
-          )}
-          <Input size="large" placeholder="نام راننده" value={driverName}
-            onChange={(e) => setDriverName(e.target.value)} style={{ marginBottom: 12, borderRadius: 10 }} />
-          <Input size="large" placeholder="شماره تماس راننده" value={driverPhone}
-            onChange={(e) => setDriverPhone(e.target.value)} style={{ marginBottom: 12, borderRadius: 10 }} />
-          <Input size="large" placeholder="پلاک خودرو" value={plateNumber}
-            onChange={(e) => setPlateNumber(e.target.value)} style={{ marginBottom: 12, borderRadius: 10 }} />
-          <Select size="large" style={{ width: '100%', marginBottom: 12, borderRadius: 10 }} placeholder="نوع خودرو"
-            value={vehicleType || undefined} onChange={(v) => setVehicleType(v)}
-            options={VEHICLE_TYPES.map((t) => ({ value: t, label: t }))} />
-          <Checkbox checked={isSupervisor} onChange={(e) => setIsSupervisor(e.target.checked)} style={{ marginBottom: 12 }}>
-            ناظر همراه، خود راننده است
-          </Checkbox>
-          {!isSupervisor && (
+    <StepCard step={step} stepLabel="اعلام مشخصات دریافت‌کننده">
+      {mode === 'edit' && (
+        <Alert type="info" showIcon style={{ marginBottom: 12 }}
+          message="این اعلام قبلاً ثبت شده است" description="با ذخیره، نسخه جدید جایگزین می‌شود و در تاریخچه ثبت می‌گردد." />
+      )}
+      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+        مشخصات دریافت‌کننده مرغ زنده را اعلام کنید — این اعلام باید حدود ۲۴ ساعت قبل از بارگیری ثبت شود.
+      </Text>
+      <Form<DriverFormValues>
+        key={mode}
+        layout="vertical"
+        initialValues={{
+          driverName: mode === 'edit' ? step.payload.driverName : '',
+          driverPhone: mode === 'edit' ? step.payload.driverPhone : '',
+          plateNumber: mode === 'edit' ? step.payload.plateNumber : '',
+          vehicleType: mode === 'edit' ? step.payload.vehicleType : undefined,
+          isDriverSupervisor: mode === 'edit' ? step.payload.isDriverSupervisor : false,
+          supervisorName: mode === 'edit' ? step.payload.supervisorName : '',
+          supervisorPhone: mode === 'edit' ? step.payload.supervisorPhone : '',
+          pickupDate: (() => {
+            const source = mode === 'edit' && step.payload.pickupDate ? step.payload.pickupDate : initialPickupDate;
+            return source ? (dayjs as any)(source, { jalali: true }) : undefined;
+          })(),
+        }}
+        onFinish={handleSubmit}
+      >
+        <Form.Item name="driverName" rules={[{ required: true, message: 'نام راننده را وارد کنید' }]}>
+          <TextField label="نام راننده / دریافت‌کننده" />
+        </Form.Item>
+        <Form.Item
+          name="driverPhone"
+          rules={[{ required: true, message: 'شماره تماس راننده را وارد کنید' }, { validator: validatePhone('شماره تماس راننده') }]}
+        >
+          <TextField label="شماره تماس راننده" hint="مثلاً: ۰۹۱۲۳۴۵۶۷۸۹" />
+        </Form.Item>
+        <Form.Item name="plateNumber" rules={[{ required: true, message: 'پلاک خودرو را وارد کنید' }]}>
+          <TextField label="پلاک خودرو" hint="مثلاً: ۱۲ب۳۴۵ ایران۶۶" />
+        </Form.Item>
+        <Form.Item name="vehicleType" rules={[{ required: true, message: 'نوع خودرو را انتخاب کنید' }]}>
+          <SelectField label="نوع خودرو" options={VEHICLE_TYPES.map((t) => ({ value: t, label: t }))} />
+        </Form.Item>
+        <Form.Item name="isDriverSupervisor" valuePropName="checked" style={{ marginBottom: 12 }}>
+          <Checkbox>ناظر همراه، خود راننده است</Checkbox>
+        </Form.Item>
+        <Form.Item noStyle shouldUpdate={(p, c) => isSupervisorChecked(p.isDriverSupervisor) !== isSupervisorChecked(c.isDriverSupervisor)}>
+          {({ getFieldValue }) => !isSupervisorChecked(getFieldValue('isDriverSupervisor')) && (
             <>
-              <Input size="large" placeholder="نام ناظر همراه" value={supervisorName}
-                onChange={(e) => setSupervisorName(e.target.value)} style={{ marginBottom: 12, borderRadius: 10 }} />
-              <Input size="large" placeholder="شماره تماس ناظر" value={supervisorPhone}
-                onChange={(e) => setSupervisorPhone(e.target.value)} style={{ marginBottom: 12, borderRadius: 10 }} />
+              <Form.Item name="supervisorName" rules={[{ required: true, message: 'نام ناظر همراه را وارد کنید' }]}>
+                <TextField label="نام ناظر همراه" />
+              </Form.Item>
+              <Form.Item
+                name="supervisorPhone"
+                rules={[{ required: true, message: 'شماره تماس ناظر را وارد کنید' }, { validator: validatePhone('شماره تماس ناظر') }]}
+              >
+                <TextField label="شماره تماس ناظر" hint="مثلاً: ۰۹۱۲۳۴۵۶۷۸۹" />
+              </Form.Item>
             </>
           )}
-          <DatePicker
-            {...jalaliDatePickerProps}
-            placeholder="تاریخ مراجعه"
-            value={pickupDate ? (dayjs as any)(pickupDate, { jalali: true }) : null}
-            onChange={(d) => setPickupDate(d ? (d as { format: (f: string) => string }).format('YYYY/MM/DD') : '')}
-            disabledDate={(d) => !!earliestPickup && d.isBefore((dayjs as any)(earliestPickup, { jalali: true }), 'day')}
-          />
-          <Text type="secondary" style={{ fontSize: 11, display: 'block', margin: '8px 0' }}>
-            مشخصات باید حداقل ۲۴ ساعت قبل از ارسال ثبت شده باشد.
-          </Text>
-          <Button type="primary" size="large" block icon={<SendOutlined />} onClick={handleClaim}>
-            ثبت مشخصات راننده
+        </Form.Item>
+        <Form.Item name="pickupDate" rules={[{ required: true, message: 'تاریخ بارگیری را انتخاب کنید' }]}>
+          <DateField label="تاریخ بارگیری" hint="تاریخ مراجعه برای دریافت مرغ زنده — مشخصات باید حداقل ۲۴ ساعت قبل از آن اعلام شود" />
+        </Form.Item>
+        <Button type="primary" size="large" block icon={mode === 'edit' ? <EditOutlined /> : <SendOutlined />} htmlType="submit">
+          {mode === 'edit' ? 'ذخیره تغییرات' : 'اعلام مشخصات دریافت‌کننده'}
+        </Button>
+        {mode === 'edit' && (
+          <Button size="large" block style={{ marginTop: 8 }} onClick={() => setEditing(false)}>
+            انصراف
           </Button>
-        </>
-      )}
-
-      {/* بررسی و تأیید/رد مزرعه‌دار */}
-      {!isSupplier && step.status === 'claimed' && (
-        <>
-          <SummaryRow label="راننده" value={step.payload.driverName} />
-          <SummaryRow label="تماس راننده" value={toPersianDigits(step.payload.driverPhone)} />
-          <SummaryRow label="خودرو" value={`${step.payload.vehicleType} — ${step.payload.plateNumber}`} />
-          <SummaryRow label="ناظر همراه" value={step.payload.isDriverSupervisor ? 'خود راننده' : `${step.payload.supervisorName ?? ''} (${toPersianDigits(step.payload.supervisorPhone ?? '')})`} />
-          <SummaryRow label="تاریخ مراجعه" value={toPersianDigits(step.payload.pickupDate)} />
-          <FeedbackActions
-            allowReject
-            confirmLabel="تأیید مشخصات راننده"
-            onConfirm={() => { confirm(); message.success('مشخصات راننده تأیید شد.'); }}
-            onReject={(note) => { reject(note); message.success('رد ثبت شد.'); }}
-          />
-        </>
-      )}
-
-      {/* خلاصه نهایی */}
-      {step.status === 'done' && (
-        <>
-          <SummaryRow label="راننده" value={step.payload.driverName} />
-          <SummaryRow label="خودرو" value={`${step.payload.vehicleType} — ${step.payload.plateNumber}`} />
-          <SummaryRow label="ناظر همراه" value={step.payload.isDriverSupervisor ? 'خود راننده' : step.payload.supervisorName ?? '—'} />
-          <SummaryRow label="تاریخ مراجعه" value={toPersianDigits(step.payload.pickupDate)} />
-        </>
-      )}
+        )}
+      </Form>
     </StepCard>
   );
 }

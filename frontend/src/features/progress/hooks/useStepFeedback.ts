@@ -2,9 +2,8 @@ import { makeEvent, todayJalali } from '../utils/progress.utils';
 import type { ContractProgressStep, ProgressRole } from '@/types';
 
 /**
- * اکشن‌های مشترک پاسخ‌دهنده (تأیید/رد) — برای گام‌های supply/pickup/driver.
- * پیلود گام در confirm بدون تغییر می‌ماند مگر extraPayload داده شود
- * (مثلاً pickup وزن/تعداد و earliestPickup را هنگام تأیید ثبت می‌کند).
+ * اکشن‌های مشترک پاسخ‌دهنده (تأیید/رد) — برای گام‌های supply/pickup/delivery.
+ * پیلود گام در confirm بدون تغییر می‌ماند مگر extraPayload داده شود.
  */
 export function useStepFeedback(
   step: ContractProgressStep,

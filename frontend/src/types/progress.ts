@@ -1,6 +1,8 @@
 /**
- * فلو پیگیری قرارداد نهایی — ۴ گام ادعا/بازخورد دوطرفه.
- * تاریخ‌های تقویمی (claimedAt/confirmedAt/suppliedAt/pickupDate/earliestPickup)
+ * فلو پیگیری قرارداد نهایی — ۴ گام.
+ * نقش‌ها: supply/pickup ادعای تأمین‌کننده + پاسخ مزرعه‌دار؛ driver اعلام صرف تأمین‌کننده
+ * (مزرعه‌دار فقط نوتیف می‌گیرد)؛ delivery ادعای مزرعه‌دار + تأیید تأمین‌کننده.
+ * تاریخ‌های تقویمی (claimedAt/confirmedAt/suppliedAt/pickupDate/requestedAt/answeredAt)
  * همیشه با ارقام انگلیسی و فرمت 'YYYY/MM/DD' ذخیره می‌شوند (jalaliday ارقام فارسی را
  * parse نمی‌کند)؛ نمایش با toPersianDigits فارسی می‌شود. Event ها صرفاً نمایشی‌اند.
  */
@@ -10,18 +12,19 @@ export type ProgressStepKey = 'supply' | 'pickup' | 'driver' | 'delivery';
 export type ProgressStepStatus = 'idle' | 'claimed' | 'rejected' | 'done';
 
 export const PROGRESS_STEPS: { key: ProgressStepKey; label: string }[] = [
-  { key: 'supply', label: 'تأمین نهاده و جوجه' },
-  { key: 'pickup', label: 'درخواست برداشت مرغ' },
-  { key: 'driver', label: 'راننده و خودرو' },
+  { key: 'supply', label: 'تحویل نهاده و جوجه' },
+  { key: 'pickup', label: 'درخواست برداشت مرغ زنده' },
+  { key: 'driver', label: 'اعلام مشخصات دریافت‌کننده' },
   { key: 'delivery', label: 'تحویل و تأیید نهایی' },
 ];
 
-/** نقش ادعاکننده و پاسخ‌دهنده هر گام — منبع واحد UI نقش‌محور. */
-export const STEP_ROLES: Record<ProgressStepKey, { claimer: ProgressRole; responder: ProgressRole | 'both' }> = {
+/** نقش ثبت‌کننده و پاسخ‌دهنده هر گام — منبع واحد UI نقش‌محور. */
+export const STEP_ROLES: Record<ProgressStepKey, { claimer: ProgressRole; responder: ProgressRole | 'both' | null }> = {
   supply: { claimer: 'supplier', responder: 'farm' },
   pickup: { claimer: 'supplier', responder: 'farm' },
-  driver: { claimer: 'supplier', responder: 'farm' },
-  delivery: { claimer: 'supplier', responder: 'both' },
+  /** اعلام صرف — مزرعه‌دار اقدامی ندارد، فقط نوتیف می‌گیرد. */
+  driver: { claimer: 'supplier', responder: null },
+  delivery: { claimer: 'farm', responder: 'supplier' },
 };
 
 export const ROLE_LABELS: Record<ProgressRole, string> = {
@@ -29,7 +32,7 @@ export const ROLE_LABELS: Record<ProgressRole, string> = {
   farm: 'مزرعه‌دار',
 };
 
-/** حداقل فاصله تأیید برداشت تا مراجعه (روز). */
+/** فاصله پیشنهادی درخواست برداشت تا تاریخ بارگیری (روز) — هشدار نرم، نه قانون سخت. */
 export const PICKUP_MIN_WAIT_DAYS = 7;
 
 export function getProgressStepIndex(key: ProgressStepKey): number {
@@ -43,7 +46,7 @@ export interface ProgressEvent {
   /** تاریخ نمایشی fa-IR (کانونشن timestamps اپ) — فقط برای نمایش، هرگز parse نشود. */
   at: string;
   by: ProgressRole;
-  type: 'claimed' | 'confirmed' | 'rejected' | 'document';
+  type: 'claimed' | 'confirmed' | 'rejected' | 'document' | 'announced' | 'updated';
   note?: string;
 }
 
@@ -67,10 +70,8 @@ export interface SupplyPayload {
 }
 
 export interface PickupPayload {
-  chickenWeight?: number; // کیلوگرم — مزرعه‌دار ثبت می‌کند
-  chickenCount?: number;
-  /** زودترین تاریخ مجاز مراجعه = تاریخ تأیید برداشت + ۷ روز ('YYYY/MM/DD' انگلیسی). */
-  earliestPickup?: string;
+  /** تاریخ بارگیری پیشنهادی تأمین‌کننده ('YYYY/MM/DD' انگلیسی). راهنمای نرم: ~۷ روز بعد از درخواست. */
+  pickupDate: string;
 }
 
 export interface DriverPayload {
@@ -82,15 +83,42 @@ export interface DriverPayload {
   supervisorPhone?: string;
   /** وقتی true، ناظر همان راننده است و فیلدهای ناظر حذف می‌شوند. */
   isDriverSupervisor: boolean;
-  /** تاریخ مراجعه — باید ≥ earliestPickup باشد (قانون حداقل ۷ روز). */
+  /** تاریخ بارگیری مرغ زنده — مشخصات باید ~۲۴ ساعت قبل اعلام شود. */
   pickupDate: string;
 }
 
 export interface DeliveryPayload {
-  supplierDocs: UploadedDoc[];
+  /** تعداد مرغ تحویلی (قطعه) — مزرعه‌دار ثبت می‌کند. */
+  chickenCount: number;
+  /** وزن کل تحویلی (کیلوگرم) — مزرعه‌دار ثبت می‌کند. */
+  totalWeight: number;
+  /** اسناد مزرعه‌دار (وزن‌کشی/باسکول و...) */
   farmDocs: UploadedDoc[];
+  /** تأیید تأمین‌کننده — با ثبت آن گام done می‌شود. */
   supplierConfirmed: boolean;
-  farmConfirmed: boolean;
+}
+
+// ── درخواست اعلام وزن (فلو مستقل، غیرگامی، چندباره) ──
+
+export interface WeightRequestAnswer {
+  /** میانگین وزن هر مرغ (کیلوگرم) */
+  avgWeight: number;
+  /** تعداد برآوردی مرغ (قطعه) */
+  estimatedCount: number;
+  note?: string;
+  answeredBy: ProgressRole;
+  answeredAt: string; // 'YYYY/MM/DD' انگلیسی
+}
+
+export interface WeightRequest {
+  id: string; // wr-{ts}-{rand} — یکتا
+  contractId: string;
+  requestedBy: ProgressRole;
+  requestedAt: string; // 'YYYY/MM/DD' انگلیسی
+  status: 'pending' | 'answered';
+  answer?: WeightRequestAnswer;
+  /** زمان مشاهده پاسخ توسط تأمین‌کننده (fa-IR نمایشی) — تا وقتی نباشد، نوتیف پاسخ باز می‌ماند. */
+  seenAt?: string;
 }
 
 // ── گام (union تمایزیافته روی key) ──
@@ -118,9 +146,9 @@ export type ContractProgressStep =
 function initialPayload(key: ProgressStepKey): ContractProgressStep['payload'] {
   switch (key) {
     case 'supply': return { chickCount: 0, feedAmount: 0, suppliedAt: '' };
-    case 'pickup': return {};
+    case 'pickup': return { pickupDate: '' };
     case 'driver': return { driverName: '', driverPhone: '', plateNumber: '', vehicleType: '', isDriverSupervisor: false, pickupDate: '' };
-    case 'delivery': return { supplierDocs: [], farmDocs: [], supplierConfirmed: false, farmConfirmed: false };
+    case 'delivery': return { chickenCount: 0, totalWeight: 0, farmDocs: [], supplierConfirmed: false };
   }
 }
 

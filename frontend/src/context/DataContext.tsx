@@ -1,18 +1,21 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode, type Dispatch } from 'react';
-import type { Contract, FarmProposal, Collateral, ContractProgressStep } from '@/types';
+import type { Contract, FarmProposal, Collateral, ContractProgressStep, WeightRequest } from '@/types';
 import { makeInitialSteps } from '@/types';
-import { seedDemoData } from '@/mocks/seed';
 
 export interface AppData {
   contracts: Contract[];
   proposals: FarmProposal[];
   collaterals: Collateral[];
   progressSteps: ContractProgressStep[];
+  weightRequests: WeightRequest[];
 }
 
 const STORAGE_KEY = 'fonoon-app-data';
 const VERSION_KEY = 'fonoon-app-version';
-const CURRENT_VERSION = 4;
+const CURRENT_VERSION = 6;
+
+/** حالت خام — بدون هیچ داده‌ای (دموی خودکار حذف شد تا کاربر از صفر شروع کند). */
+const EMPTY_DATA: AppData = { contracts: [], proposals: [], collaterals: [], progressSteps: [], weightRequests: [] };
 
 function loadData(): AppData {
   try {
@@ -20,16 +23,15 @@ function loadData(): AppData {
     if (!v || Number(v) < CURRENT_VERSION) {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
-      // داده دمو تا فلو پیگیری بدون طی کل مسیر قابل بازبینی باشد
-      return seedDemoData();
+      return EMPTY_DATA;
     }
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       // پیش‌فرض‌ها تا داده‌های قدیمی بدون کلیدهای جدید هم سالم لود شوند
-      return { contracts: [], proposals: [], collaterals: [], progressSteps: [], ...JSON.parse(raw) };
+      return { ...EMPTY_DATA, ...JSON.parse(raw) };
     }
   } catch { /* ignore */ }
-  return { contracts: [], proposals: [], collaterals: [], progressSteps: [] };
+  return EMPTY_DATA;
 }
 
 function saveData(data: AppData) {
@@ -45,6 +47,9 @@ export type DataAction =
   | { type: 'UPDATE_PROPOSAL'; payload: { id: string; status: FarmProposal['status'] } }
   | { type: 'ADD_COLLATERAL'; payload: Collateral }
   | { type: 'UPSERT_PROGRESS_STEP'; payload: ContractProgressStep }
+  | { type: 'ADD_WEIGHT_REQUEST'; payload: WeightRequest }
+  | { type: 'ANSWER_WEIGHT_REQUEST'; payload: { id: string; answer: NonNullable<WeightRequest['answer']> } }
+  | { type: 'MARK_WEIGHT_REQUESTS_SEEN'; payload: { contractId: string; seenAt: string } }
   | { type: 'SYNC'; payload: AppData };
 
 /** ادغام events با dedupe روی id تا تاریخچه ادعا/رد/تأیید مجدد حفظ شود. */
@@ -83,6 +88,24 @@ function reducer(state: AppData, action: DataAction): AppData {
           : s),
       };
     }
+    case 'ADD_WEIGHT_REQUEST': return { ...state, weightRequests: [...state.weightRequests, action.payload] };
+    case 'ANSWER_WEIGHT_REQUEST':
+      // idempotent — فقط درخواست‌های pending پاسخ می‌گیرند
+      return {
+        ...state,
+        weightRequests: state.weightRequests.map((r) => r.id === action.payload.id && r.status === 'pending'
+          ? { ...r, status: 'answered', answer: action.payload.answer }
+          : r),
+      };
+    case 'MARK_WEIGHT_REQUESTS_SEEN':
+      // idempotent — پاسخ‌های answered و دیده‌نشده قرارداد، دیده‌شده علامت می‌خورند
+      return {
+        ...state,
+        weightRequests: state.weightRequests.map((r) =>
+          r.contractId === action.payload.contractId && r.status === 'answered' && !r.seenAt
+            ? { ...r, seenAt: action.payload.seenAt }
+            : r),
+      };
     case 'SYNC': return action.payload;
     default: return state;
   }
