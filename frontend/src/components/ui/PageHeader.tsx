@@ -16,8 +16,8 @@ export function PageHeader({ title, subtitle, extra }: PageHeaderProps) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginTop: 16,
-        marginBottom: 16,
+        marginTop: 12,
+        marginBottom: 12,
         flexShrink: 0,
       }}
     >

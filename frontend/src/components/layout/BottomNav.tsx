@@ -1,27 +1,26 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PlusOutlined } from '@ant-design/icons';
+import { theme } from 'antd';
 import { getNavItems, isNavItemActive } from './navItems';
 import type { NavItem } from './navItems';
-
-const FAB = 48;
-const NOTCH = 54;
-const NAV_H = 50;
-const FAB_OFFSET = -16; // هرچه منفی‌تر → FAB پایین‌تر | مثبت → بالاتر
+import { SHELL_MOBILE_MAX, FAB, NOTCH, NAV_H, FAB_OFFSET } from '@/config/layout';
+import { pivaTokens } from '@/config/theme';
 
 export function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { items, isSupplier } = getNavItems(location.pathname);
+  const { token } = theme.useToken();
+  const { items } = getNavItems(location.pathname);
   const fabItem = items.find((item) => item.fab);
   const hasFab = !!fabItem;
 
   const fabActive = hasFab && location.pathname === fabItem!.path;
-  // FAB active = blue (same as nav), inactive = green (distinct action color)
-  const fabColor = fabActive ? '#1677ff' : '#389e0d';
+  // FAB فعال = آبی (همان ناوبری)، غیرفعال = سبز (رنگ اکشن متمایز)
+  const fabColor = fabActive ? token.colorInfo : token.colorPrimary;
 
   const renderBtn = (item: NavItem) => {
     const active = isNavItemActive(item, location.pathname);
-    const color = active ? '#1677ff' : '#8c8c8c';
+    const color = active ? token.colorInfo : token.colorTextSecondary;
     return (
       <button
         key={item.key}
@@ -57,7 +56,7 @@ export function BottomNav() {
         left: '50%',
         transform: 'translateX(-50%)',
         width: '100%',
-        maxWidth: 480,
+        maxWidth: SHELL_MOBILE_MAX,
         zIndex: 100,
       }}
     >
@@ -66,8 +65,8 @@ export function BottomNav() {
         style={{
           position: 'relative',
           height: NAV_H,
-          background: '#fff',
-          boxShadow: '0 -2px 12px rgba(0,0,0,0.08)',
+          background: token.colorBgContainer,
+          boxShadow: pivaTokens.shadowBottomNav,
           display: 'flex',
           alignItems: 'center',
           paddingBottom: 'env(safe-area-inset-bottom, 0)',
@@ -106,8 +105,8 @@ export function BottomNav() {
               width: NOTCH,
               height: NOTCH,
               borderRadius: '50%',
-              background: '#fff',
-              boxShadow: '0 -1px 4px rgba(0,0,0,0.03) inset',
+              background: token.colorBgContainer,
+              boxShadow: pivaTokens.shadowNotchInset,
               zIndex: 1,
             }}
           />
@@ -136,11 +135,9 @@ export function BottomNav() {
               height: FAB,
               borderRadius: '50%',
               background: fabColor,
-              color: '#fff',
-              border: '3px solid #fff',
-              boxShadow: fabActive
-                ? '0 4px 18px rgba(56,158,13,0.55)'
-                : '0 3px 10px rgba(56,158,13,0.35)',
+              color: token.colorTextLightSolid,
+              border: `3px solid ${token.colorBgContainer}`,
+              boxShadow: fabActive ? pivaTokens.shadowFabActive : pivaTokens.shadowFabIdle,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -155,7 +152,7 @@ export function BottomNav() {
             style={{
               fontSize: 11,
               fontWeight: fabActive ? 600 : 400,
-              color: fabActive ? '#1677ff' : '#389e0d',
+              color: fabActive ? token.colorInfo : token.colorPrimary,
               marginTop: -1,
               lineHeight: 1.3,
               transition: 'color 0.25s ease',

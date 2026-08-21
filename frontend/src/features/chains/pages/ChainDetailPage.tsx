@@ -4,34 +4,18 @@ import { Card, Steps, Tag, Button, Typography, Row, Col, Empty, Spin } from 'ant
 import { ArrowRightOutlined } from '@ant-design/icons';
 import { chainService } from '../services/chain.service';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageFrame } from '@/components/ui/PageFrame';
 import { SelectionCard, type EntityDetail } from '@/components/ui/SelectionCard';
+import { StatTile } from '@/components/ui/StatTile';
+import { farmFields, farmDetails } from '@/features/farms/components/FarmCard';
 import { formatNumber } from '@/utils/format';
 import { CHAIN_TRACKING_STEPS, getTrackingStepIndex } from '@/types';
 import type { Farm, ChickSupplier, FeedSupplier, Slaughterhouse, Warehouse } from '@/types';
+import { useIsDesktop } from '@/hooks/useResponsive';
 
 const { Text, Title } = Typography;
 
 // ── Field & detail helpers ──
-
-function farmFields(f: Farm) {
-  return [
-    { label: 'ظرفیت', value: formatNumber(f.capacity) },
-    { label: 'ضریب تبدیل', value: formatNumber(f.avgConversionRatio, 1) },
-    { label: 'سابقه', value: `${formatNumber(f.experienceYears)} سال` },
-    { label: 'گرید', value: f.grade, type: 'grade' as const },
-  ];
-}
-function fDetails(f: Farm): EntityDetail[] {
-  return [
-    { label: 'مالک', value: f.ownerName },
-    { label: 'موقعیت', value: `${f.address.city}، ${f.address.province}` },
-    { label: 'گرید', value: f.grade },
-    { label: 'ظرفیت', value: formatNumber(f.capacity) },
-    { label: 'ضریب تبدیل', value: formatNumber(f.avgConversionRatio, 1) },
-    { label: 'سابقه', value: `${formatNumber(f.experienceYears)} سال` },
-    { label: 'تلفن', value: f.contact.phone },
-  ];
-}
 
 function chickFields(s: ChickSupplier) {
   return [
@@ -137,7 +121,7 @@ function EntitySection<T extends { id: string; active?: boolean; description?: s
   if (items.length === 0) return null;
 
   return (
-    <div style={{ marginBottom: 16, paddingInline: 8 }}>
+    <div style={{ marginBottom: 12, paddingInline: 8 }}>
       <Text strong style={{ display: 'block', marginBottom: 8 }}>
         {icon} {title} ({formatNumber(items.length)})
       </Text>
@@ -167,6 +151,7 @@ function EntitySection<T extends { id: string; active?: boolean; description?: s
 export function ChainDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
 
   const { data: chain, isLoading } = useQuery({
     queryKey: ['chains', id],
@@ -189,7 +174,7 @@ export function ChainDetailPage() {
   const trackingIdx = getTrackingStepIndex(chain.currentStep);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+    <PageFrame mobilePaddingBottom={16} header={
       <PageHeader
         title={chain.name}
         subtitle={`ایجاد شده در ${chain.createdAt}`}
@@ -199,57 +184,45 @@ export function ChainDetailPage() {
           </Button>
         }
       />
+    }>
+      <Card style={{ marginBottom: 16 }}>
+        <Title level={5} style={{ marginBottom: 12 }}>وضعیت زنجیره</Title>
+        {/* در موبایل گام‌ها عمودی می‌شوند تا برچسب‌های بلند فارسی کلیپ نشوند */}
+        <Steps
+          direction={isDesktop ? 'horizontal' : 'vertical'}
+          current={trackingIdx}
+          size="small"
+          status={chain.status === 'completed' ? 'finish' : 'process'}
+          items={CHAIN_TRACKING_STEPS.map((s) => ({ title: s.label }))}
+        />
+      </Card>
 
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 16 }}>
-        <Card style={{ marginBottom: 16 }}>
-          <Title level={5} style={{ marginBottom: 12 }}>وضعیت زنجیره</Title>
-          <Steps
-            current={trackingIdx}
-            size="small"
-            status={chain.status === 'completed' ? 'finish' : 'process'}
-            items={CHAIN_TRACKING_STEPS.map((s) => ({ title: s.label }))}
-          />
-        </Card>
+      <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
+        <Col xs={12} sm={6}>
+          <StatTile direction="column" label="تعداد مزارع" value={formatNumber(chain.farms.length)} />
+        </Col>
+        <Col xs={12} sm={6}>
+          <StatTile direction="column" label="مجموع جوجه‌ریزی" value={formatNumber(chain.totalChicks)} />
+        </Col>
+        <Col xs={12} sm={6}>
+          <StatTile direction="column" label="ضریب تبدیل" value={chain.predictedConversionRatio != null ? formatNumber(chain.predictedConversionRatio, 2) : '—'} />
+        </Col>
+        <Col xs={12} sm={6}>
+          <StatTile direction="column" label="وضعیت" value={
+            <Tag color={chain.status === 'active' ? 'processing' : chain.status === 'completed' ? 'success' : 'default'}>
+              {chain.status === 'active' ? 'فعال' : chain.status === 'completed' ? 'تکمیل شده' : 'پیش‌نویس'}
+            </Tag>
+          } />
+        </Col>
+      </Row>
 
-        <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
-          <Col xs={12} sm={6}>
-            <Card size="small">
-              <Text type="secondary" style={{ fontSize: 11 }}>تعداد مزارع</Text>
-              <Title level={5} style={{ margin: 0 }}>{formatNumber(chain.farms.length)}</Title>
-            </Card>
-          </Col>
-          <Col xs={12} sm={6}>
-            <Card size="small">
-              <Text type="secondary" style={{ fontSize: 11 }}>مجموع جوجه‌ریزی</Text>
-              <Title level={5} style={{ margin: 0 }}>{formatNumber(chain.totalChicks)}</Title>
-            </Card>
-          </Col>
-          <Col xs={12} sm={6}>
-            <Card size="small">
-              <Text type="secondary" style={{ fontSize: 11 }}>ضریب تبدیل</Text>
-              <Title level={5} style={{ margin: 0 }}>{chain.predictedConversionRatio != null ? formatNumber(chain.predictedConversionRatio, 2) : '—'}</Title>
-            </Card>
-          </Col>
-          <Col xs={12} sm={6}>
-            <Card size="small">
-              <Text type="secondary" style={{ fontSize: 11 }}>وضعیت</Text>
-              <Title level={5} style={{ margin: 0 }}>
-                <Tag color={chain.status === 'active' ? 'processing' : chain.status === 'completed' ? 'success' : 'default'}>
-                  {chain.status === 'active' ? 'فعال' : chain.status === 'completed' ? 'تکمیل شده' : 'پیش‌نویس'}
-                </Tag>
-              </Title>
-            </Card>
-          </Col>
-        </Row>
+      <Title level={5} style={{ marginBottom: 8 }}>اجزای زنجیره</Title>
 
-        <Title level={5} style={{ marginBottom: 8 }}>اجزای زنجیره</Title>
-
-        <EntitySection<Farm> items={chain.farms} title="مزارع" icon="🏭" fieldsFn={farmFields} detailsFn={fDetails} ratingFn={(f) => f.rating} gradeFn={(f) => f.grade} subtitleFn={(f) => `${f.address.city}، ${f.address.province}`} />
-        <EntitySection<ChickSupplier> items={chain.chickSuppliers} title="تأمین‌کنندگان جوجه یکروزه" icon="🐣" fieldsFn={chickFields} detailsFn={cDetails} ratingFn={(s) => s.rating} gradeFn={(s) => s.grade} subtitleFn={(s) => `${s.address.city}، ${s.address.province}`} />
-        <EntitySection<FeedSupplier> items={chain.feedSuppliers} title="تأمین‌کنندگان خوراک دان" icon="🌾" fieldsFn={feedFields} detailsFn={fdDetails} ratingFn={(s) => s.rating} gradeFn={(s) => s.grade} subtitleFn={(s) => `${s.address.city}، ${s.address.province}`} />
-        <EntitySection<Slaughterhouse> items={chain.slaughterhouses} title="کشتارگاه‌ها" icon="🔪" fieldsFn={slFields} detailsFn={slDetails} ratingFn={(s) => s.rating} gradeFn={(s) => s.grade} subtitleFn={(s) => `${s.address.city}، ${s.address.province}`} />
-        <EntitySection<Warehouse> items={chain.warehouses} title="انبارهای مقصد" icon="🏪" fieldsFn={whFields} detailsFn={whDetails} ratingFn={(w) => w.rating} gradeFn={(w) => w.grade} subtitleFn={(w) => `${w.address.city}، ${w.address.province}`} />
-      </div>
-    </div>
+      <EntitySection<Farm> items={chain.farms} title="مزارع" icon="🏭" fieldsFn={farmFields} detailsFn={farmDetails} ratingFn={(f) => f.rating} gradeFn={(f) => f.grade} subtitleFn={(f) => `${f.address.city}، ${f.address.province}`} />
+      <EntitySection<ChickSupplier> items={chain.chickSuppliers} title="تأمین‌کنندگان جوجه یکروزه" icon="🐣" fieldsFn={chickFields} detailsFn={cDetails} ratingFn={(s) => s.rating} gradeFn={(s) => s.grade} subtitleFn={(s) => `${s.address.city}، ${s.address.province}`} />
+      <EntitySection<FeedSupplier> items={chain.feedSuppliers} title="تأمین‌کنندگان خوراک دان" icon="🌾" fieldsFn={feedFields} detailsFn={fdDetails} ratingFn={(s) => s.rating} gradeFn={(s) => s.grade} subtitleFn={(s) => `${s.address.city}، ${s.address.province}`} />
+      <EntitySection<Slaughterhouse> items={chain.slaughterhouses} title="کشتارگاه‌ها" icon="🔪" fieldsFn={slFields} detailsFn={slDetails} ratingFn={(s) => s.rating} gradeFn={(s) => s.grade} subtitleFn={(s) => `${s.address.city}، ${s.address.province}`} />
+      <EntitySection<Warehouse> items={chain.warehouses} title="انبارهای مقصد" icon="🏪" fieldsFn={whFields} detailsFn={whDetails} ratingFn={(w) => w.rating} gradeFn={(w) => w.grade} subtitleFn={(w) => `${w.address.city}، ${w.address.province}`} />
+    </PageFrame>
   );
 }

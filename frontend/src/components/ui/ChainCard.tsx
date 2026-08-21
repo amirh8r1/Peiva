@@ -4,6 +4,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import type { Chain } from '@/types';
 import { CHAIN_TRACKING_STEPS, getTrackingStepIndex } from '@/types';
 import { formatNumber } from '@/utils/format';
+import { StatTile } from '@/components/ui/StatTile';
 
 const { Text, Title } = Typography;
 
@@ -32,7 +33,6 @@ export function ChainCard({ chain }: ChainCardProps) {
   return (
     <Card
       hoverable
-      style={{ borderRadius: 12 }}
       onClick={() => navigate(`/chains/${chain.id}`)}
     >
       <div
@@ -60,57 +60,28 @@ export function ChainCard({ chain }: ChainCardProps) {
 
       <Row gutter={16} style={{ marginBottom: 20 }}>
         <Col span={8}>
-          <div
-            style={{
-              background: '#f6ffed',
-              borderRadius: 8,
-              padding: '8px 12px',
-              textAlign: 'center',
-            }}
-          >
-            <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>
-              تعداد مزرعه
-            </Text>
-            <Text strong style={{ fontSize: 18, color: '#389e0d' }}>
-              {formatNumber(chain.farms.length)}
-              <Text style={{ fontSize: 12 }}> عدد</Text>
-            </Text>
-          </div>
+          <StatTile
+            direction="column"
+            label="تعداد مزرعه"
+            value={<>{formatNumber(chain.farms.length)} <Text style={{ fontSize: 12 }}> عدد</Text></>}
+            tone="success"
+          />
         </Col>
         <Col span={8}>
-          <div
-            style={{
-              background: '#e6f7ff',
-              borderRadius: 8,
-              padding: '8px 12px',
-              textAlign: 'center',
-            }}
-          >
-            <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>
-              مجموع جوجه‌ریزی
-            </Text>
-            <Text strong style={{ fontSize: 18, color: '#1677ff' }}>
-              {formatNumber(chain.totalChicks)}
-              <Text style={{ fontSize: 12 }}> قطعه</Text>
-            </Text>
-          </div>
+          <StatTile
+            direction="column"
+            label="مجموع جوجه‌ریزی"
+            value={<>{formatNumber(chain.totalChicks)} <Text style={{ fontSize: 12 }}> قطعه</Text></>}
+            tone="info"
+          />
         </Col>
         <Col span={8}>
-          <div
-            style={{
-              background: '#fff7e6',
-              borderRadius: 8,
-              padding: '8px 12px',
-              textAlign: 'center',
-            }}
-          >
-            <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>
-              ضریب تبدیل
-            </Text>
-            <Text strong style={{ fontSize: 18, color: '#fa8c16' }}>
-              {chain.predictedConversionRatio != null ? formatNumber(chain.predictedConversionRatio, 2) : '—'}
-            </Text>
-          </div>
+          <StatTile
+            direction="column"
+            label="ضریب تبدیل"
+            value={chain.predictedConversionRatio != null ? formatNumber(chain.predictedConversionRatio, 2) : '—'}
+            tone="warning"
+          />
         </Col>
       </Row>
 

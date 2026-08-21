@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Typography, Tag, Empty, Badge, Space } from 'antd';
+import { Button, Card, Typography, Tag, Empty, Badge, Space, theme } from 'antd';
 import { BellOutlined } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageFrame } from '@/components/ui/PageFrame';
+import { CardGrid } from '@/components/ui/CardGrid';
 import { formatNumber } from '@/utils/format';
 import { CONTRACT_TYPE_LABELS } from '@/types';
-import { useIsDesktop } from '@/hooks/useResponsive';
 import { useRole } from '@/hooks/useRole';
-import { responsiveGrid } from '@/utils/responsive';
 import { getPendingActions, getWeightRequestActions } from '@/features/progress/utils/progress.utils';
 
 const { Text } = Typography;
@@ -25,21 +25,19 @@ type NotifyKind = 'action' | 'info';
 
 /** کارت نوتیف — action: زرد هشدار (نیازمند اقدام)؛ info: خنثی (اطلاع‌رسانی). */
 function NotifyCard({ title, body, onClick, buttonLabel, kind }: NotifyItem & { kind: NotifyKind }) {
-  const isDesktop = useIsDesktop();
+  const { token } = theme.useToken();
   const isAction = kind === 'action';
   return (
     <Card
       style={{
-        marginBottom: isDesktop ? 0 : 10,
-        background: isAction ? '#fff7e6' : '#fafafa',
-        borderRadius: 10,
-        border: `1px solid ${isAction ? '#faad14' : '#d9d9d9'}`,
+        background: isAction ? token.colorWarningBg : token.colorFillSecondary,
+        border: `1px solid ${isAction ? token.colorWarning : token.colorBorder}`,
         cursor: onClick ? 'pointer' : 'default',
       }}
       onClick={onClick}
     >
       <Space><Badge status={isAction ? 'warning' : 'default'} /><Text strong>{title}</Text></Space>
-      <div style={{ marginTop: 4, fontSize: 12, color: 'rgba(0,0,0,0.88)' }}>{body}</div>
+      <div style={{ marginTop: 4, fontSize: 12, color: token.colorText }}>{body}</div>
       {onClick && (
         <Button type={isAction ? 'primary' : 'default'} size="small" block style={{ marginTop: 8 }}>
           {buttonLabel ?? (isAction ? 'پیگیری' : 'مشاهده')}
@@ -51,17 +49,17 @@ function NotifyCard({ title, body, onClick, buttonLabel, kind }: NotifyItem & { 
 
 /** سکشن نوتیف با عنوان + شمارنده و گرید ریسپانسیو — سازماندهی واحد داشبوردها. */
 function NotificationSection({ title, kind, items }: { title: string; kind: NotifyKind; items: NotifyItem[] }) {
-  const isDesktop = useIsDesktop();
+  const { token } = theme.useToken();
   if (items.length === 0) return null;
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div style={{ marginBottom: 12 }}>
       <Space size={6} style={{ marginBottom: 8 }}>
         <Text strong style={{ fontSize: 13 }}>{title}</Text>
-        <Badge count={formatNumber(items.length)} size="small" style={{ backgroundColor: kind === 'action' ? '#faad14' : '#bfbfbf' }} />
+        <Badge count={formatNumber(items.length)} size="small" style={{ backgroundColor: kind === 'action' ? token.colorWarning : token.colorTextTertiary }} />
       </Space>
-      <div style={isDesktop ? responsiveGrid(320, 12) : undefined}>
+      <CardGrid minWidth={320} gap={12}>
         {items.map((item) => <NotifyCard key={item.id} kind={kind} {...item} />)}
-      </div>
+      </CardGrid>
     </div>
   );
 }
@@ -81,6 +79,7 @@ function toNotifyItems(
 
 function FarmOwnerDashboard() {
   const navigate = useNavigate();
+  const { token } = theme.useToken();
   const { data } = useData();
   const myProposals = data.proposals.filter((p) => p.farmId === 'farm-1');
   const finIds = new Set(data.contracts.filter((c) => c.status === 'finalized').map((c) => c.id));
@@ -122,16 +121,15 @@ function FarmOwnerDashboard() {
   ];
 
   return (
-    <>
+    <PageFrame header={
       <PageHeader title="داشبورد مزرعه‌دار" extra={
-        actions.length > 0 ? <Badge count={formatNumber(actions.length)}><BellOutlined style={{ fontSize: 20, color: '#faad14' }} /></Badge> : null
+        actions.length > 0 ? <Badge count={formatNumber(actions.length)}><BellOutlined style={{ fontSize: 20, color: token.colorWarning }} /></Badge> : null
       } />
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <NotificationSection title="نیازمند اقدام شما" kind="action" items={actions} />
-        <NotificationSection title="اطلاعیه‌ها" kind="info" items={infos} />
-        {actions.length === 0 && infos.length === 0 && <Empty description="نوتیف جدیدی ندارید" />}
-      </div>
-    </>
+    }>
+      <NotificationSection title="نیازمند اقدام شما" kind="action" items={actions} />
+      <NotificationSection title="اطلاعیه‌ها" kind="info" items={infos} />
+      {actions.length === 0 && infos.length === 0 && <Empty description="نوتیف جدیدی ندارید" />}
+    </PageFrame>
   );
 }
 
@@ -176,16 +174,13 @@ function SupplierDashboard() {
   ];
 
   return (
-    <>
-      <PageHeader title="داشبورد تأمین‌کننده" />
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <NotificationSection title="نیازمند اقدام شما" kind="action" items={actions} />
-        <NotificationSection title="اطلاعیه‌ها" kind="info" items={infos} />
-        {actions.length === 0 && infos.length === 0 && (
-          <Empty description={contracts.length === 0 ? 'قراردادی ندارید' : 'نوتیف جدیدی ندارید'} />
-        )}
-      </div>
-    </>
+    <PageFrame header={<PageHeader title="داشبورد تأمین‌کننده" />}>
+      <NotificationSection title="نیازمند اقدام شما" kind="action" items={actions} />
+      <NotificationSection title="اطلاعیه‌ها" kind="info" items={infos} />
+      {actions.length === 0 && infos.length === 0 && (
+        <Empty description={contracts.length === 0 ? 'قراردادی ندارید' : 'نوتیف جدیدی ندارید'} />
+      )}
+    </PageFrame>
   );
 }
 

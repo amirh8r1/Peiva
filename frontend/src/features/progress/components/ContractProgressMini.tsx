@@ -1,4 +1,4 @@
-import { Progress, Tag, Typography } from 'antd';
+import { Progress, Tag, Typography, theme } from 'antd';
 import { CheckCircleFilled } from '@ant-design/icons';
 import { PROGRESS_STEPS } from '@/types';
 import { toPersianDigits } from '@/utils/format';
@@ -12,6 +12,7 @@ const { Text } = Typography;
  * اگر گامی وجود نداشته باشد چیزی رندر نمی‌شود.
  */
 export function ContractProgressMini({ steps }: { steps: ContractProgressStep[] }) {
+  const { token } = theme.useToken();
   if (steps.length === 0) return null;
 
   const done = steps.filter((s) => s.status === 'done').length;
@@ -37,9 +38,9 @@ export function ContractProgressMini({ steps }: { steps: ContractProgressStep[] 
         <Text type="secondary" style={{ fontSize: 10 }}>
           مرحله {toPersianDigits(done + 1)} از {toPersianDigits(PROGRESS_STEPS.length)}
         </Text>
-        <Text style={{ fontSize: 10, color: '#389e0d', textAlign: 'left' }}>{label}</Text>
+        <Text style={{ fontSize: 10, color: token.colorPrimary, textAlign: 'start' }}>{label}</Text>
       </div>
-      <Progress percent={pct} size="small" showInfo={false} strokeColor="#389e0d" trailColor="#f0f0f0" style={{ margin: 0 }} />
+      <Progress percent={pct} size="small" showInfo={false} strokeColor={token.colorPrimary} trailColor={token.colorBorderSecondary} style={{ margin: 0 }} />
     </div>
   );
 }

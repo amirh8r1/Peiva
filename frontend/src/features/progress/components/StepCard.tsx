@@ -1,4 +1,4 @@
-import { Card, Tag, Typography, Timeline } from 'antd';
+import { Card, Tag, Typography, Timeline, theme } from 'antd';
 import { ROLE_LABELS, STEP_ROLES } from '@/types';
 import type { ContractProgressStep, ProgressEvent, ProgressStepStatus } from '@/types';
 
@@ -51,7 +51,7 @@ export function StepCard({ step, stepLabel, children }: StepCardProps) {
           <Tag color={status.color} style={{ margin: 0 }}>{status.text}</Tag>
         </div>
       }
-      style={{ marginBottom: 12, borderRadius: 12 }}
+      style={{ marginBottom: 12 }}
     >
       {hint && (
         <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 8 }}>
@@ -86,10 +86,11 @@ export function StepCard({ step, stepLabel, children }: StepCardProps) {
 
 /** ردیف label/value ساده برای خلاصه اطلاعات — مشترک بین کارت‌های گام‌ها. */
 export function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
+  const { token } = theme.useToken();
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '4px 0', borderBottom: '1px dashed #f0f0f0' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '4px 0', borderBottom: `1px dashed ${token.colorBorderSecondary}` }}>
       <Text type="secondary" style={{ fontSize: 12 }}>{label}</Text>
-      <Text strong style={{ fontSize: 12, textAlign: 'left' }}>{value}</Text>
+      <Text strong style={{ fontSize: 12, textAlign: 'start' }}>{value}</Text>
     </div>
   );
 }

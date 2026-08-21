@@ -1,23 +1,29 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Radio, Button, InputNumber, Typography, Space, message, Tag, Divider, Empty } from 'antd';
+import { Card, Radio, Button, InputNumber, Typography, Space, message, Tag, Divider, Empty, theme } from 'antd';
 import {
   CheckCircleOutlined,
   SafetyOutlined,
   EnvironmentOutlined,
   CalendarOutlined,
   FileTextOutlined,
-  PercentageOutlined,
   SkinOutlined,
   ArrowLeftOutlined,
   BankOutlined,
 } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { formatNumber, parsePersianNumber, toPersianDigits } from '@/utils/format';
+import { PageFrame } from '@/components/ui/PageFrame';
+import { StatTile } from '@/components/ui/StatTile';
+import { ProfitShareBadge } from '@/components/ui/ProfitShareBadge';
+import { SuccessScreen } from '@/components/ui/SuccessScreen';
+import { PrimaryCTA } from '@/components/ui/PrimaryCTA';
+import { SelectableCard } from '@/components/ui/SelectableCard';
+import { formatNumber, parsePersianNumber } from '@/utils/format';
 import { COLLATERAL_TYPE_LIST, CONTRACT_TYPE_LABELS, TERM_TEMPLATES, PROFIT_METHODS, IRANIAN_BANKS } from '@/types';
 import { useIsDesktop } from '@/hooks/useResponsive';
-import { centeredCTA } from '@/utils/responsive';
+import { centeredForm } from '@/utils/responsive';
+import { CTA_MAX } from '@/config/layout';
 
 const { Text, Title } = Typography;
 
@@ -27,6 +33,7 @@ export function CollateralPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
+  const { token } = theme.useToken();
   const { data, dispatch } = useData();
   const [step, setStep] = useState<Step>('form');
   const [type, setType] = useState('check');
@@ -82,11 +89,12 @@ export function CollateralPage() {
   // ── Success screen ──
   if (done) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-        <CheckCircleOutlined style={{ fontSize: 64, color: '#389e0d' }} />
-        <Title level={3} style={{ marginTop: 16 }}>🎉 قرارداد نهایی شد!</Title>
-        <Button type="primary" block size="large" style={{ marginTop: 24 }} onClick={() => navigate('/farm')}>بازگشت به داشبورد</Button>
-      </div>
+      <SuccessScreen
+        title="قرارداد نهایی شد!"
+        subtitle="وثیقه تأیید و قرارداد شما نهایی گردید"
+        actionLabel="بازگشت به داشبورد"
+        onAction={() => navigate('/farm')}
+      />
     );
   }
 
@@ -97,251 +105,188 @@ export function CollateralPage() {
   // ── Confirmation step ──
   if (step === 'confirm') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-        <PageHeader title="تأیید نهایی" subtitle="خلاصه شرایط قرارداد و وثایق" />
-        {/* key=step → هنگام تعویض گام اسکرول کانتینر از نو ساخته می‌شود و صفحه از بالا دیده می‌شود */}
-        <div key="confirm" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: isDesktop ? 24 : 80 }}>
+      <PageFrame remountKey="confirm" header={<PageHeader title="تأیید نهایی" subtitle="خلاصه شرایط قرارداد و وثایق" />}>
+        {/* ── Contract summary ── */}
+        <Card
+          title={<Space><FileTextOutlined /><span>خلاصه قرارداد</span></Space>}
+          style={{ marginBottom: 12 }}
+        >
+          {/* Basic info — two per row mobile، چهار ستون دسکتاپ */}
+          <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr', gap: 8, marginBottom: 16 }}>
+            <StatTile icon={<FileTextOutlined />} label="نوع قرارداد" value={CONTRACT_TYPE_LABELS[contract.contractType]} tone="info" />
+            <StatTile icon={<EnvironmentOutlined />} label="استان" value={contract.region} tone="success" />
+            <StatTile icon={<CalendarOutlined />} label="مدت قرارداد" value={`${formatNumber(contract.duration)} دوره`} tone="warning" />
+            <StatTile icon={<SkinOutlined />} label="کل جوجه‌ریزی" value={`${formatNumber(totalChicks)} قطعه`} tone="purple" />
+          </div>
 
-          {/* ── Contract summary ── */}
-          <Card
-            title={<Space><FileTextOutlined /><span>خلاصه قرارداد</span></Space>}
-            style={{ marginBottom: 12, borderRadius: 12 }}
-          >
-            {/* Basic info — two per row mobile، چهار ستون دسکتاپ */}
-            <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr', gap: 8, marginBottom: 16 }}>
-              <div style={summaryItemStyle}>
-                <FileTextOutlined style={{ fontSize: 20, color: '#1677ff', flexShrink: 0 }} />
-                <div style={{ minWidth: 0 }}>
-                  <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>نوع قرارداد</Text>
-                  <Text strong style={{ fontSize: 14 }}>{CONTRACT_TYPE_LABELS[contract.contractType]}</Text>
-                </div>
-              </div>
-              <div style={summaryItemStyle}>
-                <EnvironmentOutlined style={{ fontSize: 20, color: '#389e0d', flexShrink: 0 }} />
-                <div style={{ minWidth: 0 }}>
-                  <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>استان</Text>
-                  <Text strong style={{ fontSize: 14 }}>{contract.region}</Text>
-                </div>
-              </div>
-              <div style={summaryItemStyle}>
-                <CalendarOutlined style={{ fontSize: 20, color: '#fa8c16', flexShrink: 0 }} />
-                <div style={{ minWidth: 0 }}>
-                  <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>مدت قرارداد</Text>
-                  <Text strong style={{ fontSize: 14 }}>{formatNumber(contract.duration)} دوره</Text>
-                </div>
-              </div>
-              <div style={summaryItemStyle}>
-                <SkinOutlined style={{ fontSize: 20, color: '#722ed1', flexShrink: 0 }} />
-                <div style={{ minWidth: 0 }}>
-                  <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>کل جوجه‌ریزی</Text>
-                  <Text strong style={{ fontSize: 14 }}>{formatNumber(totalChicks)} قطعه</Text>
-                </div>
-              </div>
+          <Divider style={{ margin: '16px 0' }} />
+
+          {/* Terms */}
+          <div style={{ marginBottom: 16 }}>
+            <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>شرایط و تعهدات:</Text>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {terms.map((t) => (
+                <Tag key={t.id} color="blue" style={{ fontSize: 12, padding: '4px 10px', borderRadius: token.borderRadius }}>{t.label}</Tag>
+              ))}
             </div>
+          </div>
 
-            <Divider style={{ margin: '16px 0' }} />
+          <Divider style={{ margin: '16px 0' }} />
 
-            {/* Terms */}
-            <div style={{ marginBottom: 16 }}>
-              <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>شرایط و تعهدات:</Text>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {terms.map((t) => (
-                  <Tag key={t.id} color="blue" style={{ fontSize: 12, padding: '4px 10px', borderRadius: 8 }}>{t.label}</Tag>
-                ))}
-              </div>
+          {/* Profit sharing — stacked vertically for readability */}
+          <div>
+            <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>شیوه و درصد تسهیم سود:</Text>
+            <div style={{
+              background: token.colorFillSecondary,
+              borderRadius: token.borderRadius,
+              padding: '12px 16px',
+              marginBottom: 12,
+            }}>
+              <Text strong style={{ fontSize: 14, display: 'block' }}>{method?.label}</Text>
+              <Text type="secondary" style={{ fontSize: 11 }}>{method?.description}</Text>
             </div>
+            <ProfitShareBadge percent={contract.profitSharingMin} size="lg" />
+          </div>
+        </Card>
 
-            <Divider style={{ margin: '16px 0' }} />
-
-            {/* Profit sharing — stacked vertically for readability */}
+        {/* ── Collateral summary ── */}
+        <Card
+          title={<Space><SafetyOutlined /><span>تضمین انتخابی</span></Space>}
+          style={{ marginBottom: 12, border: `2px solid ${token.colorPrimary}` }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <Text style={{ fontSize: 32 }}>{selectedCollateralType?.icon}</Text>
             <div>
-              <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>شیوه و درصد تسهیم سود:</Text>
-              <div style={{
-                background: '#fafafa',
-                borderRadius: 10,
-                padding: '12px 14px',
-                marginBottom: 10,
-              }}>
-                <Text strong style={{ fontSize: 14, display: 'block' }}>{method?.label}</Text>
-                <Text type="secondary" style={{ fontSize: 11 }}>{method?.description}</Text>
-              </div>
-              <div style={{
-                background: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
-                borderRadius: 10,
-                padding: '14px 16px',
-                border: '2px solid #b7eb8f',
-                textAlign: 'center',
-              }}>
-                <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>حداقل سهم مزرعه‌دار</Text>
-                <Text strong style={{ fontSize: 28, color: '#389e0d', lineHeight: 1.3 }}>
-                  ٪{formatNumber(contract.profitSharingMin)}
+              <Text strong style={{ fontSize: 16, display: 'block' }}>{selectedCollateralType?.label}</Text>
+              {type === 'guarantee' && selectedBank && (
+                <Text style={{ fontSize: 13, color: token.colorInfo, display: 'block', marginTop: 4 }}>
+                  <BankOutlined style={{ marginInlineStart: 4 }} />
+                  {selectedBank.label}
                 </Text>
-              </div>
+              )}
             </div>
-          </Card>
-
-          {/* ── Collateral summary ── */}
-          <Card
-            title={<Space><SafetyOutlined /><span>تضمین انتخابی</span></Space>}
-            style={{ marginBottom: 12, borderRadius: 12, border: '2px solid #389e0d' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-              <Text style={{ fontSize: 32 }}>{selectedCollateralType?.icon}</Text>
-              <div>
-                <Text strong style={{ fontSize: 16, display: 'block' }}>{selectedCollateralType?.label}</Text>
-                {type === 'guarantee' && selectedBank && (
-                  <Text style={{ fontSize: 13, color: '#1677ff', display: 'block', marginTop: 4 }}>
-                    <BankOutlined style={{ marginLeft: 4 }} />
-                    {selectedBank.label}
-                  </Text>
-                )}
-              </div>
+          </div>
+          {(type === 'cash' || type === 'check') && value != null && (
+            <div style={{
+              background: token.colorSuccessBg,
+              borderRadius: token.borderRadius,
+              padding: '12px 16px',
+              border: `1px solid ${token.colorSuccessBorder}`,
+            }}>
+              <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>مبلغ تضمین</Text>
+              <Text strong style={{ fontSize: 20, color: token.colorPrimary }}>
+                {formatNumber(value)} تومان
+              </Text>
             </div>
-            {(type === 'cash' || type === 'check') && value != null && (
-              <div style={{
-                background: '#f6ffed',
-                borderRadius: 10,
-                padding: '14px 16px',
-                border: '1px solid #b7eb8f',
-              }}>
-                <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>مبلغ تضمین</Text>
-                <Text strong style={{ fontSize: 20, color: '#389e0d' }}>
-                  {formatNumber(value)} تومان
-                </Text>
-              </div>
-            )}
-          </Card>
+          )}
+        </Card>
 
-          {/* ── Action buttons — یک سطر: بازگشت سمت راست، تایید سمت چپ ── */}
-          <div style={{ display: 'flex', gap: 8, ...(isDesktop ? { maxWidth: 520, margin: '16px auto 0' } : {}) }}>
+        {/* ── Action buttons — یک سطر: بازگشت سمت راست، تایید سمت چپ ── */}
+        <div style={centeredForm(isDesktop, CTA_MAX)}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
             <Button
               size="large"
               icon={<ArrowLeftOutlined />}
               onClick={() => setStep('form')}
-              style={{ height: 48, borderRadius: 12, flexShrink: 0, paddingInline: 16 }}
+              style={{ height: 48, borderRadius: token.borderRadius, flexShrink: 0, paddingInline: 16 }}
             >
               بازگشت و ویرایش
             </Button>
-            <Button
-              type="primary"
-              size="large"
+            <PrimaryCTA
+              centered={false}
               icon={<CheckCircleOutlined />}
               onClick={handleFinalSubmit}
-              style={{ flex: 1, height: 48, borderRadius: 12, fontSize: 15, fontWeight: 600, minWidth: 0 }}
+              style={{ flex: 1, minWidth: 0 }}
             >
               تایید نهایی و ثبت قرارداد
-            </Button>
+            </PrimaryCTA>
           </div>
         </div>
-      </div>
+      </PageFrame>
     );
   }
 
   // ── Form step ──
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-      <PageHeader title="تأمین تضامین" />
-      <div key="form" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: isDesktop ? 24 : 80 }}>
-        {/* Collateral type selection */}
-        <Card style={{ marginBottom: 12, borderRadius: 12 }}>
-          <Title level={5} style={{ marginBottom: 12 }}>نوع تضمین</Title>
-          <Radio.Group value={type} onChange={(e) => setType(e.target.value)} style={{ width: '100%' }}>
-            <Space direction="vertical" style={{ width: '100%' }}>
-              {COLLATERAL_TYPE_LIST.map((ct) => (
-                <Radio key={ct.id} value={ct.id} style={{ padding: '8px 0' }}>{ct.icon} {ct.label}</Radio>
-              ))}
-            </Space>
-          </Radio.Group>
-        </Card>
+    <PageFrame remountKey="form" header={<PageHeader title="تأمین تضامین" />}>
+      {/* Collateral type selection */}
+      <Card style={{ marginBottom: 12 }}>
+        <Title level={5} style={{ marginBottom: 12 }}>نوع تضمین</Title>
+        <Radio.Group value={type} onChange={(e) => setType(e.target.value)} style={{ width: '100%' }}>
+          <Space direction="vertical" style={{ width: '100%' }}>
+            {COLLATERAL_TYPE_LIST.map((ct) => (
+              <Radio key={ct.id} value={ct.id} style={{ padding: '8px 0' }}>{ct.icon} {ct.label}</Radio>
+            ))}
+          </Space>
+        </Radio.Group>
+      </Card>
 
-        {/* Bank selection — shown only for bank guarantee */}
-        {type === 'guarantee' && (
-          <Card style={{ marginBottom: 12, borderRadius: 12 }}>
-            <Title level={5} style={{ marginBottom: 4 }}>
-              <BankOutlined style={{ marginLeft: 6 }} />
-              انتخاب بانک صادرکننده ضمانت‌نامه
-            </Title>
-            <Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 12 }}>
-              بانکی که از آن ظرفیت دریافت ضمانت‌نامه دارید را انتخاب کنید
-            </Text>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: isDesktop ? 'repeat(auto-fill, minmax(220px, 1fr))' : '1fr 1fr',
-              gap: 8,
-            }}>
-              {IRANIAN_BANKS.map((bank) => {
-                const isSelected = bankId === bank.id;
-                return (
-                  <div
-                    key={bank.id}
-                    onClick={() => setBankId(bank.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '10px 12px',
-                      borderRadius: 10,
-                      border: isSelected ? '2px solid #1677ff' : '1px solid #e8e8e8',
-                      background: isSelected ? '#e6f4ff' : '#fff',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      minHeight: 44,
-                    }}
-                  >
+      {/* Bank selection — shown only for bank guarantee */}
+      {type === 'guarantee' && (
+        <Card style={{ marginBottom: 12 }}>
+          <Title level={5} style={{ marginBottom: 4 }}>
+            <BankOutlined style={{ marginInlineStart: 6 }} />
+            انتخاب بانک صادرکننده ضمانت‌نامه
+          </Title>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 12 }}>
+            بانکی که از آن ظرفیت دریافت ضمانت‌نامه دارید را انتخاب کنید
+          </Text>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isDesktop ? 'repeat(auto-fill, minmax(220px, 1fr))' : '1fr 1fr',
+            gap: 8,
+          }}>
+            {IRANIAN_BANKS.map((bank) => {
+              const isSelected = bankId === bank.id;
+              return (
+                <SelectableCard
+                  key={bank.id}
+                  selected={isSelected}
+                  onSelect={() => setBankId(bank.id)}
+                  tone="info"
+                  bodyPadding="10px 12px"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                     <BankOutlined style={{
                       fontSize: 16,
-                      color: isSelected ? '#1677ff' : '#8c8c8c',
+                      color: isSelected ? token.colorInfo : token.colorTextSecondary,
                       flexShrink: 0,
                     }} />
                     <Text style={{
                       fontSize: 12,
                       fontWeight: isSelected ? 600 : 400,
-                      color: isSelected ? '#1677ff' : '#434343',
+                      color: isSelected ? token.colorInfo : token.colorText,
                       lineHeight: 1.3,
+                      minWidth: 0,
                     }}>
                       {bank.label}
                     </Text>
                   </div>
-                );
-              })}
-            </div>
-          </Card>
-        )}
+                </SelectableCard>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
-        {/* Amount input — for cash and check */}
-        {(type === 'cash' || type === 'check') && (
-          <Card style={{ marginBottom: 12, borderRadius: 12 }}>
-            <Title level={5}>مبلغ (تومان)</Title>
-            <InputNumber
-              value={value}
-              onChange={(v) => setValue(v)}
-              style={{ width: '100%' }}
-              size="large"
-              parser={(v) => parsePersianNumber(v || '')}
-              formatter={(v) => v != null ? formatNumber(Number(v)) : ''}
-            />
-          </Card>
-        )}
+      {/* Amount input — for cash and check */}
+      {(type === 'cash' || type === 'check') && (
+        <Card style={{ marginBottom: 12 }}>
+          <Title level={5}>مبلغ (تومان)</Title>
+          <InputNumber
+            value={value}
+            onChange={(v) => setValue(v)}
+            style={{ width: '100%' }}
+            size="large"
+            parser={(v) => parsePersianNumber(v || '')}
+            formatter={(v) => v != null ? formatNumber(Number(v)) : ''}
+          />
+        </Card>
+      )}
 
-        <Button
-          type="primary"
-          block
-          size="large"
-          onClick={handleGoToConfirm}
-          style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 600, ...centeredCTA(isDesktop) }}
-        >
-          ادامه و مشاهده خلاصه قرارداد
-        </Button>
-      </div>
-    </div>
+      <PrimaryCTA onClick={handleGoToConfirm}>
+        ادامه و مشاهده خلاصه قرارداد
+      </PrimaryCTA>
+    </PageFrame>
   );
 }
-
-const summaryItemStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 10,
-  background: '#fafafa',
-  borderRadius: 10,
-  padding: '12px 14px',
-};

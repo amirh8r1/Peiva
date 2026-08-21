@@ -47,7 +47,7 @@ export function WeightRequests({ role, requests, onAdd, onAnswer }: Props) {
           )}
         </div>
       }
-      style={{ marginBottom: 12, borderRadius: 12 }}
+      style={{ marginBottom: 12 }}
     >
       <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
         درخواست اعلام میانگین وزن و تعداد برآوردی مرغ‌ها را می‌توانید هر زمان ثبت کنید؛ پاسخ مزرعه‌دار در همین بخش نمایش داده می‌شود.
@@ -105,8 +105,8 @@ export function WeightRequests({ role, requests, onAdd, onAnswer }: Props) {
                   <NumberField label="تعداد برآوردی مرغ" unit="قطعه" precision={0} hint="تعداد تقریبی مرغ‌های آماده بارگیری" />
                 </Form.Item>
                 <FieldLabel>توضیح (اختیاری)</FieldLabel>
-                <Form.Item name="note" style={{ marginBottom: 10 }}>
-                  <Input.TextArea rows={2} maxLength={200} showCount placeholder="مثلاً: وزن بر اساس توزین نمونه‌ای ۵۰ قطعه" style={{ borderRadius: 10 }} />
+                <Form.Item name="note" style={{ marginBottom: 12 }}>
+                  <Input.TextArea rows={2} maxLength={200} showCount placeholder="مثلاً: وزن بر اساس توزین نمونه‌ای ۵۰ قطعه" />
                 </Form.Item>
                 <Button type="primary" size="small" block icon={<CheckOutlined />} htmlType="submit">
                   ثبت پاسخ

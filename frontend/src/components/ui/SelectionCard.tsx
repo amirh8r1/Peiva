@@ -68,27 +68,10 @@ export function SelectionCard<T extends { id: string; active?: boolean; descript
             : `1px solid ${token.colorBorderSecondary}`,
           borderRadius: token.borderRadiusLG,
           transition: 'all 0.2s ease',
-          position: 'relative',
           background: selected ? token.colorPrimaryBg : token.colorBgContainer,
         }}
         styles={{ body: { padding: 16 } }}
       >
-        {/* Selected indicator — tiny, absolute, on the border corner. Does NOT affect layout. */}
-        {selected && (
-          <CheckCircleFilled
-            style={{
-              position: 'absolute',
-              top: -8,
-              right: -8,
-              fontSize: 20,
-              color: token.colorPrimary,
-              zIndex: 3,
-              background: '#fff',
-              borderRadius: '50%',
-            }}
-          />
-        )}
-
         {/* Header row */}
         <div
           style={{
@@ -139,6 +122,12 @@ export function SelectionCard<T extends { id: string; active?: boolean; descript
               style={{ fontSize: 13, flexShrink: 0 }}
             />
           )}
+          {/* نشانگر انتخاب — داخل جریان محتوا تا هرگز کلیپ نشود */}
+          {selected && (
+            <CheckCircleFilled
+              style={{ fontSize: 18, color: token.colorPrimary, flexShrink: 0, marginTop: 2 }}
+            />
+          )}
         </div>
 
         {/* Fields grid */}
@@ -146,7 +135,7 @@ export function SelectionCard<T extends { id: string; active?: boolean; descript
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: '6px 12px',
+            gap: '8px 12px',
             marginBottom: 12,
           }}
         >

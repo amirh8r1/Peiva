@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Input, Select, InputNumber, Radio, Checkbox, Slider, Card, Typography, message, DatePicker } from 'antd';
+import { Input, Select, InputNumber, Checkbox, Slider, Card, Typography, Space, message, DatePicker } from 'antd';
 import { ChainWizardProvider, useChainWizard } from '../context/ChainWizardContext';
 import { ChainStepper } from '../components/ChainStepper';
-import { SelectionCard } from '@/components/ui/SelectionCard';
+import { SelectableCard } from '@/components/ui/SelectableCard';
+import { CardGrid } from '@/components/ui/CardGrid';
+import { ProfitShareBadge } from '@/components/ui/ProfitShareBadge';
+import { FarmCard } from '@/features/farms/components/FarmCard';
 import dayjs from '@/utils/dayjs';
 import { useData } from '@/context/DataContext';
 import { formatNumber, parsePersianNumber, toPersianDigits } from '@/utils/format';
 import { jalaliDatePickerLocale } from '@/utils/jalaliDatePickerLocale';
-import { CONTRACT_TYPE_LABELS, TERM_TEMPLATES, PROFIT_METHODS, COLLATERAL_TYPE_LIST, IRAN_PROVINCES } from '@/types';
+import { TERM_TEMPLATES, PROFIT_METHODS, COLLATERAL_TYPE_LIST, IRAN_PROVINCES } from '@/types';
 import { mockFarms } from '@/mocks';
-import { useIsDesktop } from '@/hooks/useResponsive';
-import { responsiveGrid } from '@/utils/responsive';
-import type { Contract, Farm } from '@/types';
+import type { Contract } from '@/types';
 
 const { Text } = Typography;
 
@@ -25,7 +26,7 @@ function BaseInfoStep() {
       <Text type="secondary" style={{ fontSize: 13 }}>نام قرارداد</Text>
       <Input size="large" placeholder="مثلاً: قرارداد بهار ۱۴۰۴" value={state.contractName}
         onChange={(e) => dispatch({ type: 'SET_NAME', payload: e.target.value })}
-        style={{ marginBottom: 16, borderRadius: 10 }} />
+        style={{ marginBottom: 16 }} />
 
       <Text type="secondary" style={{ fontSize: 13 }}>مدت قرارداد (تعداد دوره)</Text>
       <InputNumber value={state.duration || undefined}
@@ -33,7 +34,7 @@ function BaseInfoStep() {
         onChange={(v) => dispatch({ type: 'SET_DURATION', payload: v ?? 0 })} />
 
       <Text type="secondary" style={{ fontSize: 13 }}>منطقه (استان)</Text>
-      <Select showSearch value={state.region || undefined} size="large" style={{ width: '100%', borderRadius: 10 }}
+      <Select showSearch value={state.region || undefined} size="large" style={{ width: '100%' }}
         placeholder="استان مورد نظر را انتخاب کنید"
         onChange={(v) => dispatch({ type: 'SET_REGION', payload: v as string })}
         options={IRAN_PROVINCES.map((p) => ({ value: p, label: p }))} />
@@ -45,7 +46,7 @@ function BaseInfoStep() {
 
 const numberInputProps = {
   size: 'large' as const,
-  style: { width: '100%', marginBottom: 16, borderRadius: 10 },
+  style: { width: '100%', marginBottom: 16 },
   parser: (v: string | undefined) => parsePersianNumber(v || ''),
   formatter: (v: string | number | undefined) => v != null ? formatNumber(Number(v)) : '',
 };
@@ -70,7 +71,7 @@ function PeriodStep() {
       <DatePicker
         locale={jalaliDatePickerLocale}
         size="large"
-        style={{ width: '100%', borderRadius: 10 }}
+        style={{ width: '100%' }}
         placement="bottomLeft"
         showToday={false}
         popupAlign={{ offset: [0, 4], overflow: { adjustX: true, adjustY: false } }}
@@ -90,14 +91,14 @@ function PeriodStep() {
 function ContractTypeStep() {
   const { state, dispatch } = useChainWizard();
   return (
-    <Radio.Group value={state.contractType} onChange={(e) => dispatch({ type: 'SET_CONTRACT_TYPE', payload: e.target.value })} style={{ width: '100%' }}>
-      <Card hoverable size="small" style={state.contractType === 'commission' ? { border: '2px solid #389e0d', background: '#f6ffed', marginBottom: 12 } : { marginBottom: 12 }}>
-        <Radio value="commission"><Text strong>کارمزدی</Text><Text type="secondary" style={{ display: 'block', fontSize: 12 }}>تأمین‌کننده نهاده را تأمین میکند، سود تقسیم میشود</Text></Radio>
-      </Card>
-      <Card hoverable size="small" style={state.contractType === 'contract' ? { border: '2px solid #389e0d', background: '#f6ffed' } : {}}>
-        <Radio value="contract"><Text strong>پیمانکاری</Text><Text type="secondary" style={{ display: 'block', fontSize: 12 }}>تأمین‌کننده کل فرآیند را مدیریت میکند</Text></Radio>
-      </Card>
-    </Radio.Group>
+    <Space direction="vertical" size={12} style={{ width: '100%' }}>
+      <SelectableCard selected={state.contractType === 'commission'} onSelect={() => dispatch({ type: 'SET_CONTRACT_TYPE', payload: 'commission' })}>
+        <Text strong>کارمزدی</Text><Text type="secondary" style={{ display: 'block', fontSize: 12 }}>تأمین‌کننده نهاده را تأمین می‌کند، سود تقسیم می‌شود</Text>
+      </SelectableCard>
+      <SelectableCard selected={state.contractType === 'contract'} onSelect={() => dispatch({ type: 'SET_CONTRACT_TYPE', payload: 'contract' })}>
+        <Text strong>پیمانکاری</Text><Text type="secondary" style={{ display: 'block', fontSize: 12 }}>تأمین‌کننده کل فرآیند را مدیریت می‌کند</Text>
+      </SelectableCard>
+    </Space>
   );
 }
 
@@ -114,7 +115,7 @@ function ContractTermsStep() {
     }} style={{ width: '100%' }}>
       {TERM_TEMPLATES.map((t) => (
         <Card key={t.id} size="small" hoverable
-          style={{ marginBottom: 8, borderRadius: 10, width: '100%' }}>
+          style={{ marginBottom: 8, width: '100%' }}>
           <Checkbox value={t.id} style={{ width: '100%' }}>
             <Text strong style={{ fontSize: 13 }}>{t.label}</Text>
             <Text type="secondary" style={{ display: 'block', fontSize: 11 }}>{t.description}</Text>
@@ -131,17 +132,17 @@ function ProfitSharingStep() {
   const { state, dispatch } = useChainWizard();
   return (
     <div>
-      <Radio.Group value={state.profitMethodId} onChange={(e) => dispatch({ type: 'SET_PROFIT_METHOD', payload: e.target.value })} style={{ width: '100%' }}>
+      <Space direction="vertical" size={8} style={{ width: '100%' }}>
         {PROFIT_METHODS.map((m) => (
-          <Card key={m.id} size="small" hoverable style={state.profitMethodId === m.id ? { border: '2px solid #389e0d', background: '#f6ffed', marginBottom: 8, borderRadius: 10 } : { marginBottom: 8, borderRadius: 10 }}>
-            <Radio value={m.id}><Text strong style={{ fontSize: 13 }}>{m.label}</Text><Text type="secondary" style={{ display: 'block', fontSize: 11 }}>{m.description}</Text></Radio>
-          </Card>
+          <SelectableCard key={m.id} selected={state.profitMethodId === m.id} onSelect={() => dispatch({ type: 'SET_PROFIT_METHOD', payload: m.id })}>
+            <Text strong style={{ fontSize: 13 }}>{m.label}</Text><Text type="secondary" style={{ display: 'block', fontSize: 11 }}>{m.description}</Text>
+          </SelectableCard>
         ))}
-      </Radio.Group>
-      <div style={{ background: '#f6ffed', borderRadius: 12, padding: '16px 20px', marginTop: 12 }}>
-        <Text style={{ fontSize: 12 }}>حداقل درصد تسهیم مزرعه‌دار</Text>
-        <div style={{ textAlign: 'center' }}><Text strong style={{ fontSize: 28, color: '#389e0d' }}>٪{formatNumber(state.profitSharingMin)}</Text></div>
-        <Slider min={0} max={20} value={state.profitSharingMin} onChange={(v) => dispatch({ type: 'SET_PROFIT_SHARING', payload: v })} marks={{ 0: '۰', 5: '۵', 10: '۱۰', 15: '۱۵', 20: '۲۰' }} />
+      </Space>
+      <div style={{ marginTop: 12 }}>
+        <ProfitShareBadge percent={state.profitSharingMin}>
+          <Slider min={0} max={20} value={state.profitSharingMin} onChange={(v) => dispatch({ type: 'SET_PROFIT_SHARING', payload: v })} marks={{ 0: '۰', 5: '۵', 10: '۱۰', 15: '۱۵', 20: '۲۰' }} />
+        </ProfitShareBadge>
       </div>
     </div>
   );
@@ -161,7 +162,7 @@ function CollateralTypesStep() {
         if (removed.length) dispatch({ type: 'TOGGLE_COLLATERAL_TYPE', payload: removed[0] });
       }} style={{ width: '100%' }}>
         {COLLATERAL_TYPE_LIST.map((ct) => (
-          <Card key={ct.id} size="small" hoverable style={{ marginBottom: 8, borderRadius: 10, width: '100%' }}>
+          <Card key={ct.id} size="small" hoverable style={{ marginBottom: 8, width: '100%' }}>
             <Checkbox value={ct.id} style={{ width: '100%' }}>{ct.icon} <Text strong>{ct.label}</Text></Checkbox>
           </Card>
         ))}
@@ -174,7 +175,6 @@ function CollateralTypesStep() {
 
 function FarmSelectionStep() {
   const { state, dispatch } = useChainWizard();
-  const isDesktop = useIsDesktop();
   const totalChicks = state.periods.reduce((s, p) => s + (p.chickCount || 0), 0);
 
   // Filter farms: same province + enough capacity
@@ -189,35 +189,16 @@ function FarmSelectionStep() {
       <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
         مزارع منطبق با شرایط ({formatNumber(eligible.length)} مورد) — استان {state.region}، ظرفیت ≥ {formatNumber(totalChicks)}
       </Text>
-      <div style={isDesktop ? responsiveGrid(360, 16) : undefined}>
-      {eligible.map((farm) => (
-        <div key={farm.id} style={{ marginBottom: isDesktop ? 0 : 10 }}>
-          <SelectionCard<Farm>
-            item={farm}
+      <CardGrid minWidth={360} gap={16}>
+        {eligible.map((farm) => (
+          <FarmCard
+            key={farm.id}
+            farm={farm}
             selected={state.selectedFarmIds.includes(farm.id)}
             onSelect={() => dispatch({ type: 'TOGGLE_FARM', payload: farm.id })}
-            title={farm.name}
-            subtitle={`${farm.address.city}، ${farm.address.province}`}
-            rating={farm.rating}
-            grade={farm.grade}
-            fields={[
-              { label: 'ظرفیت', value: formatNumber(farm.capacity) },
-              { label: 'ضریب تبدیل', value: formatNumber(farm.avgConversionRatio, 1) },
-              { label: 'سابقه', value: `${formatNumber(farm.experienceYears)} سال` },
-              { label: 'مالک', value: farm.ownerName },
-            ]}
-            details={[
-              { label: 'نام', value: farm.name }, { label: 'مالک', value: farm.ownerName },
-              { label: 'موقعیت', value: `${farm.address.city}، ${farm.address.province}` },
-              { label: 'گرید', value: farm.grade }, { label: 'ظرفیت', value: formatNumber(farm.capacity) },
-              { label: 'ضریب تبدیل', value: formatNumber(farm.avgConversionRatio, 1) },
-              { label: 'سابقه', value: `${formatNumber(farm.experienceYears)} سال` },
-              { label: 'تلفن', value: farm.contact.phone },
-            ]}
           />
-        </div>
-      ))}
-      </div>
+        ))}
+      </CardGrid>
     </div>
   );
 }

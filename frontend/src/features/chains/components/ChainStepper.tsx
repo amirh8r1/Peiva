@@ -1,12 +1,13 @@
-import { Button, Typography, Progress } from 'antd';
+import { Button, Typography, Progress, theme } from 'antd';
 import { ArrowRightOutlined, ArrowLeftOutlined, CloseOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useChainWizard } from '../context/ChainWizardContext';
 import { useIsDesktop } from '@/hooks/useResponsive';
+import { centeredForm } from '@/utils/responsive';
+import { FORM_COLUMN_MAX, SHELL_MOBILE_MAX } from '@/config/layout';
+import { PrimaryCTA } from '@/components/ui/PrimaryCTA';
 
 const { Text } = Typography;
-
-const WIZARD_COLUMN_MAX = 640;
 
 interface ChainStepperProps { children: React.ReactNode; onSubmit: () => void; isSubmitting?: boolean; }
 
@@ -26,6 +27,7 @@ export function ChainStepper({ children, onSubmit, isSubmitting }: ChainStepperP
   const ctx = useChainWizard();
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
+  const { token } = theme.useToken();
   const { state } = ctx;
   const isLast = state.currentStep === ctx.totalStepCount - 1;
   const pct = Math.round(((state.currentStep + 1) / ctx.totalStepCount) * 100);
@@ -34,29 +36,29 @@ export function ChainStepper({ children, onSubmit, isSubmitting }: ChainStepperP
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 4px', flexShrink: 0 }}>
         <Button type="text" size="small" icon={<CloseOutlined />} onClick={() => navigate('/supplier')} />
-        <div style={{ flex: 1 }}><Progress percent={pct} size="small" showInfo={false} strokeColor="#389e0d" trailColor="#f0f0f0" /></div>
+        <div style={{ flex: 1 }}><Progress percent={pct} size="small" showInfo={false} strokeColor={token.colorPrimary} trailColor={token.colorBorderSecondary} /></div>
         <Text type="secondary" style={{ fontSize: 11 }}>{state.currentStep + 1}/{ctx.totalStepCount}</Text>
       </div>
       <Text strong style={{ fontSize: 16, marginBottom: 2, flexShrink: 0 }}>{stepTitle(state, ctx)}</Text>
       {!ctx.canProceed && ctx.proceedBlockReason && (
         <Text type="warning" style={{ fontSize: 11, marginBottom: 4, flexShrink: 0, display: 'block' }}>{ctx.proceedBlockReason}</Text>
       )}
-      {/* key=currentStep → اسکرول هر گام از بالا شروع می‌شود */}
-      <div key={state.currentStep} style={{
+      {/* key=currentStep → اسکرول هر گام از بالا شروع می‌شود و انیمیشن ورود replay می‌شود */}
+      <div key={state.currentStep} className="page-enter" style={{
         flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0,
-        width: '100%', ...(isDesktop ? { maxWidth: WIZARD_COLUMN_MAX, margin: '0 auto' } : {}),
         paddingBottom: isDesktop ? 0 : 60,
+        ...centeredForm(isDesktop, FORM_COLUMN_MAX),
       }}>{children}</div>
       {/* موبایل: نوار fixed بالای BottomNav | دسکتاپ: آخرین فرزند flex که پایین ستون می‌چسبد */}
       <div style={isDesktop
-        ? { flexShrink: 0, display: 'flex', gap: 8, padding: '12px 0', width: '100%', maxWidth: WIZARD_COLUMN_MAX, margin: '0 auto' }
-        : { position: 'fixed', bottom: 70, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, padding: '8px 12px', background: 'linear-gradient(transparent, #f5f5f5 30%)', display: 'flex', gap: 8, zIndex: 101 }}
+        ? { flexShrink: 0, display: 'flex', gap: 8, padding: '12px 0', ...centeredForm(isDesktop, FORM_COLUMN_MAX) }
+        : { position: 'fixed', bottom: 70, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: SHELL_MOBILE_MAX, padding: '8px 12px', background: `linear-gradient(transparent, ${token.colorBgLayout} 30%)`, display: 'flex', gap: 8, zIndex: 101 }}
       >
         {state.currentStep > 0 && <Button onClick={ctx.goPrev} icon={<ArrowRightOutlined />} size="large">قبل</Button>}
         {isLast ? (
-          <Button type="primary" onClick={onSubmit} disabled={!ctx.canProceed} loading={isSubmitting} size="large" block style={{ height: 44 }}>تأیید و ارسال به مزرعه‌داران</Button>
+          <PrimaryCTA centered={false} onClick={onSubmit} disabled={!ctx.canProceed} loading={isSubmitting} height={44}>تأیید و ارسال به مزرعه‌داران</PrimaryCTA>
         ) : (
-          <Button type="primary" onClick={ctx.goNext} disabled={!ctx.canProceed} icon={<ArrowLeftOutlined />} size="large" block style={{ height: 44 }}>ادامه</Button>
+          <PrimaryCTA centered={false} onClick={ctx.goNext} disabled={!ctx.canProceed} icon={<ArrowLeftOutlined />} height={44}>ادامه</PrimaryCTA>
         )}
       </div>
     </div>

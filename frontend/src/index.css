@@ -1,3 +1,40 @@
+:root {
+  /* آینه pivaTokens در src/config/theme.ts */
+  --piva-brand-deep: #0d3b05;
+  --piva-orange: #fa8c16;
+  --piva-purple: #722ed1;
+  --piva-body-bg: #f5f5f5; /* هم‌رنگ Layout.bodyBg تم روشن */
+  /* سایه‌ها (در تم تیره قوی‌تر تا روی زمینه تیره دیده شوند) */
+  --piva-shadow-mobile-shell: 0 0 40px rgba(0, 0, 0, 0.08);
+  --piva-shadow-header: 0 1px 4px rgba(0, 0, 0, 0.08);
+  --piva-shadow-bottom-nav: 0 -2px 12px rgba(0, 0, 0, 0.08);
+  --piva-shadow-notch-inset: 0 -1px 4px rgba(0, 0, 0, 0.03) inset;
+  /* بج گرادیان درصد تسهیم سود */
+  --piva-profit-badge-bg: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+  --piva-profit-badge-border: #b7eb8f;
+  --piva-profit-badge-text: #389e0d;
+  /* توکن‌های حرکت */
+  --piva-duration-enter: 200ms;
+  --piva-ease-enter: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* تم تیره — data-theme همیشه توسط ThemeProvider ست می‌شود
+   (بار اول از تم سیستم، بعد از سوییچ دستی از انتخاب ذخیره‌شده) */
+[data-theme='dark'] {
+  --piva-brand-deep: #b2e58b;
+  --piva-orange: #ffa940;
+  --piva-purple: #b37feb;
+  --piva-body-bg: #0f0f0f; /* هم‌رنگ Layout.bodyBg تم تیره */
+  --piva-shadow-mobile-shell: 0 0 40px rgba(0, 0, 0, 0.6);
+  --piva-shadow-header: 0 1px 6px rgba(0, 0, 0, 0.45);
+  --piva-shadow-bottom-nav: 0 -2px 12px rgba(0, 0, 0, 0.55);
+  --piva-shadow-notch-inset: 0 -1px 4px rgba(0, 0, 0, 0.12) inset;
+  /* بج سود در تیره: پنل شیشه‌ای سبز درخشان تا اسلایدر و متن روی آن خوانا باشند */
+  --piva-profit-badge-bg: linear-gradient(135deg, rgba(82, 196, 26, 0.1) 0%, rgba(115, 209, 61, 0.22) 100%);
+  --piva-profit-badge-border: rgba(115, 209, 61, 0.35);
+  --piva-profit-badge-text: #73d13d;
+}
+
 * {
   font-family: 'Vazirmatn', Tahoma, sans-serif;
 }
@@ -5,6 +42,51 @@
 body {
   margin: 0;
   font-family: 'Vazirmatn', Tahoma, sans-serif;
+  background-color: var(--piva-body-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── ترنزیشن ورود صفحه/محتوا ── */
+@keyframes piva-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: piva-page-enter var(--piva-duration-enter) var(--piva-ease-enter) both;
+}
+
+/* ── انیمیشن چرخش آیکون سوییچ تم (ماه ↔ خورشید) ── */
+@keyframes piva-theme-icon-in {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.theme-icon-in {
+  display: inline-flex;
+  animation: piva-theme-icon-in 300ms var(--piva-ease-enter);
+}
+
+/* ── کاهش حرکت (دسترس‌پذیری) ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

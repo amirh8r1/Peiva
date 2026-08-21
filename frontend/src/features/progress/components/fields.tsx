@@ -23,7 +23,7 @@ export function NumberField({ label, unit, hint, ...rest }: { label: string; uni
   return (
     <>
       <FieldLabel>{label}</FieldLabel>
-      <InputNumber addonAfter={unit} {...numberFieldProps} style={{ width: '100%', borderRadius: 10 }} {...rest} />
+      <InputNumber addonAfter={unit} {...numberFieldProps} style={{ width: '100%' }} {...rest} />
       {hint && <FieldHint>{hint}</FieldHint>}
     </>
   );
@@ -33,7 +33,7 @@ export function TextField({ label, hint, ...rest }: { label: string; hint?: stri
   return (
     <>
       <FieldLabel>{label}</FieldLabel>
-      <Input size="large" style={{ width: '100%', borderRadius: 10 }} {...rest} />
+      <Input size="large" style={{ width: '100%' }} {...rest} />
       {hint && <FieldHint>{hint}</FieldHint>}
     </>
   );
@@ -43,7 +43,7 @@ export function SelectField({ label, hint, ...rest }: { label: string; hint?: st
   return (
     <>
       <FieldLabel>{label}</FieldLabel>
-      <Select size="large" style={{ width: '100%', borderRadius: 10 }} {...rest} />
+      <Select size="large" style={{ width: '100%' }} {...rest} />
       {hint && <FieldHint>{hint}</FieldHint>}
     </>
   );

@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Badge, Button, Card, Empty, Space, Tabs, Typography } from 'antd';
-import { ArrowRightOutlined, CheckCircleOutlined, LockOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, LockOutlined } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageFrame } from '@/components/ui/PageFrame';
+import { SuccessScreen } from '@/components/ui/SuccessScreen';
 import { useIsDesktop } from '@/hooks/useResponsive';
 import { useRole } from '@/hooks/useRole';
+import { centeredForm } from '@/utils/responsive';
 import { makeInitialSteps, PROGRESS_STEPS, isProgressComplete } from '@/types';
 import type { ContractProgressStep } from '@/types';
 import { getStepsForContract, isStepClaimable, makeWeightRequest, nowFa } from '../utils/progress.utils';
@@ -16,7 +19,7 @@ import { DriverStepCard } from '../components/steps/DriverStepCard';
 import { DeliveryStepCard } from '../components/steps/DeliveryStepCard';
 import { WeightRequests } from '../components/WeightRequests';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 type ProgressTabKey = 'steps' | 'weight';
 
@@ -58,10 +61,9 @@ export function ContractProgressPage() {
 
   if (!contract || contract.status !== 'finalized') {
     return (
-      <>
-        <PageHeader title="پیگیری قرارداد" />
+      <PageFrame header={<PageHeader title="پیگیری قرارداد" />}>
         <Empty description="قرارداد نهایی یافت نشد" style={{ marginTop: 48 }} />
-      </>
+      </PageFrame>
     );
   }
 
@@ -79,91 +81,88 @@ export function ContractProgressPage() {
     : requests.filter((r) => r.status === 'answered' && !r.seenAt).length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+    <PageFrame header={
       <PageHeader title={contract.name} subtitle="پیگیری قرارداد" extra={
         <Button icon={<ArrowRightOutlined />} onClick={() => navigate(backPath)}>بازگشت</Button>
       } />
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: isDesktop ? 24 : 80 }}>
-        <div style={isDesktop ? { maxWidth: 640, margin: '0 auto' } : undefined}>
-          <Card style={{ marginBottom: 12, borderRadius: 12 }}>
-            <ProgressStepper steps={steps} />
-          </Card>
+    }>
+      <div style={centeredForm(isDesktop)}>
+        <Card style={{ marginBottom: 12 }}>
+          <ProgressStepper steps={steps} />
+        </Card>
 
-          <Tabs
-            key={contract.id}
-            activeKey={activeTab}
-            onChange={(key) => setActiveTab(key as ProgressTabKey)}
-            items={[
-              {
-                key: 'steps',
-                label: 'مراحل قرارداد',
-                children: (
-                  <>
-                    {complete && (
-                      <div style={{ textAlign: 'center', padding: '24px 16px' }}>
-                        <CheckCircleOutlined style={{ fontSize: 64, color: '#389e0d' }} />
-                        <Title level={3} style={{ marginTop: 16 }}>🎉 قرارداد کامل شد!</Title>
-                        <Text type="secondary">تمام مراحل با تأیید طرفین تکمیل شده است.</Text>
-                        <Button type="primary" block size="large" style={{ marginTop: 24 }} onClick={() => navigate(role === 'supplier' ? '/supplier' : '/farm')}>
-                          بازگشت به داشبورد
-                        </Button>
-                      </div>
-                    )}
+        <Tabs
+          key={contract.id}
+          activeKey={activeTab}
+          onChange={(key) => setActiveTab(key as ProgressTabKey)}
+          items={[
+            {
+              key: 'steps',
+              label: 'مراحل قرارداد',
+              children: (
+                <>
+                  {complete && (
+                    <SuccessScreen
+                      title="قرارداد کامل شد!"
+                      subtitle="تمام مراحل با تأیید طرفین تکمیل شده است."
+                      actionLabel="بازگشت به داشبورد"
+                      onAction={() => navigate(role === 'supplier' ? '/supplier' : '/farm')}
+                    />
+                  )}
 
-                    {PROGRESS_STEPS.map(({ key, label }) => {
-                      const step = steps.find((s) => s.key === key);
-                      if (!step) return null;
+                  {PROGRESS_STEPS.map(({ key, label }) => {
+                    const step = steps.find((s) => s.key === key);
+                    if (!step) return null;
 
-                      // گام‌های قفل‌شده (idle و غیرقابل ادعا)
-                      if (step.status === 'idle' && !isStepClaimable(steps, key)) {
-                        return (
-                          <Card key={key} style={{ marginBottom: 12, borderRadius: 12, opacity: 0.65 }}>
-                            <Space>
-                              <LockOutlined />
-                              <Text type="secondary">{label}</Text>
-                            </Space>
-                            <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
-                              برای فعال شدن، مراحل قبلی باید تکمیل شوند.
-                            </Text>
-                          </Card>
-                        );
-                      }
+                    // گام‌های قفل‌شده (idle و غیرقابل ادعا)
+                    if (step.status === 'idle' && !isStepClaimable(steps, key)) {
+                      return (
+                        <Card key={key} style={{ marginBottom: 12, opacity: 0.65 }}>
+                          <Space>
+                            <LockOutlined />
+                            <Text type="secondary">{label}</Text>
+                          </Space>
+                          <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                            برای فعال شدن، مراحل قبلی باید تکمیل شوند.
+                          </Text>
+                        </Card>
+                      );
+                    }
 
-                      switch (step.key) {
-                        case 'supply': return <SupplyStepCard key={step.id} step={step} role={role} onUpsert={onUpsert} />;
-                        case 'pickup': return <PickupStepCard key={step.id} step={step} role={role} onUpsert={onUpsert} />;
-                        case 'driver': return <DriverStepCard key={step.id} step={step} role={role}
-                          initialPickupDate={pickupStep ? pickupStep.payload.pickupDate : undefined}
-                          deliveryDone={deliveryDone}
-                          onUpsert={onUpsert} />;
-                        case 'delivery': return <DeliveryStepCard key={step.id} step={step} role={role} onUpsert={onUpsert} />;
-                        default: return null;
-                      }
-                    })}
-                  </>
-                ),
-              },
-              {
-                key: 'weight',
-                label: (
-                  <Space size={4}>
-                    اعلام وزن مرغ
-                    <Badge count={weightBadge} size="small" offset={[8, -2]} />
-                  </Space>
-                ),
-                children: (
-                  <WeightRequests
-                    role={role}
-                    requests={requests}
-                    onAdd={() => dispatch({ type: 'ADD_WEIGHT_REQUEST', payload: makeWeightRequest(contract.id) })}
-                    onAnswer={(id, answer) => dispatch({ type: 'ANSWER_WEIGHT_REQUEST', payload: { id, answer } })}
-                  />
-                ),
-              },
-            ]}
-          />
-        </div>
+                    switch (step.key) {
+                      case 'supply': return <SupplyStepCard key={step.id} step={step} role={role} onUpsert={onUpsert} />;
+                      case 'pickup': return <PickupStepCard key={step.id} step={step} role={role} onUpsert={onUpsert} />;
+                      case 'driver': return <DriverStepCard key={step.id} step={step} role={role}
+                        initialPickupDate={pickupStep ? pickupStep.payload.pickupDate : undefined}
+                        deliveryDone={deliveryDone}
+                        onUpsert={onUpsert} />;
+                      case 'delivery': return <DeliveryStepCard key={step.id} step={step} role={role} onUpsert={onUpsert} />;
+                      default: return null;
+                    }
+                  })}
+                </>
+              ),
+            },
+            {
+              key: 'weight',
+              label: (
+                <Space size={4}>
+                  اعلام وزن مرغ
+                  <Badge count={weightBadge} size="small" offset={[8, -2]} />
+                </Space>
+              ),
+              children: (
+                <WeightRequests
+                  role={role}
+                  requests={requests}
+                  onAdd={() => dispatch({ type: 'ADD_WEIGHT_REQUEST', payload: makeWeightRequest(contract.id) })}
+                  onAnswer={(id, answer) => dispatch({ type: 'ANSWER_WEIGHT_REQUEST', payload: { id, answer } })}
+                />
+              ),
+            },
+          ]}
+        />
       </div>
-    </div>
+    </PageFrame>
   );
 }
