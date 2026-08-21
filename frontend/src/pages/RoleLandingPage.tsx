@@ -29,7 +29,7 @@ export function RoleLandingPage() {
         <div style={{
           margin: 'auto',
           width: '100%',
-          maxWidth: isDesktop ? 720 : 400,
+          maxWidth: isDesktop ? 720 : 300,
           padding: 24,
           display: 'flex',
           flexDirection: 'column',
