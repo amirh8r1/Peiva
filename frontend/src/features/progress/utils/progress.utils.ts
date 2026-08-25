@@ -1,6 +1,5 @@
 import dayjs from '@/utils/dayjs';
-import { toEnglishDigits, parsePersianNumber, formatNumber, toPersianDigits } from '@/utils/format';
-import { jalaliDatePickerLocale } from '@/utils/jalaliDatePickerLocale';
+import { toEnglishDigits } from '@/utils/format';
 import {
   getProgressStepIndex, STEP_ROLES, PROGRESS_STEPS,
   type ContractProgressStep, type ProgressEvent, type ProgressRole, type ProgressStepKey, type UploadedDoc, type WeightRequest,
@@ -58,8 +57,9 @@ export function isStepClaimable(steps: ContractProgressStep[], key: ProgressStep
   return PROGRESS_STEPS.slice(0, idx).every(({ key: k }) => steps.some((s) => s.key === k && s.status === 'done'));
 }
 
-/** آیا نقش جاری روی گام می‌تواند اقدامی انجام دهد؟ */
+/** آیا نقش جاری روی گام می‌تواند اقدامی انجام دهد؟ زنجیره‌دار فقط نظارت می‌کند. */
 export function canActOn(steps: ContractProgressStep[], key: ProgressStepKey, role: ProgressRole): boolean {
+  if (role === 'admin') return false;
   const step = steps.find((s) => s.key === key);
   if (!step) return false;
   const { claimer, responder } = STEP_ROLES[key];
@@ -185,6 +185,7 @@ export interface WeightFollowup {
  *  supplier → وقتی آخرین درخواست answered و هنوز دیده نشده و delivery باز است: «مشاهده»
  *  (با باز کردن تب اعلام وزن، خودکار دیده‌شده می‌شود و نوتیف از بین می‌رود). */
 export function getWeightRequestActions(data: AppData, role: ProgressRole): WeightFollowup[] {
+  if (role === 'admin') return []; // زنجیره‌دار فقط نظارت می‌کند — درخواست وزن بین تأمین‌کننده و مزرعه‌دار است
   const finalizedIds = new Set(data.contracts.filter((c) => c.status === 'finalized').map((c) => c.id));
   const nameOf = (id: string) => data.contracts.find((c) => c.id === id)?.name ?? '';
 
@@ -239,23 +240,5 @@ export function makeEvent(
   };
 }
 
-// ── InputNumber مشترک (DRY با CreateChainPage) ──
-
-export const numberFieldProps = {
-  size: 'large' as const,
-  style: { width: '100%', marginBottom: 12, borderRadius: 10 },
-  parser: (v: string | undefined) => parsePersianNumber(v || ''),
-  formatter: (v: string | number | undefined) => (v != null ? formatNumber(Number(v)) : ''),
-};
-
-// ── DatePicker جلالی مشترک (همان props اصلاح‌شده CreateChainPage) ──
-
-export const jalaliDatePickerProps = {
-  locale: jalaliDatePickerLocale,
-  size: 'large' as const,
-  style: { width: '100%', borderRadius: 10 } as React.CSSProperties,
-  placement: 'bottomLeft' as const,
-  showToday: false,
-  popupAlign: { offset: [0, 4] as [number, number], overflow: { adjustX: true, adjustY: false } },
-  format: (d: unknown) => toPersianDigits((d as { format: (f: string) => string }).format('YYYY/MM/DD')),
-};
+// ── InputNumber / DatePicker مشترک — منتقل شد به @/utils/fieldProps ──
+export { numberFieldProps, jalaliDatePickerProps } from '@/utils/fieldProps';

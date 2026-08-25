@@ -28,6 +28,8 @@ export function PickupStepCard({ step, role, onUpsert }: Props) {
   const [form] = Form.useForm<RequestFormValues>();
 
   const isSupplier = role === 'supplier';
+  const isFarm = role === 'farm';
+  const isAdmin = role === 'admin';
   const canClaim = isSupplier && (step.status === 'idle' || step.status === 'rejected');
 
   // هشدار نرم ۷ روز — مسدودکننده نیست
@@ -77,7 +79,7 @@ export function PickupStepCard({ step, role, onUpsert }: Props) {
       )}
 
       {/* تأیید/رد مزرعه‌دار */}
-      {!isSupplier && step.status === 'claimed' && (
+      {isFarm && step.status === 'claimed' && (
         <>
           <SummaryRow label="تاریخ بارگیری پیشنهادی" value={toPersianDigits(step.payload.pickupDate)} />
           <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
@@ -89,6 +91,16 @@ export function PickupStepCard({ step, role, onUpsert }: Props) {
             onConfirm={() => { confirm(); message.success('درخواست برداشت تأیید شد.'); }}
             onReject={(note) => { reject(note); message.success('رد ثبت شد.'); }}
           />
+        </>
+      )}
+
+      {/* نظارت زنجیره‌دار — فقط خواندنی */}
+      {isAdmin && step.status === 'claimed' && (
+        <>
+          <SummaryRow label="تاریخ بارگیری پیشنهادی" value={toPersianDigits(step.payload.pickupDate)} />
+          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+            در انتظار تأیید مزرعه‌دار...
+          </Text>
         </>
       )}
 

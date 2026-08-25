@@ -4,6 +4,8 @@ import { formatNumber } from '@/utils/format';
 interface ProfitShareBadgeProps {
   percent: number;
   size?: 'sm' | 'lg';
+  /** لیبل بالای درصد — پیش‌فرض: «حداقل درصد تسهیم مزرعه‌دار» (فلو قدیمی) */
+  label?: React.ReactNode;
   /** محتوای اختیاری زیر درصد (مثلاً اسلایدر تنظیم) */
   children?: React.ReactNode;
 }
@@ -11,10 +13,10 @@ interface ProfitShareBadgeProps {
 /**
  * بج گرادیان سبز درصد تسهیم سود — امضای بصری سامانه.
  * پس‌زمینه/بوردر/درصد از متغیرهای CSS می‌آیند تا در تم تیره نسخه شیشه‌ای درخشان
- * رندر شود (اسلایدر و متن روی پس‌زمینه مات تیره خوانا نمی‌ماندند)؛
+ * رندر شود (اسلایدر و متن روی پس‌زمینه مات تیره خوانا نمی‌مانند)؛
  * لیبل از توکن antd است که خودش با تم سوییچ می‌شود.
  */
-export function ProfitShareBadge({ percent, size = 'lg', children }: ProfitShareBadgeProps) {
+export function ProfitShareBadge({ percent, size = 'lg', label, children }: ProfitShareBadgeProps) {
   const { token } = theme.useToken();
 
   return (
@@ -25,7 +27,7 @@ export function ProfitShareBadge({ percent, size = 'lg', children }: ProfitShare
       padding: size === 'lg' ? '16px 20px' : '12px 16px',
     }}>
       <span style={{ fontSize: 12, display: 'block', color: token.colorTextSecondary }}>
-        حداقل درصد تسهیم مزرعه‌دار
+        {label ?? 'حداقل درصد تسهیم مزرعه‌دار'}
       </span>
       <div style={{ textAlign: 'center' }}>
         <span style={{ fontSize: size === 'lg' ? 28 : 26, fontWeight: 700, color: 'var(--piva-profit-badge-text)' }}>

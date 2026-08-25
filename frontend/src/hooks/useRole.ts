@@ -1,7 +1,10 @@
 import { useLocation } from 'react-router-dom';
 import type { ProgressRole } from '@/types';
 
-/** نقش کاربر از پیشوند مسیر — منبع واحد برای تمام صفحات role-aware. */
+/** نقش کاربر از پیشوند مسیر — منبع واحد برای تمام صفحات role-aware (سه نقش: زنجیره‌دار/تأمین‌کننده/مزرعه‌دار). */
 export function useRole(): ProgressRole {
-  return useLocation().pathname.startsWith('/supplier') ? 'supplier' : 'farm';
+  const { pathname } = useLocation();
+  if (pathname.startsWith('/admin')) return 'admin';
+  if (pathname.startsWith('/supplier')) return 'supplier';
+  return 'farm';
 }

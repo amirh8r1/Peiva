@@ -80,18 +80,12 @@ export function BottomNav() {
           alignItems: 'center',
           height: '100%',
         }}>
-          {renderBtn(items[0])}
-          {hasFab ? (
-            <>
-              <div style={{ width: FAB + 24 }} />
-              {renderBtn(items[2])}
-            </>
-          ) : (
-            <>
-              {renderBtn(items[1])}
-              {renderBtn(items[2])}
-            </>
-          )}
+          {/* رندر جنریک: آیتم FAB جای خودش اسپیسر می‌گیرد — با ۲ یا ۳ آیتم کار می‌کند */}
+          {items.map((item) => (
+            item.fab
+              ? <div key={item.key} style={{ width: FAB + 24 }} />
+              : renderBtn(item)
+          ))}
         </div>
 
         {/* White circle notch */}

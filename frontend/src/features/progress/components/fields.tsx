@@ -1,6 +1,6 @@
 import { InputNumber, Input, Select, DatePicker, Typography } from 'antd';
 import type { InputNumberProps, InputProps, SelectProps, DatePickerProps } from 'antd';
-import { numberFieldProps, jalaliDatePickerProps } from '../utils/progress.utils';
+import { numberFieldProps, jalaliDatePickerProps } from '@/utils/fieldProps';
 
 const { Text } = Typography;
 

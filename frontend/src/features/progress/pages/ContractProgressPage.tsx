@@ -70,15 +70,17 @@ export function ContractProgressPage() {
   const steps = getStepsForContract(data.progressSteps, contract.id);
   const complete = steps.length === PROGRESS_STEPS.length && isProgressComplete(steps);
   const onUpsert = (next: ContractProgressStep) => dispatch({ type: 'UPSERT_PROGRESS_STEP', payload: next });
-  const backPath = role === 'supplier' ? '/supplier/contracts' : '/farm/contracts';
+  const backPath = role === 'supplier' ? '/supplier/contracts' : role === 'admin' ? '/admin/contracts' : '/farm/contracts';
   const pickupStep = steps.find((s): s is Extract<ContractProgressStep, { key: 'pickup' }> => s.key === 'pickup' && s.status === 'done');
   const deliveryDone = steps.find((s) => s.key === 'delivery')?.status === 'done';
 
-  // اعلام وزن: Badge تب = آیتم‌های قابل توجه نقش (مزرعه‌دار: در انتظار پاسخ / تأمین‌کننده: پاسخ‌های دیده‌نشده)
+  // اعلام وزن: Badge تب = آیتم‌های قابل توجه نقش (مزرعه‌دار: در انتظار پاسخ / تأمین‌کننده: پاسخ‌های دیده‌نشده / زنجیره‌دار: صفر — فقط نظارت)
   const requests = data.weightRequests.filter((r) => r.contractId === contract.id);
-  const weightBadge = role === 'farm'
-    ? requests.filter((r) => r.status === 'pending').length
-    : requests.filter((r) => r.status === 'answered' && !r.seenAt).length;
+  const weightBadge = role === 'admin'
+    ? 0
+    : role === 'farm'
+      ? requests.filter((r) => r.status === 'pending').length
+      : requests.filter((r) => r.status === 'answered' && !r.seenAt).length;
 
   return (
     <PageFrame header={
@@ -106,7 +108,7 @@ export function ContractProgressPage() {
                       title="قرارداد کامل شد!"
                       subtitle="تمام مراحل با تأیید طرفین تکمیل شده است."
                       actionLabel="بازگشت به داشبورد"
-                      onAction={() => navigate(role === 'supplier' ? '/supplier' : '/farm')}
+                      onAction={() => navigate(role === 'supplier' ? '/supplier' : role === 'admin' ? '/admin' : '/farm')}
                     />
                   )}
 

@@ -37,8 +37,9 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
   const [docs, setDocs] = useState<UploadedDoc[]>(step.payload.farmDocs);
 
   const isFarm = role === 'farm';
+  const isAdmin = role === 'admin';
   const canClaim = isFarm && (step.status === 'idle' || step.status === 'rejected');
-  const canRespond = !isFarm && step.status === 'claimed';
+  const canRespond = role === 'supplier' && step.status === 'claimed';
 
   const handleAddDoc = (file: File) => {
     const ext = file.name.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] ?? '';
@@ -173,6 +174,19 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
           onConfirm={() => { confirm({ supplierConfirmed: true }); message.success('تحویل تأیید نهایی شد.'); }}
           onReject={(note) => { reject(note); message.success('رد ثبت شد.'); }}
         />
+      </StepCard>
+    );
+  }
+
+  // ── نظارت زنجیره‌دار — فقط خواندنی ──
+  if (isAdmin && step.status === 'claimed') {
+    return (
+      <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
+        {deliverySummary}
+        {docList(step.payload.farmDocs, false)}
+        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+          در انتظار تأیید نهایی تأمین‌کننده...
+        </Text>
       </StepCard>
     );
   }

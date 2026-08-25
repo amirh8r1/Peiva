@@ -12,6 +12,8 @@ interface PrimaryCTAProps {
   height?: number;
   /** false برای قرارگیری داخل ردیف‌های flex (مثل فوتـر ویزارد) که نباید وسط‌چین شوند */
   centered?: boolean;
+  /** submit داخل فرم‌ها */
+  htmlType?: 'submit';
   style?: CSSProperties;
 }
 
@@ -19,7 +21,7 @@ interface PrimaryCTAProps {
  * دکمه CTA استاندارد: primary + large + block + وزن ۶۰۰، وسط‌چین در دسکتاپ (حداکثر ۵۲۰px).
  * ارتفاع و ظاهر CTA ها را در همه صفحات یکسان می‌کند.
  */
-export function PrimaryCTA({ children, onClick, loading, disabled, icon, height = 48, centered = true, style }: PrimaryCTAProps) {
+export function PrimaryCTA({ children, onClick, loading, disabled, icon, height = 48, centered = true, htmlType, style }: PrimaryCTAProps) {
   const { token } = theme.useToken();
   const isDesktop = useIsDesktop();
 
@@ -32,6 +34,7 @@ export function PrimaryCTA({ children, onClick, loading, disabled, icon, height 
       loading={loading}
       disabled={disabled}
       onClick={onClick}
+      htmlType={htmlType}
       style={{
         height,
         borderRadius: token.borderRadius,

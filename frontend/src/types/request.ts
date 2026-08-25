@@ -1,0 +1,85 @@
+/**
+ * درخواست تأمین‌کننده — مدل زنجیره‌دار v3.
+ * تأمین‌کننده نهاده‌هایش (دان/جوجه/نقد) را اعلام و مرغ درخواستی، تاریخ تحویل و استان را مشخص می‌کند؛
+ * زنجیره‌دار مزرعه را تطبیق و برآورد هزینه (با سهم تأمین‌کننده) را ثبت می‌کند.
+ * تاریخ‌ها 'YYYY/MM/DD' انگلیسی (کانونشن اپ) — نمایش با toPersianDigits.
+ */
+
+export type RequestInputKind = 'feed' | 'chick' | 'cash';
+
+export interface RequestInput {
+  kind: RequestInputKind;
+  /** feed: تن | chick: قطعه | cash: تومان — همیشه > 0 */
+  amount: number;
+}
+
+export const REQUEST_INPUT_LABELS: Record<RequestInputKind, { label: string; unit: string }> = {
+  feed: { label: 'دان مرغی', unit: 'تن' },
+  chick: { label: 'جوجه یکروزه', unit: 'قطعه' },
+  cash: { label: 'وجه نقد', unit: 'تومان' },
+};
+
+export type SupplierRequestStatus = 'pending' | 'matched' | 'in_progress' | 'completed' | 'rejected';
+
+export interface SupplierRequest {
+  /** قطعی: `rq-{ts}-{rand}` — یکتا (append-only، مثل کانونشن اپ). */
+  id: string;
+  inputs: RequestInput[];
+  /** مرغ زنده درخواستی (کیلوگرم) */
+  desiredKg: number;
+  /** تاریخ تحویل هدف ('YYYY/MM/DD' انگلیسی) */
+  targetDeliveryDate: string;
+  province: string;
+  status: SupplierRequestStatus;
+  matchedFarmId?: string;
+  /** پر شدن آن = قرارداد (کار) از این درخواست ساخته شده است. */
+  contractId?: string;
+  /** برآورد هزینه ثبت‌شده توسط زنجیره‌دار — برای تأمین‌کننده شفاف است. */
+  estimation?: CostEstimation;
+  createdAt: string; // 'YYYY/MM/DD'
+}
+
+export const REQUEST_STATUS_LABELS: Record<SupplierRequestStatus, string> = {
+  pending: 'در انتظار بررسی',
+  matched: 'تطبیق شده',
+  in_progress: 'در حال اجرا',
+  completed: 'تکمیل شده',
+  rejected: 'رد شده',
+};
+
+// ── برآورد هزینه و سهم ──
+
+export type EstimationRowOwner = 'supplier' | 'farm' | 'admin';
+/** value = مبلغ ثابت (تومان) | percent = درصد از ارزش تولید */
+export type EstimationRowKind = 'value' | 'percent';
+
+export interface EstimationRow {
+  key: 'feed' | 'chick' | 'cash' | 'logistics' | 'farmFee' | 'adminFee';
+  label: string;
+  kind: EstimationRowKind;
+  /** مبنای محاسبه سهم: ردیف‌های supplier ارزش نهاده تأمین‌کننده‌اند. */
+  owner: EstimationRowOwner;
+  /** value → تومان | percent → درصد (0-100) */
+  amount: number;
+}
+
+export interface CostEstimation {
+  /** تخمین تولید مرغ زنده (کیلوگرم) — قابل تنظیم توسط زنجیره‌دار */
+  productionKg: number;
+  /** productionKg × قیمت بازار مرغ زنده */
+  productionValue: number;
+  rows: EstimationRow[];
+  /** جمع مبالغ همه ردیف‌ها (percent → مبلغ) */
+  totalCost: number;
+  /** ارزش نهاده‌های تأمین‌کننده ÷ کل هزینه تولید */
+  supplierSharePercent: number;
+  /** productionKg × sharePercent */
+  supplierShareKg: number;
+  version: 1;
+}
+
+export const IRAN_PROVINCES = [
+  'تهران', 'اصفهان', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی',
+  'مازندران', 'البرز', 'خوزستان', 'گیلان', 'کرمان',
+  'قم', 'قزوین', 'سمنان', 'یزد', 'همدان', 'کردستان', 'کرمانشاه',
+];

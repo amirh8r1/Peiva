@@ -63,6 +63,28 @@ body {
   animation: piva-page-enter var(--piva-duration-enter) var(--piva-ease-enter) both;
 }
 
+/* ── ورود stagger کارت‌ها (motion.md §۲: ۲۵۰ms، تأخیر index×60ms با سقف ۶) ── */
+@keyframes piva-stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.piva-stagger > * {
+  animation: piva-stagger-in 250ms var(--piva-ease-enter) both;
+}
+.piva-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.piva-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.piva-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.piva-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.piva-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.piva-stagger > *:nth-child(6) { animation-delay: 300ms; }
+
 /* ── انیمیشن چرخش آیکون سوییچ تم (ماه ↔ خورشید) ── */
 @keyframes piva-theme-icon-in {
   from {

@@ -1,21 +1,22 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode, type Dispatch } from 'react';
-import type { Contract, FarmProposal, Collateral, ContractProgressStep, WeightRequest } from '@/types';
+import type { Contract, ContractProgressStep, SupplierRequest, WeightRequest } from '@/types';
 import { makeInitialSteps } from '@/types';
+import { todayJalali } from '@/features/progress/utils/progress.utils';
 
+/** داده‌های اپ — مدل زنجیره‌دار v3: درخواست تأمین‌کننده → قرارداد (کار) → فلو اجرا. */
 export interface AppData {
+  requests: SupplierRequest[];
   contracts: Contract[];
-  proposals: FarmProposal[];
-  collaterals: Collateral[];
   progressSteps: ContractProgressStep[];
   weightRequests: WeightRequest[];
 }
 
 const STORAGE_KEY = 'fonoon-app-data';
 const VERSION_KEY = 'fonoon-app-version';
-const CURRENT_VERSION = 6;
+const CURRENT_VERSION = 7;
 
 /** حالت خام — بدون هیچ داده‌ای (دموی خودکار حذف شد تا کاربر از صفر شروع کند). */
-const EMPTY_DATA: AppData = { contracts: [], proposals: [], collaterals: [], progressSteps: [], weightRequests: [] };
+const EMPTY_DATA: AppData = { requests: [], contracts: [], progressSteps: [], weightRequests: [] };
 
 function loadData(): AppData {
   try {
@@ -41,11 +42,10 @@ function saveData(data: AppData) {
 // ── Actions ──
 
 export type DataAction =
+  | { type: 'ADD_REQUEST'; payload: SupplierRequest }
+  | { type: 'UPDATE_REQUEST'; payload: { id: string; patch: Partial<SupplierRequest> } }
   | { type: 'ADD_CONTRACT'; payload: Contract }
   | { type: 'UPDATE_CONTRACT_STATUS'; payload: { id: string; status: Contract['status'] } }
-  | { type: 'ADD_PROPOSAL'; payload: FarmProposal }
-  | { type: 'UPDATE_PROPOSAL'; payload: { id: string; status: FarmProposal['status'] } }
-  | { type: 'ADD_COLLATERAL'; payload: Collateral }
   | { type: 'UPSERT_PROGRESS_STEP'; payload: ContractProgressStep }
   | { type: 'ADD_WEIGHT_REQUEST'; payload: WeightRequest }
   | { type: 'ANSWER_WEIGHT_REQUEST'; payload: { id: string; answer: NonNullable<WeightRequest['answer']> } }
@@ -61,23 +61,35 @@ function mergeEvents(current: ContractProgressStep['events'], next: ContractProg
 
 function reducer(state: AppData, action: DataAction): AppData {
   switch (action.type) {
+    case 'ADD_REQUEST': return { ...state, requests: [...state.requests, action.payload] };
+    case 'UPDATE_REQUEST':
+      // پچ جنریک — وضعیت/estimation/contractId/matchedFarmId در یک اکشن (DRY)
+      return { ...state, requests: state.requests.map((r) => r.id === action.payload.id ? { ...r, ...action.payload.patch } : r) };
     case 'ADD_CONTRACT': return { ...state, contracts: [...state.contracts, action.payload] };
     case 'UPDATE_CONTRACT_STATUS': {
-      const contracts = state.contracts.map((c) => c.id === action.payload.id ? { ...c, status: action.payload.status } : c);
-      // نهایی شدن قرارداد → ساخت گام‌های idle (idempotent)
-      if (action.payload.status === 'finalized') {
+      const target = state.contracts.find((c) => c.id === action.payload.id);
+      // idempotent — وضعیت تکراری تغییری ایجاد نمی‌کند (مثلاً completed دوباره)
+      if (!target || target.status === action.payload.status) return state;
+      const status = action.payload.status;
+
+      const contracts = state.contracts.map((c) => c.id === action.payload.id
+        ? { ...c, status, finalizedAt: c.finalizedAt ?? (status === 'finalized' ? todayJalali() : undefined) }
+        : c);
+      let requests = state.requests;
+      let progressSteps = state.progressSteps;
+
+      if (status === 'finalized') {
+        // نهایی شدن = تأیید هماهنگی مزرعه‌دار → ساخت گام‌های idle (idempotent) + درخواست in_progress
         const missing = makeInitialSteps(action.payload.id)
           .filter((s) => !state.progressSteps.some((e) => e.id === s.id));
-        return missing.length
-          ? { ...state, contracts, progressSteps: [...state.progressSteps, ...missing] }
-          : { ...state, contracts };
+        progressSteps = missing.length ? [...state.progressSteps, ...missing] : state.progressSteps;
+        requests = state.requests.map((r) => r.contractId === action.payload.id ? { ...r, status: 'in_progress' } : r);
+      } else if (status === 'completed') {
+        // تکمیل فلو اجرا → درخواست مرتبط هم completed می‌شود
+        requests = state.requests.map((r) => r.contractId === action.payload.id ? { ...r, status: 'completed' } : r);
       }
-      return { ...state, contracts };
+      return { ...state, contracts, requests, progressSteps };
     }
-    case 'ADD_PROPOSAL': return { ...state, proposals: [...state.proposals, action.payload] };
-    case 'UPDATE_PROPOSAL':
-      return { ...state, proposals: state.proposals.map((p) => p.id === action.payload.id ? { ...p, status: action.payload.status } : p) };
-    case 'ADD_COLLATERAL': return { ...state, collaterals: [...state.collaterals, action.payload] };
     case 'UPSERT_PROGRESS_STEP': {
       const exists = state.progressSteps.some((s) => s.id === action.payload.id);
       if (!exists) return { ...state, progressSteps: [...state.progressSteps, action.payload] };

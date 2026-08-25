@@ -7,7 +7,7 @@
  * parse نمی‌کند)؛ نمایش با toPersianDigits فارسی می‌شود. Event ها صرفاً نمایشی‌اند.
  */
 
-export type ProgressRole = 'supplier' | 'farm';
+export type ProgressRole = 'supplier' | 'farm' | 'admin';
 export type ProgressStepKey = 'supply' | 'pickup' | 'driver' | 'delivery';
 export type ProgressStepStatus = 'idle' | 'claimed' | 'rejected' | 'done';
 
@@ -30,6 +30,7 @@ export const STEP_ROLES: Record<ProgressStepKey, { claimer: ProgressRole; respon
 export const ROLE_LABELS: Record<ProgressRole, string> = {
   supplier: 'تأمین‌کننده',
   farm: 'مزرعه‌دار',
+  admin: 'زنجیره‌دار',
 };
 
 /** فاصله پیشنهادی درخواست برداشت تا تاریخ بارگیری (روز) — هشدار نرم، نه قانون سخت. */

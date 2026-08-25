@@ -1,6 +1,7 @@
 import { Button } from 'antd';
-import { ArrowRightOutlined, HomeOutlined, FileTextOutlined, PlusOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, HomeOutlined, FileTextOutlined, PlusOutlined, CheckCircleOutlined, InboxOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import type { ProgressRole } from '@/types';
 
 export interface NavItem {
   key: string;
@@ -11,34 +12,42 @@ export interface NavItem {
   fab?: boolean;
 }
 
+export const adminNavItems: NavItem[] = [
+  { key: '/admin', icon: <HomeOutlined />, label: 'داشبورد', path: '/admin' },
+  { key: '/admin/requests', icon: <InboxOutlined />, label: 'درخواست‌ها', path: '/admin/requests' },
+  { key: '/admin/contracts', icon: <FileTextOutlined />, label: 'قراردادها', path: '/admin/contracts' },
+];
+
 export const supplierNavItems: NavItem[] = [
   { key: '/supplier', icon: <HomeOutlined />, label: 'داشبورد', path: '/supplier' },
-  { key: '/supplier/contracts/new', icon: <PlusOutlined />, label: 'قرارداد جدید', path: '/supplier/contracts/new', fab: true },
+  { key: '/supplier/requests/new', icon: <PlusOutlined />, label: 'درخواست جدید', path: '/supplier/requests/new', fab: true },
   { key: '/supplier/contracts', icon: <FileTextOutlined />, label: 'قراردادها', path: '/supplier/contracts' },
 ];
 
 export const farmNavItems: NavItem[] = [
   { key: '/farm', icon: <HomeOutlined />, label: 'داشبورد', path: '/farm' },
-  { key: '/farm/proposals', icon: <FileTextOutlined />, label: 'پیشنهادات', path: '/farm/proposals' },
-  { key: '/farm/contracts', icon: <CheckCircleOutlined />, label: 'جاری', path: '/farm/contracts' },
+  { key: '/farm/contracts', icon: <CheckCircleOutlined />, label: 'قراردادها', path: '/farm/contracts' },
 ];
 
 /** آیتم‌های ناوبری بر اساس نقش (پیشوند مسیر) — منبع واحد BottomNav و سایدبار دسکتاپ. */
-export function getNavItems(pathname: string): { items: NavItem[]; isSupplier: boolean } {
-  const isSupplier = pathname.startsWith('/supplier');
-  return { items: isSupplier ? supplierNavItems : farmNavItems, isSupplier };
+export function getNavItems(pathname: string): { items: NavItem[]; role: ProgressRole } {
+  if (pathname.startsWith('/admin')) return { items: adminNavItems, role: 'admin' };
+  if (pathname.startsWith('/supplier')) return { items: supplierNavItems, role: 'supplier' };
+  return { items: farmNavItems, role: 'farm' };
 }
 
-/** منطق واحد تشخیص آیتم فعال — همان منطق قبلی BottomNav، مشترک بین موبایل و دسکتاپ. */
+/** منطق واحد تشخیص آیتم فعال — مشترک بین موبایل و دسکتاپ. */
 export function isNavItemActive(item: NavItem, pathname: string): boolean {
+  if (item.path === '/admin') return pathname === '/admin';
   if (item.path === '/supplier') return pathname === '/supplier';
   if (item.path === '/farm') return pathname === '/farm';
-  if (item.path === '/supplier/contracts') return pathname.startsWith('/supplier/contracts') && pathname !== '/supplier/contracts/new';
   return pathname.startsWith(item.path);
 }
 
 export function panelTitle(pathname: string): string {
-  return pathname.startsWith('/supplier') ? 'پنل تأمین‌کننده' : 'پنل مزرعه‌دار';
+  if (pathname.startsWith('/admin')) return 'پنل زنجیره‌دار';
+  if (pathname.startsWith('/supplier')) return 'پنل تأمین‌کننده';
+  return 'پنل مزرعه‌دار';
 }
 
 export function LogoutButton() {

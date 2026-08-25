@@ -29,6 +29,8 @@ export function SupplyStepCard({ step, role, onUpsert }: Props) {
   const [form] = Form.useForm<ClaimFormValues>();
 
   const isSupplier = role === 'supplier';
+  const isFarm = role === 'farm';
+  const isAdmin = role === 'admin';
   const canClaim = isSupplier && (step.status === 'idle' || step.status === 'rejected');
 
   const handleClaim = async (values: ClaimFormValues) => {
@@ -95,7 +97,7 @@ export function SupplyStepCard({ step, role, onUpsert }: Props) {
       )}
 
       {/* خلاصه برای مزرعه‌دار + اقدام */}
-      {!isSupplier && step.status === 'claimed' && (
+      {isFarm && step.status === 'claimed' && (
         <>
           <SummaryRow label="تعداد جوجه" value={`${formatNumber(step.payload.chickCount)} قطعه`} />
           <SummaryRow label="مقدار دان" value={`${formatNumber(step.payload.feedAmount)} کیلوگرم`} />
@@ -106,6 +108,18 @@ export function SupplyStepCard({ step, role, onUpsert }: Props) {
             onConfirm={() => { confirm(); message.success('دریافت تأیید شد.'); }}
             onReject={(note) => { reject(note); message.success('رد ثبت شد.'); }}
           />
+        </>
+      )}
+
+      {/* نظارت زنجیره‌دار — فقط خواندنی */}
+      {isAdmin && step.status === 'claimed' && (
+        <>
+          <SummaryRow label="تعداد جوجه" value={`${formatNumber(step.payload.chickCount)} قطعه`} />
+          <SummaryRow label="مقدار دان" value={`${formatNumber(step.payload.feedAmount)} کیلوگرم`} />
+          <SummaryRow label="تاریخ تحویل" value={toPersianDigits(step.payload.suppliedAt)} />
+          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+            در انتظار تأیید دریافت توسط مزرعه‌دار...
+          </Text>
         </>
       )}
 
