@@ -26,7 +26,7 @@ type ProgressTabKey = 'steps' | 'weight';
 
 /** صفحه پیگیری قرارداد نهایی — role-aware از pathname، در هر دو پنل.
  *  دو بخش مستقل در دو تب: «مراحل قرارداد» و «اعلام وزن مرغ» (با Badge تعداد آیتم‌های مهم).
- *  با باز کردن تب وزن توسط تأمین‌کننده، پاسخ‌های دیده‌نشده خودکار mark-seen می‌شوند. */
+ *  با باز کردن تب وزن توسط مشارکت‌کننده، پاسخ‌های دیده‌نشده خودکار mark-seen می‌شوند. */
 export function ContractProgressPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -53,7 +53,7 @@ export function ContractProgressPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contract?.id]);
 
-  // دیده‌شدن پاسخ‌های وزن توسط تأمین‌کننده = باز کردن تب وزن (idempotent در reducer)
+  // دیده‌شدن پاسخ‌های وزن توسط مشارکت‌کننده = باز کردن تب وزن (idempotent در reducer)
   useEffect(() => {
     if (role === 'supplier' && contract?.status === 'finalized' && activeTab === 'weight') {
       dispatch({ type: 'MARK_WEIGHT_REQUESTS_SEEN', payload: { contractId: contract.id, seenAt: nowFa() } });
@@ -76,7 +76,7 @@ export function ContractProgressPage() {
   const pickupStep = steps.find((s): s is Extract<ContractProgressStep, { key: 'pickup' }> => s.key === 'pickup' && s.status === 'done');
   const deliveryDone = steps.find((s) => s.key === 'delivery')?.status === 'done';
 
-  // اعلام وزن: Badge تب = آیتم‌های قابل توجه نقش (مزرعه‌دار: در انتظار پاسخ / تأمین‌کننده: پاسخ‌های دیده‌نشده / زنجیره‌دار: صفر — فقط نظارت)
+  // اعلام وزن: Badge تب = آیتم‌های قابل توجه نقش (مزرعه‌دار: در انتظار پاسخ / مشارکت‌کننده: پاسخ‌های دیده‌نشده / زنجیره‌دار: صفر — فقط نظارت)
   const requests = data.weightRequests.filter((r) => r.contractId === contract.id);
   const weightBadge = role === 'admin'
     ? 0

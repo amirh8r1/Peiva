@@ -1,7 +1,7 @@
 /**
  * فلو پیگیری قرارداد نهایی — ۴ گام.
- * نقش‌ها: supply/pickup ادعای تأمین‌کننده + پاسخ مزرعه‌دار؛ driver اعلام صرف تأمین‌کننده
- * (مزرعه‌دار فقط نوتیف می‌گیرد)؛ delivery ادعای مزرعه‌دار + تأیید تأمین‌کننده.
+ * نقش‌ها: supply/pickup ادعای مشارکت‌کننده + پاسخ مزرعه‌دار؛ driver اعلام صرف مشارکت‌کننده
+ * (مزرعه‌دار فقط نوتیف می‌گیرد)؛ delivery ادعای مزرعه‌دار + تأیید مشارکت‌کننده.
  * تاریخ‌های تقویمی (claimedAt/confirmedAt/suppliedAt/pickupDate/requestedAt/answeredAt)
  * همیشه با ارقام انگلیسی و فرمت 'YYYY/MM/DD' ذخیره می‌شوند (jalaliday ارقام فارسی را
  * parse نمی‌کند)؛ نمایش با toPersianDigits فارسی می‌شود. Event ها صرفاً نمایشی‌اند.
@@ -28,7 +28,7 @@ export const STEP_ROLES: Record<ProgressStepKey, { claimer: ProgressRole; respon
 };
 
 export const ROLE_LABELS: Record<ProgressRole, string> = {
-  supplier: 'تأمین‌کننده',
+  supplier: 'مشارکت‌کننده',
   farm: 'مزرعه‌دار',
   admin: 'زنجیره‌دار',
 };
@@ -71,7 +71,7 @@ export interface SupplyPayload {
 }
 
 export interface PickupPayload {
-  /** تاریخ بارگیری پیشنهادی تأمین‌کننده ('YYYY/MM/DD' انگلیسی). راهنمای نرم: ~۷ روز بعد از درخواست. */
+  /** تاریخ بارگیری پیشنهادی مشارکت‌کننده ('YYYY/MM/DD' انگلیسی). راهنمای نرم: ~۷ روز بعد از درخواست. */
   pickupDate: string;
 }
 
@@ -95,7 +95,7 @@ export interface DeliveryPayload {
   totalWeight: number;
   /** اسناد مزرعه‌دار (وزن‌کشی/باسکول و...) */
   farmDocs: UploadedDoc[];
-  /** تأیید تأمین‌کننده — با ثبت آن گام done می‌شود. */
+  /** تأیید مشارکت‌کننده — با ثبت آن گام done می‌شود. */
   supplierConfirmed: boolean;
 }
 
@@ -118,7 +118,7 @@ export interface WeightRequest {
   requestedAt: string; // 'YYYY/MM/DD' انگلیسی
   status: 'pending' | 'answered';
   answer?: WeightRequestAnswer;
-  /** زمان مشاهده پاسخ توسط تأمین‌کننده (fa-IR نمایشی) — تا وقتی نباشد، نوتیف پاسخ باز می‌ماند. */
+  /** زمان مشاهده پاسخ توسط مشارکت‌کننده (fa-IR نمایشی) — تا وقتی نباشد، نوتیف پاسخ باز می‌ماند. */
   seenAt?: string;
 }
 

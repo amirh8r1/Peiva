@@ -1,6 +1,4 @@
-import { Button } from 'antd';
-import { ArrowRightOutlined, HomeOutlined, FileTextOutlined, PlusOutlined, CheckCircleOutlined, InboxOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { HomeOutlined, FileTextOutlined, PlusOutlined, CheckCircleOutlined, InboxOutlined } from '@ant-design/icons';
 import type { ProgressRole } from '@/types';
 
 export interface NavItem {
@@ -20,7 +18,8 @@ export const adminNavItems: NavItem[] = [
 
 export const supplierNavItems: NavItem[] = [
   { key: '/supplier', icon: <HomeOutlined />, label: 'داشبورد', path: '/supplier' },
-  { key: '/supplier/requests/new', icon: <PlusOutlined />, label: 'درخواست جدید', path: '/supplier/requests/new', fab: true },
+  // باز کردن ویزارد: ناوبری به /supplier?new=1 — داشبورد پارامتر را می‌خواند و ویزارد را باز می‌کند
+  { key: '/supplier?new=1', icon: <PlusOutlined />, label: 'قرارداد جدید', path: '/supplier?new=1', fab: true },
   { key: '/supplier/contracts', icon: <FileTextOutlined />, label: 'قراردادها', path: '/supplier/contracts' },
 ];
 
@@ -46,15 +45,6 @@ export function isNavItemActive(item: NavItem, pathname: string): boolean {
 
 export function panelTitle(pathname: string): string {
   if (pathname.startsWith('/admin')) return 'پنل زنجیره‌دار';
-  if (pathname.startsWith('/supplier')) return 'پنل تأمین‌کننده';
+  if (pathname.startsWith('/supplier')) return 'پنل مشارکت‌کننده';
   return 'پنل مزرعه‌دار';
-}
-
-export function LogoutButton() {
-  const navigate = useNavigate();
-  return (
-    <Button type="text" icon={<ArrowRightOutlined />} onClick={() => navigate('/')} style={{ fontSize: 14 }}>
-      خروج
-    </Button>
-  );
 }

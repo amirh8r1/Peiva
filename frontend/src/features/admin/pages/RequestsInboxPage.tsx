@@ -21,7 +21,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'rejected', label: REQUEST_STATUS_LABELS.rejected },
 ];
 
-/** صندوق درخواست‌های تأمین‌کنندگان — نقطه شروع تطبیق مزرعه و برآورد سهم. */
+/** صندوق درخواست‌های مشارکت‌کنندگان — نقطه شروع تطبیق مزرعه و برآورد سهم. */
 export function RequestsInboxPage() {
   const navigate = useNavigate();
   const { token } = theme.useToken();
@@ -36,7 +36,7 @@ export function RequestsInboxPage() {
   return (
     <PageFrame
       remountKey={tab}
-      header={<PageHeader title="صندوق درخواست‌ها" subtitle="درخواست‌های تأمین‌کنندگان — تطبیق مزرعه و برآورد سهم" />}
+      header={<PageHeader title="صندوق درخواست‌ها" subtitle="درخواست‌های مشارکت‌کنندگان — تطبیق مزرعه و برآورد سهم" />}
     >
       <Tabs
         activeKey={tab}

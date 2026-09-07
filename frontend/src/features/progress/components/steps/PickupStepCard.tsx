@@ -23,7 +23,7 @@ interface RequestFormValues {
 }
 
 /** گام ۲ — درخواست برداشت مرغ زنده (حدود یک هفته قبل از دریافت):
- *  تأمین‌کننده تاریخ بارگیری پیشنهادی ثبت می‌کند، مزرعه‌دار تأیید/رد می‌کند. */
+ *  مشارکت‌کننده تاریخ بارگیری پیشنهادی ثبت می‌کند، مزرعه‌دار تأیید/رد می‌کند. */
 export function PickupStepCard({ step, role, onUpsert }: Props) {
   const { confirm, reject } = useStepFeedback(step, role, onUpsert);
   const [form] = Form.useForm<RequestFormValues>();
@@ -48,7 +48,7 @@ export function PickupStepCard({ step, role, onUpsert }: Props) {
 
   return (
     <StepCard step={step} stepLabel="درخواست برداشت مرغ زنده">
-      {/* درخواست تأمین‌کننده */}
+      {/* درخواست مشارکت‌کننده */}
       {canClaim && (
         <>
           {step.status === 'rejected' && (

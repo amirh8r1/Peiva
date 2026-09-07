@@ -3,7 +3,7 @@ import type { Contract, ContractProgressStep, SupplierRequest, WeightRequest } f
 import { makeInitialSteps } from '@/types';
 import { todayJalali } from '@/features/progress/utils/progress.utils';
 
-/** داده‌های اپ — مدل زنجیره‌دار v3: درخواست تأمین‌کننده → قرارداد (کار) → فلو اجرا. */
+/** داده‌های اپ — مدل زنجیره‌دار v3: درخواست مشارکت‌کننده → قرارداد (کار) → فلو اجرا. */
 export interface AppData {
   requests: SupplierRequest[];
   contracts: Contract[];

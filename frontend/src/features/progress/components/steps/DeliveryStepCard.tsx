@@ -34,7 +34,7 @@ const formatSize = (bytes: number) =>
   bytes >= 1024 * 1024 ? `${formatNumber(bytes / (1024 * 1024), 1)} مگابایت` : `${formatNumber(bytes / 1024, 1)} کیلوبایت`;
 
 /** گام ۴ — تحویل و تأیید نهایی: مزرعه‌دار ادعای تحویل (تعداد + وزن + اسناد) می‌کند،
- *  تأمین‌کننده تأیید/رد می‌کند؛ با تأیید، گام تکمیل می‌شود. */
+ *  مشارکت‌کننده تأیید/رد می‌کند؛ با تأیید، گام تکمیل می‌شود. */
 export function DeliveryStepCard({ step, role, onUpsert }: Props) {
   const { confirm, reject } = useStepFeedback(step, role, onUpsert);
   const [form] = Form.useForm<ClaimFormValues>();
@@ -68,7 +68,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
       ...step, status: 'claimed', claimedBy: 'farm', claimedAt: todayJalali(), payload,
       events: [...step.events, makeEvent('farm', 'claimed')],
     });
-    message.success('مشخصات تحویل ثبت شد و برای تأمین‌کننده ارسال گردید.');
+    message.success('مشخصات تحویل ثبت شد و برای مشارکت‌کننده ارسال گردید.');
   };
 
   const docList = (list: UploadedDoc[], removable: boolean) => (
@@ -114,10 +114,10 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
       <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
         {step.status === 'rejected' && (
           <Alert type="error" showIcon style={{ marginBottom: 12 }}
-            message="نظر تأمین‌کننده" description={step.rejectedNote || 'ادعای شما رد شده است.'} />
+            message="نظر مشارکت‌کننده" description={step.rejectedNote || 'ادعای شما رد شده است.'} />
         )}
         <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginBottom: 8 }}>
-          تعداد و وزن مرغ‌های تحویل داده‌شده را ثبت و مدارک وزن‌کشی (باسکول) را بارگذاری کنید؛ تأیید نهایی با تأمین‌کننده است.
+          تعداد و وزن مرغ‌های تحویل داده‌شده را ثبت و مدارک وزن‌کشی (باسکول) را بارگذاری کنید؛ تأیید نهایی با مشارکت‌کننده است.
         </Text>
         <Form
           form={form}
@@ -136,7 +136,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
                 { type: 'number', min: 1, message: 'تعداد باید حداقل ۱ باشد' },
               ]}
             >
-              <NumberField label="تعداد مرغ تحویلی" unit="قطعه" hint="تعداد مرغ‌های تحویل داده‌شده به تأمین‌کننده" />
+              <NumberField label="تعداد مرغ تحویلی" unit="قطعه" hint="تعداد مرغ‌های تحویل داده‌شده به مشارکت‌کننده" />
             </Form.Item>
             <Form.Item
               name="totalWeight"
@@ -166,7 +166,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
     );
   }
 
-  // ── تأیید/رد تأمین‌کننده ──
+  // ── تأیید/رد مشارکت‌کننده ──
   if (canRespond) {
     return (
       <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
@@ -192,7 +192,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
         {deliverySummary}
         {docList(step.payload.farmDocs, false)}
         <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginTop: 8 }}>
-          در انتظار تأیید نهایی تأمین‌کننده...
+          در انتظار تأیید نهایی مشارکت‌کننده...
         </Text>
       </StepCard>
     );
@@ -216,7 +216,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
     <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
       <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block' }}>
         {isFarm
-          ? 'ادعای تحویل شما ثبت شده — در انتظار تأیید نهایی تأمین‌کننده...'
+          ? 'ادعای تحویل شما ثبت شده — در انتظار تأیید نهایی مشارکت‌کننده...'
           : `در انتظار ثبت مشخصات تحویل توسط ${ROLE_LABELS.farm}...`}
       </Text>
       {step.status === 'claimed' && deliverySummary}

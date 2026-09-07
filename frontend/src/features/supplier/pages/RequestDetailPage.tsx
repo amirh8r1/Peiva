@@ -17,13 +17,14 @@ import { useIsDesktop } from '@/hooks/useResponsive';
 import { centeredForm } from '@/utils/responsive';
 import { pivaType } from '@/config/theme';
 import { Stepper, type StepperItem } from '@/components/ui/Stepper';
+import { StepThreeBody } from '../components/wizard/steps';
 
 const { Text } = Typography;
 
 /** ترتیب وضعیت‌ها در نوار پیشرفت — rejected خارج از ترتیب (با استایل خطا). */
 const STATUS_FLOW: SupplierRequestStatus[] = ['pending', 'matched', 'in_progress', 'completed'];
 
-/** جزئیات درخواست تأمین‌کننده — شفافیت کامل: وضعیت، مزرعه تطبیق‌شده و سهم شما. */
+/** جزئیات درخواست مشارکت‌کننده — شفافیت کامل: وضعیت، مزرعه تطبیق‌شده و سهم شما. */
 export function SupplierRequestDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export function SupplierRequestDetailPage() {
         <PageHeader
           title="جزئیات درخواست"
           subtitle={REQUEST_STATUS_LABELS[request.status]}
-          extra={<Button icon={<ArrowRightOutlined />} onClick={() => navigate('/supplier/requests')}>بازگشت</Button>}
+          extra={<Button icon={<ArrowRightOutlined />} onClick={() => navigate('/supplier')}>بازگشت</Button>}
         />
       }
     >
@@ -71,6 +72,22 @@ export function SupplierRequestDetailPage() {
         )}
 
         <RequestSummaryCard request={request} />
+
+        {request.participation && (
+          <div style={{ marginTop: 12 }}>
+            <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>برآورد سهم شما (از ویزارد)</Text>
+            <StepThreeBody
+              participation={{
+                estimatedBirds: request.participation.estimatedBirds,
+                productionKg: request.participation.productionKg,
+                productionValue: request.participation.productionValue,
+                shares: request.participation.shares,
+                buckets: request.participation.buckets,
+              }}
+              desiredKg={request.participation.productionKg}
+            />
+          </div>
+        )}
 
         {farm && (
           <div style={{ marginTop: 12 }}>
@@ -94,7 +111,7 @@ export function SupplierRequestDetailPage() {
 
         {request.status === 'pending' && (
           <Alert type="info" showIcon style={{ marginTop: 12 }}
-            message="درخواست در صندوق زنجیره‌دار است" description="پس از تطبیق مزرعه و برآورد هزینه، سهم شما اینجا نمایش داده می‌شود." />
+            message="قرارداد در حال بررسی زنجیره‌دار است" description="پس از تأیید، مزرعه تطبیق می‌شود و کار وارد فاز اجرا می‌گردد." />
         )}
 
         {contract && (

@@ -59,8 +59,8 @@ function toPayload(values: DriverFormValues): DriverPayload {
 }
 
 /** گام ۳ — اعلام مشخصات دریافت‌کننده (۲۴ ساعت قبل از تحویل):
- *  تأمین‌کننده اعلام می‌کند و گام همان‌جا تکمیل می‌شود؛ مزرعه‌دار فقط نوتیف می‌گیرد.
- *  تا تکمیل گام تحویل، تأمین‌کننده می‌تواند مشخصات را ویرایش کند. */
+ *  مشارکت‌کننده اعلام می‌کند و گام همان‌جا تکمیل می‌شود؛ مزرعه‌دار فقط نوتیف می‌گیرد.
+ *  تا تکمیل گام تحویل، مشارکت‌کننده می‌تواند مشخصات را ویرایش کند. */
 export function DriverStepCard({ step, role, initialPickupDate, deliveryDone, onUpsert }: Props) {
   const [editing, setEditing] = useState(false);
   const isDesktop = useIsDesktop();
@@ -118,7 +118,7 @@ export function DriverStepCard({ step, role, initialPickupDate, deliveryDone, on
     return (
       <StepCard step={step} stepLabel="اعلام مشخصات دریافت‌کننده">
         <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block' }}>
-          در انتظار اعلام مشخصات دریافت‌کننده توسط تأمین‌کننده (۲۴ ساعت قبل از بارگیری)...
+          در انتظار اعلام مشخصات دریافت‌کننده توسط مشارکت‌کننده (۲۴ ساعت قبل از بارگیری)...
         </Text>
       </StepCard>
     );

@@ -1,8 +1,9 @@
 import { Button, Layout, Typography, theme } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getNavItems, isNavItemActive, LogoutButton } from './navItems';
-import { ThemeToggle } from './ThemeToggle';
+import { getNavItems, isNavItemActive } from './navItems';
+import { AccountMenu } from './AccountMenu';
 import { LogoMark } from '@/components/ui/LogoMark';
+import { NotificationBell } from '@/features/supplier/components/NotificationBell';
 import { HEADER_DESKTOP_H } from '@/config/layout';
 import { pivaTokens, pivaType } from '@/config/theme';
 
@@ -19,6 +20,9 @@ export function DesktopHeader() {
   const location = useLocation();
   const { token } = theme.useToken();
   const { items } = getNavItems(location.pathname);
+  const isSupplier = location.pathname.startsWith('/supplier');
+  // آیتم fab (قرارداد جدید) در دسکتاپ تب نمی‌شود — دکمه داشبورد تنها نقطه ورود است
+  const tabItems = items.filter((item) => !item.fab);
 
   return (
     <Header style={{
@@ -43,7 +47,7 @@ export function DesktopHeader() {
           پیوا
         </Text>
         <nav aria-label="ناوبری اصلی" style={{ display: 'flex', gap: 4, marginInlineStart: 16 }}>
-          {items.map((item) => {
+          {tabItems.map((item) => {
             const active = isNavItemActive(item, location.pathname);
             return (
               <Button
@@ -70,8 +74,8 @@ export function DesktopHeader() {
         </nav>
       </div>
       <div style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
-        <ThemeToggle />
-        <LogoutButton />
+        {isSupplier && <NotificationBell />}
+        <AccountMenu />
       </div>
     </Header>
   );

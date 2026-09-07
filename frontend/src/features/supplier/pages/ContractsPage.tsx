@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ContractCard } from '@/components/ui/ContractCard';
 import { getStepsForContract } from '@/features/progress/utils/progress.utils';
 
-/** قراردادهای تأمین‌کننده — پس از نهایی شدن، ورود به فلو اجرا. */
+/** قراردادهای مشارکت‌کننده — پس از نهایی شدن، ورود به فلو اجرا. */
 export function SupplierContractsPage() {
   const navigate = useNavigate();
   const { data } = useData();

@@ -10,7 +10,7 @@ import type { EstimationRow } from '@/types/request';
 const { Text } = Typography;
 
 export const ESTIMATION_OWNER_LABELS: Record<EstimationRow['owner'], string> = {
-  supplier: 'تأمین‌کننده',
+  supplier: 'مشارکت‌کننده',
   farm: 'مزرعه‌دار',
   admin: 'زنجیره‌دار',
 };
@@ -25,7 +25,7 @@ interface EstimationTableProps {
 
 /**
  * جدول شفافیت برآورد هزینه — مبلغ هر ردیف زنده از productionKg محاسبه می‌شود؛
- * ردیف‌های مالکِ تأمین‌کننده tint سبز (مبنای سهم) هستند. موبایل: ردیف‌های عمودی.
+ * ردیف‌های مالکِ مشارکت‌کننده tint سبز (مبنای سهم) هستند. موبایل: ردیف‌های عمودی.
  */
 export function EstimationTable({ rows, productionKg, editable, onChange }: EstimationTableProps) {
   const isDesktop = useIsDesktop();

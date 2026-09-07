@@ -7,8 +7,6 @@ import { RequestsInboxPage } from '@/features/admin/pages/RequestsInboxPage';
 import { AdminRequestDetailPage } from '@/features/admin/pages/RequestDetailPage';
 import { AdminContractsPage } from '@/features/admin/pages/ContractsPage';
 import { SupplierDashboard } from '@/features/supplier/pages/Dashboard';
-import { NewRequestPage as SupplierNewRequestPage } from '@/features/supplier/pages/NewRequestPage';
-import { SupplierRequestsPage } from '@/features/supplier/pages/RequestsPage';
 import { SupplierRequestDetailPage } from '@/features/supplier/pages/RequestDetailPage';
 import { SupplierContractsPage } from '@/features/supplier/pages/ContractsPage';
 import { FarmDashboard } from '@/features/farm/pages/Dashboard';
@@ -27,10 +25,8 @@ export function AppRouter() {
         <Route path="/admin/contracts" element={<AdminContractsPage />} />
         <Route path="/admin/contracts/:id/progress" element={<ContractProgressPage />} />
 
-        {/* Supplier routes */}
+        {/* Participant (supplier) routes */}
         <Route path="/supplier" element={<SupplierDashboard />} />
-        <Route path="/supplier/requests/new" element={<SupplierNewRequestPage />} />
-        <Route path="/supplier/requests" element={<SupplierRequestsPage />} />
         <Route path="/supplier/requests/:id" element={<SupplierRequestDetailPage />} />
         <Route path="/supplier/contracts" element={<SupplierContractsPage />} />
         <Route path="/supplier/contracts/:id/progress" element={<ContractProgressPage />} />

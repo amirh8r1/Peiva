@@ -43,7 +43,7 @@ export function ContractCard({ contract, steps, onOpen, openLabel = 'مشاهد�
           {contract.farmName} · {contract.province} · تحویل هدف {toPersianDigits(contract.targetDeliveryDate)}
         </Text>
         <SummaryRow
-          label="سهم تأمین‌کننده"
+          label="سهم مشارکت‌کننده"
           value={`٪${formatNumber(estimation.supplierSharePercent)} — ${formatNumber(estimation.supplierShareKg)} کیلوگرم مرغ`}
         />
         {contract.status === 'finalized' && <ContractProgressMini steps={steps} />}

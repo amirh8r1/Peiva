@@ -1,58 +1,115 @@
-import { useNavigate } from 'react-router-dom';
-import { Empty } from 'antd';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button, Tabs } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
 import { PageFrame } from '@/components/ui/PageFrame';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { CardGrid } from '@/components/ui/CardGrid';
-import { CountStatTile } from '@/components/ui/CountStatTile';
-import { NotificationSection, toNotifyItems, type NotifyItem } from '@/components/ui/NotificationSection';
-import { formatNumber } from '@/utils/format';
-import { getPendingActions, getWeightRequestActions } from '@/features/progress/utils/progress.utils';
-import type { SupplierRequestStatus } from '@/types/request';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ContractCard } from '@/components/ui/ContractCard';
+import { RequestSummaryCard } from '@/features/requests/components/RequestSummaryCard';
+import { getStepsForContract } from '@/features/progress/utils/progress.utils';
+import { useIsDesktop } from '@/hooks/useResponsive';
+import { ContractWizard } from '../components/ContractWizard';
 
-/** داشبورد تأمین‌کننده — وضعیت درخواست‌ها + اقدامات فلو اجرا (بدون تغییر) + نوتیف سهم. */
+type DashTab = 'active' | 'review';
+
+/**
+ * داشبورد مشارکت‌کننده — قراردادهای جاری و در حال بررسی در دو تب؛
+ * نوتیفیکیشن‌ها در زنگوله (نه روی صفحه)؛ «افزودن قرارداد جدید» ویزارد را باز می‌کند.
+ */
 export function SupplierDashboard() {
   const navigate = useNavigate();
   const { data } = useData();
-  const requests = data.requests;
-  const contracts = data.contracts;
+  const isDesktop = useIsDesktop();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tab, setTab] = useState<DashTab>('active');
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const autoOpened = useRef(false);
 
-  const count = (status: SupplierRequestStatus) => requests.filter((r) => r.status === status).length;
+  // ورودی FAB/سایدبار: /supplier?new=1 — یک‌بار باز شود و پارامتر پاک شود (Back دوباره باز نکند)
+  useEffect(() => {
+    if (searchParams.get('new') === '1' && !autoOpened.current) {
+      autoOpened.current = true;
+      setWizardOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
-  const stats = [
-    { label: 'درخواست‌ها', value: requests.length, tone: 'neutral' as const, onClick: () => navigate('/supplier/requests') },
-    { label: 'در انتظار بررسی', value: count('pending'), tone: 'warning' as const },
-    { label: 'در حال اجرا', value: count('in_progress'), tone: 'info' as const },
-    { label: 'قراردادهای جاری', value: contracts.filter((c) => c.status === 'finalized').length, tone: 'success' as const },
-  ];
-
-  const progress = getPendingActions(data, 'supplier');
-  const weights = getWeightRequestActions(data, 'supplier');
-
-  const actions: NotifyItem[] = [
-    ...toNotifyItems(progress.filter((p) => p.kind === 'action'), (cid) => navigate(`/supplier/contracts/${cid}/progress`)),
-    ...toNotifyItems(weights.filter((w) => w.kind === 'action'), (cid) => navigate(`/supplier/contracts/${cid}/progress?tab=weight`)),
-  ];
-
-  const infos: NotifyItem[] = [
-    ...toNotifyItems(progress.filter((p) => p.kind === 'info'), (cid) => navigate(`/supplier/contracts/${cid}/progress`)),
-    ...(requests.length > 0 ? [{
-      id: 'my-requests',
-      title: 'درخواست‌های من',
-      body: `${formatNumber(requests.length)} درخواست ثبت‌شده — وضعیت و سهم شما از هر درخواست`,
-      onClick: () => navigate('/supplier/requests'),
-      buttonLabel: 'مشاهده درخواست‌ها',
-    }] : []),
-  ];
+  const activeContracts = data.contracts.filter((c) => c.status === 'finalized');
+  const reviewRequests = data.requests.filter((r) => !r.contractId && r.status !== 'rejected');
 
   return (
-    <PageFrame header={<PageHeader title="داشبورد تأمین‌کننده" />}>
-      <CardGrid minWidth={220} gap={12}>
-        {stats.map((s) => <CountStatTile key={s.label} direction="column" {...s} />)}
-      </CardGrid>
-      <NotificationSection title="نیازمند اقدام شما" kind="action" items={actions} />
-      <NotificationSection title="اطلاعیه‌ها" kind="info" items={infos} />
-      {actions.length === 0 && infos.length === 0 && <Empty description="نوتیف جدیدی ندارید" />}
+    <PageFrame
+      header={
+        <PageHeader
+          title="داشبورد مشارکت‌کننده"
+          subtitle="قراردادهای جاری و در حال بررسی شما"
+          extra={
+            /* دکمه فقط دسکتاپ — در موبایل FAB پایین همین کار را می‌کند؛ زنگوله در هدر اصلی است */
+            isDesktop ? (
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setWizardOpen(true)}>
+                افزودن قرارداد جدید
+              </Button>
+            ) : undefined
+          }
+        />
+      }
+    >
+      <Tabs
+        activeKey={tab}
+        onChange={(k) => setTab(k as DashTab)}
+        items={[
+          {
+            key: 'active',
+            label: 'قراردادهای جاری',
+            children: activeContracts.length === 0 ? (
+              <EmptyState
+                title="هنوز قرارداد جاری ندارید"
+                description="پس از تأیید زنجیره‌دار و هماهنگی مزرعه، قرارداد جاری شما اینجا نمایش داده می‌شود."
+              />
+            ) : (
+              <CardGrid minWidth={320} gap={12}>
+                {activeContracts.map((c) => (
+                  <ContractCard
+                    key={c.id}
+                    contract={c}
+                    steps={getStepsForContract(data.progressSteps, c.id)}
+                    onOpen={() => navigate(`/supplier/contracts/${c.id}/progress`)}
+                    openLabel="پیگیری قرارداد"
+                  />
+                ))}
+              </CardGrid>
+            ),
+          },
+          {
+            key: 'review',
+            label: 'در حال بررسی',
+            children: reviewRequests.length === 0 ? (
+              <EmptyState
+                title="قرارداد در حال بررسی ندارید"
+                description="قراردادهایی که برای زنجیره‌دار ارسال می‌کنید اینجا دیده می‌شوند تا تأیید شوند."
+              />
+            ) : (
+              <CardGrid minWidth={320} gap={12}>
+                {reviewRequests.map((r) => (
+                  <RequestSummaryCard key={r.id} request={r} onClick={() => navigate(`/supplier/requests/${r.id}`)} />
+                ))}
+              </CardGrid>
+            ),
+          },
+        ]}
+      />
+      {wizardOpen && (
+        <ContractWizard
+          onClose={() => setWizardOpen(false)}
+          onCreated={() => {
+            setWizardOpen(false);
+            setTab('review');
+          }}
+        />
+      )}
     </PageFrame>
   );
 }

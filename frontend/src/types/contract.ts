@@ -2,7 +2,7 @@ import type { CostEstimation } from './request';
 
 /**
  * قرارداد (کار) — مدل زنجیره‌دار v3.
- * زنجیره‌دار از روی درخواست تأمین‌کننده قرارداد می‌سازد و مزرعه انتخاب‌شده را مشخص می‌کند؛
+ * زنجیره‌دار از روی درخواست مشارکت‌کننده قرارداد می‌سازد و مزرعه انتخاب‌شده را مشخص می‌کند؛
  * با تأیید هماهنگی مزرعه‌دار قرارداد نهایی و وارد فلو ۴ گامی اجرا می‌شود.
  */
 export type ContractStatus = 'awaiting_farm' | 'finalized' | 'completed' | 'cancelled';
@@ -18,7 +18,7 @@ export interface Contract {
   province: string;
   /** تاریخ تحویل هدف ('YYYY/MM/DD' انگلیسی) */
   targetDeliveryDate: string;
-  /** snapshot برآورد هزینه زمان ایجاد — منبع شفافیت سهم تأمین‌کننده */
+  /** snapshot برآورد هزینه زمان ایجاد — منبع شفافیت سهم مشارکت‌کننده */
   estimation: CostEstimation;
   status: ContractStatus;
   createdAt: string; // 'YYYY/MM/DD'

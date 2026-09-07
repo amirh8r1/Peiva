@@ -150,8 +150,8 @@ export function RoleLandingPage() {
               icon={<ApartmentOutlined />}
               iconColor={token.colorPrimary}
               iconBg={token.colorSuccessBg}
-              title="تأمین‌کننده نهاده"
-              description="ثبت درخواست نهاده (دان/جوجه/نقد) و دریافت مرغ با سهم شفاف"
+              title="مشارکت‌کننده"
+              description="اعلام نهاده/جوجه/اعتبار مالی و دریافت مرغ با سهم شفاف از تولید"
               onClick={() => navigate('/supplier')}
             />
             <RoleCard

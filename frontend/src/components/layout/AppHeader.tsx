@@ -1,7 +1,8 @@
 import { Layout, Typography, theme } from 'antd';
-import { LogoutButton } from './navItems';
-import { ThemeToggle } from './ThemeToggle';
+import { useLocation } from 'react-router-dom';
+import { AccountMenu } from './AccountMenu';
 import { LogoMark } from '@/components/ui/LogoMark';
+import { NotificationBell } from '@/features/supplier/components/NotificationBell';
 import { pivaTokens } from '@/config/theme';
 
 const { Header: AntHeader } = Layout;
@@ -25,6 +26,8 @@ export function AppHeader({
   sticky = false,
 }: AppHeaderProps) {
   const { token } = theme.useToken();
+  const location = useLocation();
+  const isSupplier = location.pathname.startsWith('/supplier');
 
   return (
     <AntHeader style={{
@@ -39,17 +42,16 @@ export function AppHeader({
       height,
       lineHeight: `${height}px`,
     }}>
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
-        <ThemeToggle />
-      </div>
+      <div style={{ flex: 1 }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <LogoMark size={28} />
         <Text strong style={{ fontSize, fontWeight: 800, color: pivaTokens.brandDeep, lineHeight: 1 }}>
           پیوا
         </Text>
       </div>
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-        <LogoutButton />
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 4 }}>
+        {isSupplier && <NotificationBell />}
+        <AccountMenu />
       </div>
     </AntHeader>
   );

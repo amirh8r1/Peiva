@@ -12,7 +12,7 @@ interface ProfitShareBadgeProps {
 }
 
 /**
- * پنل سهم — امضای شفافیت سامانه: درصد درشت + نوار تقسیم سهم (سهم تأمین‌کننده سبز،
+ * پنل سهم — امضای شفافیت سامانه: درصد درشت + نوار تقسیم سهم (سهم مشارکت‌کننده سبز،
  * بقیه خنثی) تا تقسیم واقعی در یک نگاه دیده شود.
  * پس‌زمینه/بوردر/درصد از متغیرهای CSS می‌آیند تا در تم تیره نسخه شیشه‌ای درخشان
  * رندر شود (اسلایدر و متن روی پس‌زمینه مات تیره خوانا نمی‌مانند).
@@ -38,7 +38,7 @@ export function ProfitShareBadge({ percent, size = 'lg', label, children }: Prof
         </span>
       </div>
 
-      {/* نوار تقسیم سهم — سبز = سهم تأمین‌کننده (شروع در RTL = راست) */}
+      {/* نوار تقسیم سهم — سبز = سهم مشارکت‌کننده (شروع در RTL = راست) */}
       <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginTop: 10, background: token.colorFillSecondary }}>
         <div style={{
           width: `${pct}%`,
@@ -48,7 +48,7 @@ export function ProfitShareBadge({ percent, size = 'lg', label, children }: Prof
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
         <span style={{ fontSize: pivaType.caption.fontSize, color: token.colorTextSecondary }}>
-          تأمین‌کننده ٪{formatNumber(pct)}
+          مشارکت‌کننده ٪{formatNumber(pct)}
         </span>
         <span style={{ fontSize: pivaType.caption.fontSize, color: token.colorTextTertiary }}>
           مزرعه‌دار ٪{formatNumber(100 - pct)}

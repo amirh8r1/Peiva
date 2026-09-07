@@ -18,7 +18,7 @@ interface RequestSummaryCardProps {
   onClick?: () => void;
 }
 
-/** کارت خلاصه درخواست تأمین‌کننده — در صندوق ادمین و لیست درخواست‌های تأمین‌کننده. */
+/** کارت خلاصه درخواست مشارکت‌کننده — در صندوق ادمین و لیست درخواست‌های مشارکت‌کننده. */
 export function RequestSummaryCard({ request, onClick }: RequestSummaryCardProps) {
   const { token } = theme.useToken();
   return (
@@ -48,7 +48,7 @@ export function RequestSummaryCard({ request, onClick }: RequestSummaryCardProps
         </Space>
         <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize }}>
           {request.province} · تحویل هدف {toPersianDigits(request.targetDeliveryDate)}
-          {request.estimation ? ` · سهم تأمین‌کننده ٪${formatNumber(request.estimation.supplierSharePercent)}` : ''}
+          {request.estimation ? ` · سهم مشارکت‌کننده ٪${formatNumber(request.estimation.supplierSharePercent)}` : ''}
         </Text>
       </Space>
     </Card>

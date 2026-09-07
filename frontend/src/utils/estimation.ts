@@ -1,9 +1,9 @@
 /**
- * ریاضیات برآورد هزینه و سهم تأمین‌کننده — مدل زنجیره‌دار v3.
+ * ریاضیات برآورد هزینه و سهم مشارکت‌کننده — مدل زنجیره‌دار v3.
  * Pure functions بدون React — قابل تست و قابل استفاده هم در UI و هم بعداً در API.
  *
  * اصل شفافیت: هر نهاده لازم تولید همیشه ردیف دارد؛ owner ردیف تعیین می‌کند
- * چه بخشی «ارزش نهاده تأمین‌کننده» است (سهم = ارزش نهاده ÷ کل هزینه تولید).
+ * چه بخشی «ارزش نهاده مشارکت‌کننده» است (سهم = ارزش نهاده ÷ کل هزینه تولید).
  */
 import type { Farm } from '@/types/farm';
 import type { CostEstimation, EstimationRow, SupplierRequest } from '@/types/request';
@@ -61,7 +61,7 @@ export function estimateProductionKg(request: SupplierRequest, farm?: Farm): num
 
 /**
  * ردیف‌های پیش‌فرض برآورد — هر نهاده لازم تولید همیشه ردیف دارد:
- * ردیف نهاده‌ای که تأمین‌کننده داده owner='supplier' است (مبنای سهم)؛
+ * ردیف نهاده‌ای که مشارکت‌کننده داده owner='supplier' است (مبنای سهم)؛
  * نهاده‌ای که نداده را زنجیره‌دار می‌خرد → owner='admin'.
  */
 export function buildDefaultRows(request: SupplierRequest, farm?: Farm): EstimationRow[] {
@@ -80,14 +80,14 @@ export function buildDefaultRows(request: SupplierRequest, farm?: Farm): Estimat
   const rows: EstimationRow[] = [
     {
       key: 'feed',
-      label: providedFeed > 0 ? `دان تأمین‌شده توسط تأمین‌کننده (${providedFeed} تن)` : 'خرید دان توسط زنجیره‌دار',
+      label: providedFeed > 0 ? `دان تأمین‌شده توسط مشارکت‌کننده (${providedFeed} تن)` : 'خرید دان توسط زنجیره‌دار',
       kind: 'value',
       owner: providedFeed > 0 ? 'supplier' : 'admin',
       amount: Math.round(neededFeedKg * c.feedPricePerKg),
     },
     {
       key: 'chick',
-      label: providedChicks > 0 ? `جوجه تأمین‌شده توسط تأمین‌کننده (${formatCount(providedChicks)})` : 'خرید جوجه توسط زنجیره‌دار',
+      label: providedChicks > 0 ? `جوجه تأمین‌شده توسط مشارکت‌کننده (${formatCount(providedChicks)})` : 'خرید جوجه توسط زنجیره‌دار',
       kind: 'value',
       owner: providedChicks > 0 ? 'supplier' : 'admin',
       amount: Math.round(neededChicks * c.chickPricePerPiece),
@@ -96,7 +96,7 @@ export function buildDefaultRows(request: SupplierRequest, farm?: Farm): Estimat
 
   const cash = inputAmount(request, 'cash');
   if (cash > 0) {
-    rows.push({ key: 'cash', label: 'وجه نقد تأمین‌کننده', kind: 'value', owner: 'supplier', amount: cash });
+    rows.push({ key: 'cash', label: 'وجه نقد مشارکت‌کننده', kind: 'value', owner: 'supplier', amount: cash });
   }
 
   rows.push(
@@ -115,13 +115,13 @@ function formatCount(n: number): string {
 export interface ShareComputation {
   /** ارزش کل تولید = productionKg × قیمت بازار */
   productionValue: number;
-  /** ارزش نهاده‌های تأمین‌کننده = Σ ردیف‌های supplier از نوع value */
+  /** ارزش نهاده‌های مشارکت‌کننده = Σ ردیف‌های supplier از نوع value */
   supplierInputCost: number;
   /** کل هزینه تولید = Σ همه ردیف‌ها (percent → مبلغ) */
   totalCost: number;
-  /** سهم تأمین‌کننده (٪) — ۰ وقتی totalCost صفر است */
+  /** سهم مشارکت‌کننده (٪) — ۰ وقتی totalCost صفر است */
   supplierSharePercent: number;
-  /** سهم تأمین‌کننده (کیلوگرم مرغ) */
+  /** سهم مشارکت‌کننده (کیلوگرم مرغ) */
   supplierShareKg: number;
 }
 

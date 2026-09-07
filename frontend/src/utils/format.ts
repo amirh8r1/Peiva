@@ -19,6 +19,8 @@ export function parsePersianNumber(s: string | number): number {
   const cleaned = String(s)
     // Strip thousands separators (Persian ٬, English comma, Arabic comma)
     .replace(/[٬,٬]/g, '')
+    // Decimal separator (Persian/Arabic ٫) → .
+    .replace(/[٫]/g, '.')
     // Convert Persian digits to English
     .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
     .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));

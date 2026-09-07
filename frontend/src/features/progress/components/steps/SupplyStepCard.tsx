@@ -26,7 +26,7 @@ interface ClaimFormValues {
   suppliedAt: { format: (f: string) => string };
 }
 
-/** گام ۱ — تحویل نهاده و جوجه: ادعای تأمین‌کننده، تأیید/رد دریافت مزرعه‌دار. */
+/** گام ۱ — تحویل نهاده و جوجه: ادعای مشارکت‌کننده، تأیید/رد دریافت مزرعه‌دار. */
 export function SupplyStepCard({ step, role, onUpsert }: Props) {
   const { confirm, reject } = useStepFeedback(step, role, onUpsert);
   const [form] = Form.useForm<ClaimFormValues>();
@@ -52,7 +52,7 @@ export function SupplyStepCard({ step, role, onUpsert }: Props) {
 
   return (
     <StepCard step={step} stepLabel="تحویل نهاده و جوجه">
-      {/* ادعای تأمین‌کننده */}
+      {/* ادعای مشارکت‌کننده */}
       {canClaim && (
         <>
           {step.status === 'rejected' && (

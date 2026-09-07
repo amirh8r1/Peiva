@@ -47,7 +47,7 @@ export function AdminContractsPage() {
       {awaiting.length === 0 && active.length === 0 && (
         <EmptyState
           title="هنوز قراردادی ساخته نشده"
-          description="قرارداد از روی درخواست تأمین‌کننده و تطبیق مزرعه ساخته می‌شود."
+          description="قرارداد از روی درخواست مشارکت‌کننده و تطبیق مزرعه ساخته می‌شود."
           actionLabel="مشاهده درخواست‌ها"
           onAction={() => navigate('/admin/requests')}
         />

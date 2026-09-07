@@ -71,7 +71,7 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
   const handleReject = () => {
     Modal.confirm({
       title: 'رد درخواست',
-      content: 'این اقدام برگشت‌پذیر نیست — تأمین‌کننده درخواست را «رد شده» می‌بیند. مطمئنید؟',
+      content: 'این اقدام برگشت‌پذیر نیست — مشارکت‌کننده درخواست را «رد شده» می‌بیند. مطمئنید؟',
       okText: 'رد درخواست',
       okButtonProps: { danger: true },
       cancelText: 'انصراف',
@@ -140,7 +140,7 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
         <>
           <RequestSummaryCard request={request} />
           <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
-            نهاده‌های اعلامی تأمین‌کننده و مرغ درخواستی را بررسی کنید؛ در گام بعد مزرعه هدف تطبیق داده می‌شود.
+            نهاده‌های اعلامی مشارکت‌کننده و مرغ درخواستی را بررسی کنید؛ در گام بعد مزرعه هدف تطبیق داده می‌شود.
           </Text>
           <Space direction="vertical" style={{ width: '100%', marginTop: 12 }}>
             <PrimaryCTA onClick={() => setStep(1)}>ادامه به تطبیق مزرعه</PrimaryCTA>
@@ -194,10 +194,10 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
       {step === 2 && (
         <>
           <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>
-            برآورد هزینه تولید و سهم تأمین‌کننده
+            برآورد هزینه تولید و سهم مشارکت‌کننده
           </Text>
           <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-            اعداد پیش‌فرض از قیمت‌های بازار آمده‌اند؛ هر ردیف را می‌توانید تنظیم کنید — سهم تأمین‌کننده زنده محاسبه می‌شود.
+            اعداد پیش‌فرض از قیمت‌های بازار آمده‌اند؛ هر ردیف را می‌توانید تنظیم کنید — سهم مشارکت‌کننده زنده محاسبه می‌شود.
           </Text>
           <Card style={{ marginBottom: 12 }}>
             <SummaryRow
@@ -232,7 +232,7 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
             <SummaryRow label="تاریخ تحویل هدف" value={toPersianDigits(request.targetDeliveryDate)} />
             <SummaryRow label="تولید برآوردی" value={`${formatNumber(productionKg)} کیلوگرم`} />
             <SummaryRow label="کل هزینه تولید" value={`${formatNumber(share.totalCost)} تومان`} />
-            <SummaryRow label="سهم تأمین‌کننده" value={`٪${formatNumber(share.supplierSharePercent)} — ${formatNumber(share.supplierShareKg)} کیلوگرم مرغ`} />
+            <SummaryRow label="سهم مشارکت‌کننده" value={`٪${formatNumber(share.supplierSharePercent)} — ${formatNumber(share.supplierShareKg)} کیلوگرم مرغ`} />
           </Card>
           <Text type="secondary" style={{ fontSize: 12, display: 'block', margin: '12px 0' }}>
             با ایجاد قرارداد، درخواست برای مزرعه ارسال می‌شود تا هماهنگی را تأیید کند؛ پس از تأیید، کار وارد فاز اجرا (۴ گام) می‌شود و شما فقط نظارت می‌کنید.
@@ -269,7 +269,7 @@ function RequestReadonly({ request }: { request: SupplierRequest }) {
 
       {request.estimation && (
         <div style={{ marginTop: 12 }}>
-          <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>برآورد هزینه و سهم تأمین‌کننده</Text>
+          <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>برآورد هزینه و سهم مشارکت‌کننده</Text>
           <EstimationTable rows={request.estimation.rows} productionKg={request.estimation.productionKg} />
           <div style={{ marginTop: 8 }}>
             <ShareSummary share={computeShares(request.estimation.rows, request.estimation.productionKg)} />

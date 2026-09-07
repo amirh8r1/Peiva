@@ -63,7 +63,7 @@ export function AdminDashboard() {
     })),
     ...(avgShare > 0 ? [{
       id: 'avg-share',
-      title: 'میانگین سهم تأمین‌کننده',
+      title: 'میانگین سهم مشارکت‌کننده',
       body: `٪${formatNumber(avgShare)} در قراردادهای دارای برآورد`,
     }] : []),
   ];
