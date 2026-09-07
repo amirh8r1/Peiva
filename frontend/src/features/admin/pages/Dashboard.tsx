@@ -70,7 +70,7 @@ export function AdminDashboard() {
 
   return (
     <PageFrame header={<PageHeader title="داشبورد زنجیره‌دار" subtitle="پایش اکوسیستم و تطبیق درخواست‌ها" />}>
-      <CardGrid minWidth={160} gap={12}>
+      <CardGrid minWidth={220} gap={12}>
         {stats.map((s) => <CountStatTile key={s.label} direction="column" {...s} />)}
       </CardGrid>
       <NotificationSection title="نیازمند اقدام شما" kind="action" items={actions} />

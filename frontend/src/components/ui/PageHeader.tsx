@@ -1,5 +1,6 @@
 import { Typography, Space } from 'antd';
 import type { ReactNode } from 'react';
+import { pivaType } from '@/config/theme';
 
 const { Title } = Typography;
 
@@ -22,11 +23,11 @@ export function PageHeader({ title, subtitle, extra }: PageHeaderProps) {
       }}
     >
       <div>
-        <Title level={4} style={{ margin: 0 }}>
+        <Title level={4} style={{ margin: 0, ...pivaType.pageTitle }}>
           {title}
         </Title>
         {subtitle && (
-          <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+          <Typography.Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize }}>
             {subtitle}
           </Typography.Text>
         )}

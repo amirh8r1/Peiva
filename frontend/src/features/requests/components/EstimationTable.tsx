@@ -4,6 +4,7 @@ import { computeShares } from '@/utils/estimation';
 import { numberFieldProps } from '@/utils/fieldProps';
 import { formatNumber } from '@/utils/format';
 import { useIsDesktop } from '@/hooks/useResponsive';
+import { pivaType } from '@/config/theme';
 import type { EstimationRow } from '@/types/request';
 
 const { Text } = Typography;
@@ -54,8 +55,8 @@ export function EstimationTable({ rows, productionKg, editable, onChange }: Esti
           borderRadius: token.borderRadius,
         }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <Text style={{ fontSize: 13, display: 'block' }}>{row.label}</Text>
-            <Text type="secondary" style={{ fontSize: 11 }}>
+            <Text style={{ fontSize: pivaType.body.fontSize, display: 'block' }}>{row.label}</Text>
+            <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize }}>
               {ESTIMATION_OWNER_LABELS[row.owner]}{row.owner === 'supplier' ? ' — مبنای سهم' : ''}
             </Text>
           </div>
@@ -73,11 +74,11 @@ export function EstimationTable({ rows, productionKg, editable, onChange }: Esti
                 style={{ width: '100%' }}
               />
             ) : (
-              <Text style={{ fontSize: 13 }}>
+              <Text style={{ fontSize: pivaType.body.fontSize }}>
                 {row.kind === 'percent' ? `٪${formatNumber(row.amount)}` : `${formatNumber(row.amount)} تومان`}
               </Text>
             )}
-            <Text type="secondary" style={{ fontSize: 11, whiteSpace: 'nowrap' }}>
+            <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize, whiteSpace: 'nowrap' }}>
               {formatNumber(rowValue(row))} تومان
             </Text>
           </div>
@@ -89,12 +90,12 @@ export function EstimationTable({ rows, productionKg, editable, onChange }: Esti
         display: 'flex', justifyContent: 'space-between', gap: 8, padding: '10px 12px',
         background: token.colorFillSecondary, borderRadius: token.borderRadius, marginBottom: 4,
       }}>
-        <Text strong style={{ fontSize: 13 }}>کل هزینه تولید</Text>
-        <Text strong style={{ fontSize: 13 }}>{formatNumber(shares.totalCost)} تومان</Text>
+        <Text strong style={{ fontSize: pivaType.body.fontSize }}>کل هزینه تولید</Text>
+        <Text strong style={{ fontSize: pivaType.body.fontSize }}>{formatNumber(shares.totalCost)} تومان</Text>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '10px 12px' }}>
-        <Text type="secondary" style={{ fontSize: 13 }}>ارزش تولید ({formatNumber(productionKg)} کیلوگرم × قیمت بازار)</Text>
-        <Text type="secondary" style={{ fontSize: 13 }}>{formatNumber(shares.productionValue)} تومان</Text>
+        <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize }}>ارزش تولید ({formatNumber(productionKg)} کیلوگرم × قیمت بازار)</Text>
+        <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize }}>{formatNumber(shares.productionValue)} تومان</Text>
       </div>
     </div>
   );

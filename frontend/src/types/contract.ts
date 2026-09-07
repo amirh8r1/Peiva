@@ -32,11 +32,3 @@ export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
   completed: 'تکمیل شده',
   cancelled: 'لغو شده',
 };
-
-/** رنگ Tag وضعیت از preset های antd (توکن‌محور — بدون hex). */
-export const CONTRACT_STATUS_COLORS: Record<ContractStatus, string> = {
-  awaiting_farm: 'gold',
-  finalized: 'processing',
-  completed: 'success',
-  cancelled: 'default',
-};

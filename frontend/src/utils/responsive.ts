@@ -21,6 +21,16 @@ export function centeredForm(isDesktop: boolean, maxWidth = FORM_COLUMN_MAX): CS
 }
 
 /**
+ * گرید دوستونه فرم‌های دسکتاپ — فیلدهای کوتاه کنار هم تا فضای عرض هدر نرود
+ * (موبایل = {} یعنی همان پشته تک‌ستونه فعلی).
+ */
+export function formGrid(isDesktop: boolean): CSSProperties {
+  return isDesktop
+    ? { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0 16px' }
+    : {};
+}
+
+/**
  * وسط‌چین کردن CTA های block در دسکتاپ (موبایل = {} یعنی صفر تغییر ظاهری).
  * display:'block' لازم است چون دکمه antd به‌صورت inline-flex رندر می‌شود
  * و margin auto روی آن بی‌اثر است.

@@ -1,6 +1,7 @@
 import { Badge, Button, Card, Space, Typography, theme } from 'antd';
 import { CardGrid } from '@/components/ui/CardGrid';
 import { formatNumber } from '@/utils/format';
+import { pivaType } from '@/config/theme';
 
 const { Text } = Typography;
 
@@ -15,26 +16,37 @@ export interface NotifyItem {
 
 export type NotifyKind = 'action' | 'info';
 
-/** کارت نوتیف — action: زرد هشدار (نیازمند اقدام)؛ info: خنثی (اطلاع‌رسانی). */
+/**
+ * کارت نوتیف — سطح خنثی با آکسنت رنگی:
+ * action فقط با نوار شروع و نقطه وضعیت کهربایی علامت می‌خورد، نه پس‌زمینه کامل زرد.
+ */
 export function NotifyCard({ title, body, onClick, buttonLabel, kind }: NotifyItem & { kind: NotifyKind }) {
   const { token } = theme.useToken();
   const isAction = kind === 'action';
   return (
     <Card
+      hoverable={!!onClick}
+      onClick={onClick}
+      className={onClick ? 'piva-lift' : undefined}
       style={{
-        background: isAction ? token.colorWarningBg : token.colorFillSecondary,
-        border: `1px solid ${isAction ? token.colorWarning : token.colorBorder}`,
+        background: token.colorBgContainer,
+        border: `1px solid ${token.colorBorderSecondary}`,
+        borderInlineStart: isAction ? `3px solid ${token.colorWarning}` : undefined,
         cursor: onClick ? 'pointer' : 'default',
       }}
-      onClick={onClick}
     >
-      <Space><Badge status={isAction ? 'warning' : 'default'} /><Text strong>{title}</Text></Space>
-      <div style={{ marginTop: 4, fontSize: 12, color: token.colorText }}>{body}</div>
-      {onClick && (
-        <Button type={isAction ? 'primary' : 'default'} size="small" block style={{ marginTop: 8 }}>
-          {buttonLabel ?? (isAction ? 'پیگیری' : 'مشاهده')}
-        </Button>
-      )}
+      <Space direction="vertical" size={8} style={{ width: '100%' }}>
+        <Space size={8}>
+          <Badge status={isAction ? 'warning' : 'default'} />
+          <Text strong style={{ fontSize: pivaType.body.fontSize }}>{title}</Text>
+        </Space>
+        <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block' }}>{body}</Text>
+        {onClick && (
+          <Button type={isAction ? 'primary' : 'default'} size="small" style={{ alignSelf: 'flex-start', marginTop: 4 }}>
+            {buttonLabel ?? (isAction ? 'پیگیری' : 'مشاهده')}
+          </Button>
+        )}
+      </Space>
     </Card>
   );
 }
@@ -46,7 +58,7 @@ export function NotificationSection({ title, kind, items }: { title: string; kin
   return (
     <div style={{ marginBottom: 12 }}>
       <Space size={6} style={{ marginBottom: 8 }}>
-        <Text strong style={{ fontSize: 13 }}>{title}</Text>
+        <Text strong style={{ ...pivaType.sectionTitle }}>{title}</Text>
         <Badge count={formatNumber(items.length)} size="small" style={{ backgroundColor: kind === 'action' ? token.colorWarning : token.colorTextTertiary }} />
       </Space>
       <CardGrid minWidth={320} gap={12}>

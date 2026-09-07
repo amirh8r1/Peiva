@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Input, Space, Typography } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { pivaType } from '@/config/theme';
 
 const { TextArea } = Input;
 
@@ -55,7 +56,7 @@ export function FeedbackActions({ allowReject = false, confirmLabel = 'تأیی�
         )}
       </Space>
       {allowReject && !rejecting && (
-        <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+        <Typography.Text type="secondary" style={{ fontSize: pivaType.caption.fontSize }}>
           در صورت مغایرت، می‌توانید با ذکر دلیل رد کنید.
         </Typography.Text>
       )}

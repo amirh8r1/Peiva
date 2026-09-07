@@ -1,14 +1,16 @@
-import { Card, Tag, Typography, Timeline, theme } from 'antd';
+import { Card, Typography, Timeline, theme } from 'antd';
 import { ROLE_LABELS, STEP_ROLES } from '@/types';
 import type { ContractProgressStep, ProgressEvent, ProgressStepStatus } from '@/types';
+import { pivaType } from '@/config/theme';
+import { StatusTag, type StatusTone } from '@/components/ui/StatusTag';
 
 const { Text } = Typography;
 
-const STATUS_LABELS: Record<ProgressStepStatus, { text: string; color: string }> = {
-  idle: { text: 'در انتظار', color: 'default' },
-  claimed: { text: 'در جریان', color: 'processing' },
-  rejected: { text: 'رد شده', color: 'error' },
-  done: { text: 'تکمیل', color: 'success' },
+const STATUS_LABELS: Record<ProgressStepStatus, { text: string; tone: StatusTone }> = {
+  idle: { text: 'در انتظار', tone: 'neutral' },
+  claimed: { text: 'در جریان', tone: 'info' },
+  rejected: { text: 'رد شده', tone: 'error' },
+  done: { text: 'تکمیل', tone: 'success' },
 };
 
 const EVENT_META: Record<ProgressEvent['type'], { label: string; color: string }> = {
@@ -48,13 +50,13 @@ export function StepCard({ step, stepLabel, children }: StepCardProps) {
       title={
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
           <Text strong style={{ fontSize: 14 }}>{stepLabel}</Text>
-          <Tag color={status.color} style={{ margin: 0 }}>{status.text}</Tag>
+          <StatusTag tone={status.tone}>{status.text}</StatusTag>
         </div>
       }
       style={{ marginBottom: 12 }}
     >
       {hint && (
-        <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 8 }}>
+        <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize, display: 'block', marginBottom: 8 }}>
           {hint}
         </Text>
       )}
@@ -67,11 +69,11 @@ export function StepCard({ step, stepLabel, children }: StepCardProps) {
             children: (
               <div>
                 <Text style={{ fontSize: 12 }}>{EVENT_META[e.type].label}</Text>
-                <Text type="secondary" style={{ fontSize: 11 }}>
+                <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize }}>
                   {' — '}{ROLE_LABELS[e.by]} · {e.at}
                 </Text>
                 {e.note && (
-                  <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>{e.note}</Text>
+                  <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize, display: 'block' }}>{e.note}</Text>
                 )}
               </div>
             ),
@@ -84,13 +86,13 @@ export function StepCard({ step, stepLabel, children }: StepCardProps) {
   );
 }
 
-/** ردیف label/value ساده برای خلاصه اطلاعات — مشترک بین کارت‌های گام‌ها. */
+/** ردیف label/value ساده برای خلاصه اطلاعات — مشترک بین کارت‌های گام‌ها و کارت‌های لیست. */
 export function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
   const { token } = theme.useToken();
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '4px 0', borderBottom: `1px dashed ${token.colorBorderSecondary}` }}>
-      <Text type="secondary" style={{ fontSize: 12 }}>{label}</Text>
-      <Text strong style={{ fontSize: 12, textAlign: 'start' }}>{value}</Text>
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '8px 0', borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
+      <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, flexShrink: 0 }}>{label}</Text>
+      <Text style={{ fontSize: pivaType.body.fontSize, fontWeight: 600, textAlign: 'start' }}>{value}</Text>
     </div>
   );
 }

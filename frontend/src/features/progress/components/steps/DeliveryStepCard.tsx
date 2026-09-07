@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Button, Form, List, Tag, Typography, Upload, message } from 'antd';
+import { Alert, Button, Form, List, Typography, Upload, message } from 'antd';
 import { CheckOutlined, DeleteOutlined, FileOutlined, SendOutlined, UploadOutlined } from '@ant-design/icons';
 import { StepCard, SummaryRow } from '../StepCard';
 import { FeedbackActions } from '../FeedbackActions';
@@ -9,6 +9,10 @@ import { NumberField } from '../fields';
 import { formatNumber } from '@/utils/format';
 import { ROLE_LABELS } from '@/types';
 import type { ContractProgressStep, DeliveryPayload, ProgressRole, UploadedDoc } from '@/types';
+import { StatusTag } from '@/components/ui/StatusTag';
+import { useIsDesktop } from '@/hooks/useResponsive';
+import { formGrid } from '@/utils/responsive';
+import { pivaType } from '@/config/theme';
 
 const { Text } = Typography;
 
@@ -35,6 +39,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
   const { confirm, reject } = useStepFeedback(step, role, onUpsert);
   const [form] = Form.useForm<ClaimFormValues>();
   const [docs, setDocs] = useState<UploadedDoc[]>(step.payload.farmDocs);
+  const isDesktop = useIsDesktop();
 
   const isFarm = role === 'farm';
   const isAdmin = role === 'admin';
@@ -76,8 +81,8 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
           actions={removable ? [<Button key="del" type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => handleRemoveDoc(doc.id)} />] : []}
         >
           <FileOutlined style={{ marginInlineEnd: 8 }} />
-          <Text style={{ fontSize: 12, flex: 1, minWidth: 0 }} ellipsis>{doc.name}</Text>
-          <Text type="secondary" style={{ fontSize: 11 }}>{formatSize(doc.size)}</Text>
+          <Text style={{ fontSize: pivaType.secondary.fontSize, flex: 1, minWidth: 0 }} ellipsis>{doc.name}</Text>
+          <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize }}>{formatSize(doc.size)}</Text>
         </List.Item>
       )}
     />
@@ -97,7 +102,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
       <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
         {deliverySummary}
         <div style={{ marginTop: 8 }}>
-          <Tag color="success">تأیید نهایی تحویل ثبت شد</Tag>
+          <StatusTag tone="success">تأیید نهایی تحویل ثبت شد</StatusTag>
         </div>
       </StepCard>
     );
@@ -111,7 +116,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
           <Alert type="error" showIcon style={{ marginBottom: 12 }}
             message="نظر تأمین‌کننده" description={step.rejectedNote || 'ادعای شما رد شده است.'} />
         )}
-        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+        <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginBottom: 8 }}>
           تعداد و وزن مرغ‌های تحویل داده‌شده را ثبت و مدارک وزن‌کشی (باسکول) را بارگذاری کنید؛ تأیید نهایی با تأمین‌کننده است.
         </Text>
         <Form
@@ -123,30 +128,32 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
           }}
           onFinish={handleClaim}
         >
-          <Form.Item
-            name="chickenCount"
-            rules={[
-              { required: true, message: 'تعداد مرغ تحویلی را وارد کنید' },
-              { type: 'number', min: 1, message: 'تعداد باید حداقل ۱ باشد' },
-            ]}
-          >
-            <NumberField label="تعداد مرغ تحویلی" unit="قطعه" hint="تعداد مرغ‌های تحویل داده‌شده به تأمین‌کننده" />
-          </Form.Item>
-          <Form.Item
-            name="totalWeight"
-            rules={[
-              { required: true, message: 'وزن کل تحویلی را وارد کنید' },
-              { type: 'number', min: 1, message: 'وزن باید حداقل ۱ باشد' },
-            ]}
-          >
-            <NumberField label="وزن کل تحویلی" unit="کیلوگرم" hint="وزن کل مرغ‌های تحویل داده‌شده (توزین باسکول)" />
-          </Form.Item>
+          <div style={formGrid(isDesktop)}>
+            <Form.Item
+              name="chickenCount"
+              rules={[
+                { required: true, message: 'تعداد مرغ تحویلی را وارد کنید' },
+                { type: 'number', min: 1, message: 'تعداد باید حداقل ۱ باشد' },
+              ]}
+            >
+              <NumberField label="تعداد مرغ تحویلی" unit="قطعه" hint="تعداد مرغ‌های تحویل داده‌شده به تأمین‌کننده" />
+            </Form.Item>
+            <Form.Item
+              name="totalWeight"
+              rules={[
+                { required: true, message: 'وزن کل تحویلی را وارد کنید' },
+                { type: 'number', min: 1, message: 'وزن باید حداقل ۱ باشد' },
+              ]}
+            >
+              <NumberField label="وزن کل تحویلی" unit="کیلوگرم" hint="وزن کل مرغ‌های تحویل داده‌شده (توزین باسکول)" />
+            </Form.Item>
+          </div>
 
-          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>مدارک تحویل</Text>
+          <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 4 }}>مدارک تحویل</Text>
           <Upload beforeUpload={(file) => { handleAddDoc(file); return false; }} showUploadList={false} multiple accept=".jpg,.jpeg,.png,.webp,.pdf">
             <Button size="small" icon={<UploadOutlined />}>بارگذاری سند</Button>
           </Upload>
-          <Text type="secondary" style={{ fontSize: 11, display: 'block', margin: '4px 0 8px' }}>
+          <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize, display: 'block', margin: '4px 0 8px' }}>
             تصویر (JPG/PNG/WebP) یا PDF — حداکثر ۵ مگابایت
           </Text>
           {docList(docs, true)}
@@ -163,7 +170,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
   if (canRespond) {
     return (
       <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
-        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+        <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginBottom: 8 }}>
           مزرعه‌دار مشخصات تحویل را ثبت کرده است؛ صحت آن را بررسی و تأیید نهایی کنید.
         </Text>
         {deliverySummary}
@@ -184,7 +191,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
       <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
         {deliverySummary}
         {docList(step.payload.farmDocs, false)}
-        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+        <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginTop: 8 }}>
           در انتظار تأیید نهایی تأمین‌کننده...
         </Text>
       </StepCard>
@@ -197,7 +204,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
       <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
         <Alert type="warning" showIcon style={{ marginBottom: 12 }}
           message="ادعای تحویل رد شده است" description={step.rejectedNote || ''} />
-        <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+        <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block' }}>
           در انتظار اصلاح و ارسال مجدد توسط مزرعه‌دار...
         </Text>
       </StepCard>
@@ -207,7 +214,7 @@ export function DeliveryStepCard({ step, role, onUpsert }: Props) {
   // farm + claimed / supplier + idle
   return (
     <StepCard step={step} stepLabel="تحویل و تأیید نهایی">
-      <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+      <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block' }}>
         {isFarm
           ? 'ادعای تحویل شما ثبت شده — در انتظار تأیید نهایی تأمین‌کننده...'
           : `در انتظار ثبت مشخصات تحویل توسط ${ROLE_LABELS.farm}...`}

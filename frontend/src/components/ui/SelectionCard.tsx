@@ -11,10 +11,19 @@ import {
 } from 'antd';
 import { CheckCircleFilled, InfoCircleOutlined } from '@ant-design/icons';
 import type { QualityGrade } from '@/types';
-import { gradeColorMap } from '@/types';
 import { useIsDesktop } from '@/hooks/useResponsive';
+import { pivaType } from '@/config/theme';
+import { StatusTag, type StatusTone } from '@/components/ui/StatusTag';
 
 const { Text } = Typography;
+
+/** تن semantic گرید کیفیت — هم‌زبان بج‌های وضعیت کل سامانه. */
+const GRADE_TONES: Record<QualityGrade, StatusTone> = {
+  A: 'success',
+  B: 'info',
+  C: 'warning',
+  D: 'error',
+};
 
 export interface SelectionCardField {
   label: string;
@@ -100,16 +109,11 @@ export function SelectionCard<T extends { id: string; active?: boolean; descript
                 {title}
               </Text>
               {grade && (
-                <Tag
-                  color={gradeColorMap[grade]}
-                  style={{ margin: 0, flexShrink: 0 }}
-                >
-                  گرید {grade}
-                </Tag>
+                <StatusTag tone={GRADE_TONES[grade]}>گرید {grade}</StatusTag>
               )}
             </div>
             {subtitle && (
-              <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>
+              <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize, display: 'block' }}>
                 {subtitle}
               </Text>
             )}
@@ -119,7 +123,7 @@ export function SelectionCard<T extends { id: string; active?: boolean; descript
               disabled
               value={rating}
               allowHalf
-              style={{ fontSize: 13, flexShrink: 0 }}
+              style={{ fontSize: pivaType.body.fontSize, flexShrink: 0 }}
             />
           )}
           {/* نشانگر انتخاب — داخل جریان محتوا تا هرگز کلیپ نشود */}
@@ -141,17 +145,15 @@ export function SelectionCard<T extends { id: string; active?: boolean; descript
         >
           {fields.map((field) => (
             <div key={field.label}>
-              <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>
+              <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize, display: 'block' }}>
                 {field.label}
               </Text>
               {field.type === 'grade' ? (
-                <Tag color={gradeColorMap[field.value as QualityGrade]}>
-                  {field.value}
-                </Tag>
+                <StatusTag tone={GRADE_TONES[field.value as QualityGrade]}>{field.value}</StatusTag>
               ) : field.type === 'tag' ? (
                 <Tag>{field.value}</Tag>
               ) : (
-                <Text style={{ fontSize: 13 }}>{field.value}</Text>
+                <Text style={{ fontSize: pivaType.body.fontSize }}>{field.value}</Text>
               )}
             </div>
           ))}

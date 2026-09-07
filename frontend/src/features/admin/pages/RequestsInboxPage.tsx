@@ -34,7 +34,10 @@ export function RequestsInboxPage() {
   const filtered = tab === 'all' ? data.requests : data.requests.filter((r) => r.status === tab);
 
   return (
-    <PageFrame header={<PageHeader title="صندوق درخواست‌ها" subtitle="درخواست‌های تأمین‌کنندگان — تطبیق مزرعه و برآورد سهم" />}>
+    <PageFrame
+      remountKey={tab}
+      header={<PageHeader title="صندوق درخواست‌ها" subtitle="درخواست‌های تأمین‌کنندگان — تطبیق مزرعه و برآورد سهم" />}
+    >
       <Tabs
         activeKey={tab}
         onChange={(k) => setTab(k as TabKey)}

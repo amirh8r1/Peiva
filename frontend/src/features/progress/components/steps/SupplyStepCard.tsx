@@ -8,6 +8,9 @@ import { NumberField, DateField } from '../fields';
 import { toPersianDigits, formatNumber } from '@/utils/format';
 import dayjs from '@/utils/dayjs';
 import type { ContractProgressStep, ProgressRole, SupplyPayload } from '@/types';
+import { useIsDesktop } from '@/hooks/useResponsive';
+import { formGrid } from '@/utils/responsive';
+import { pivaType } from '@/config/theme';
 
 const { Text } = Typography;
 
@@ -27,6 +30,7 @@ interface ClaimFormValues {
 export function SupplyStepCard({ step, role, onUpsert }: Props) {
   const { confirm, reject } = useStepFeedback(step, role, onUpsert);
   const [form] = Form.useForm<ClaimFormValues>();
+  const isDesktop = useIsDesktop();
 
   const isSupplier = role === 'supplier';
   const isFarm = role === 'farm';
@@ -55,7 +59,7 @@ export function SupplyStepCard({ step, role, onUpsert }: Props) {
             <Alert type="error" showIcon style={{ marginBottom: 12 }}
               message="نظر مزرعه‌دار" description={step.rejectedNote || 'ادعای شما رد شده است.'} />
           )}
-          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+          <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginBottom: 8 }}>
             جزئیات نهاده و جوجه‌ای که به مزرعه تحویل داده‌اید را ثبت کنید؛ مزرعه‌دار دریافت را تأیید یا رد می‌کند.
           </Text>
           <Form
@@ -68,24 +72,26 @@ export function SupplyStepCard({ step, role, onUpsert }: Props) {
             }}
             onFinish={handleClaim}
           >
-            <Form.Item
-              name="chickCount"
-              rules={[
-                { required: true, message: 'تعداد جوجه را وارد کنید' },
-                { type: 'number', min: 1, message: 'تعداد باید حداقل ۱ باشد' },
-              ]}
-            >
-              <NumberField label="تعداد جوجه" unit="قطعه" hint="تعداد جوجه‌های تحویل داده‌شده به مزرعه" />
-            </Form.Item>
-            <Form.Item
-              name="feedAmount"
-              rules={[
-                { required: true, message: 'مقدار دان را وارد کنید' },
-                { type: 'number', min: 1, message: 'مقدار باید حداقل ۱ باشد' },
-              ]}
-            >
-              <NumberField label="مقدار دان" unit="کیلوگرم" hint="مقدار کل دان تحویل داده‌شده" />
-            </Form.Item>
+            <div style={formGrid(isDesktop)}>
+              <Form.Item
+                name="chickCount"
+                rules={[
+                  { required: true, message: 'تعداد جوجه را وارد کنید' },
+                  { type: 'number', min: 1, message: 'تعداد باید حداقل ۱ باشد' },
+                ]}
+              >
+                <NumberField label="تعداد جوجه" unit="قطعه" hint="تعداد جوجه‌های تحویل داده‌شده به مزرعه" />
+              </Form.Item>
+              <Form.Item
+                name="feedAmount"
+                rules={[
+                  { required: true, message: 'مقدار دان را وارد کنید' },
+                  { type: 'number', min: 1, message: 'مقدار باید حداقل ۱ باشد' },
+                ]}
+              >
+                <NumberField label="مقدار دان" unit="کیلوگرم" hint="مقدار کل دان تحویل داده‌شده" />
+              </Form.Item>
+            </div>
             <Form.Item name="suppliedAt" rules={[{ required: true, message: 'تاریخ تحویل را انتخاب کنید' }]}>
               <DateField label="تاریخ تحویل نهاده و جوجه" hint="تاریخی که نهاده و جوجه تحویل مزرعه می‌شود" />
             </Form.Item>
@@ -117,7 +123,7 @@ export function SupplyStepCard({ step, role, onUpsert }: Props) {
           <SummaryRow label="تعداد جوجه" value={`${formatNumber(step.payload.chickCount)} قطعه`} />
           <SummaryRow label="مقدار دان" value={`${formatNumber(step.payload.feedAmount)} کیلوگرم`} />
           <SummaryRow label="تاریخ تحویل" value={toPersianDigits(step.payload.suppliedAt)} />
-          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+          <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginTop: 8 }}>
             در انتظار تأیید دریافت توسط مزرعه‌دار...
           </Text>
         </>

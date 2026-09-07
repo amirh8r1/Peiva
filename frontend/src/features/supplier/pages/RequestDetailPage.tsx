@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { Alert, Button, Card, Empty, Steps, Typography } from 'antd';
+import { Alert, Button, Card, Empty, Typography } from 'antd';
 import { ArrowRightOutlined } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
 import { PageFrame } from '@/components/ui/PageFrame';
@@ -15,6 +15,8 @@ import { REQUEST_STATUS_LABELS } from '@/types/request';
 import type { SupplierRequestStatus } from '@/types/request';
 import { useIsDesktop } from '@/hooks/useResponsive';
 import { centeredForm } from '@/utils/responsive';
+import { pivaType } from '@/config/theme';
+import { Stepper, type StepperItem } from '@/components/ui/Stepper';
 
 const { Text } = Typography;
 
@@ -53,15 +55,15 @@ export function SupplierRequestDetailPage() {
         />
       }
     >
-      <div style={centeredForm(isDesktop)}>
+      <div style={centeredForm(isDesktop, 960)}>
         <Card style={{ marginBottom: 12 }}>
-          <Steps
-            current={rejected ? 0 : Math.max(flowIndex, 0)}
-            status={rejected ? 'error' : undefined}
-            size="small"
-            responsive
-            items={STATUS_FLOW.map((s) => ({ title: REQUEST_STATUS_LABELS[s] }))}
-          />
+          <Stepper items={STATUS_FLOW.map((s, i) => {
+            const index = rejected ? 0 : Math.max(flowIndex, 0);
+            return {
+              label: REQUEST_STATUS_LABELS[s],
+              status: (rejected && i === 0 ? 'error' : i < index ? 'done' : i === index ? 'current' : 'idle') as StepperItem['status'],
+            };
+          })} />
         </Card>
 
         {rejected && (
@@ -72,14 +74,14 @@ export function SupplierRequestDetailPage() {
 
         {farm && (
           <div style={{ marginTop: 12 }}>
-            <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>مزرعه تطبیق‌شده</Text>
+            <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>مزرعه تطبیق‌شده</Text>
             <FarmCard farm={farm} selected={false} onSelect={() => {}} />
           </div>
         )}
 
         {request.estimation && (
           <div style={{ marginTop: 12 }}>
-            <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>برآورد هزینه و سهم شما</Text>
+            <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>برآورد هزینه و سهم شما</Text>
             <EstimationTable rows={request.estimation.rows} productionKg={request.estimation.productionKg} />
             <div style={{ marginTop: 8 }}>
               <ShareSummary

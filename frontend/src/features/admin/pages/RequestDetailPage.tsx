@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Alert, Button, Card, Empty, InputNumber, Space, Steps, Typography, message } from 'antd';
+import { Alert, Button, Card, Empty, InputNumber, Modal, Space, Typography, message } from 'antd';
 import { ArrowRightOutlined, StopOutlined } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
 import { PageFrame } from '@/components/ui/PageFrame';
@@ -20,6 +20,8 @@ import { todayJalali } from '@/features/progress/utils/progress.utils';
 import { formatNumber, toPersianDigits } from '@/utils/format';
 import { useIsDesktop } from '@/hooks/useResponsive';
 import { centeredForm } from '@/utils/responsive';
+import { pivaType } from '@/config/theme';
+import { Stepper, type StepperItem } from '@/components/ui/Stepper';
 import type { Contract, CostEstimation, EstimationRow, SupplierRequest } from '@/types';
 import type { Farm } from '@/types/farm';
 
@@ -46,6 +48,13 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
   const { dispatch } = useData();
   const [step, setStep] = useState(0);
   const [matchedFarm, setMatchedFarm] = useState<Farm | null>(null);
+  const isDesktop = useIsDesktop();
+  const topRef = useRef<HTMLDivElement>(null);
+
+  // با هر تغییر گام، نمایش از بالای صفحه شروع شود (اسکرول‌کانتینر داخل PageFrame است)
+  useEffect(() => {
+    topRef.current?.scrollIntoView({ block: 'start' });
+  }, [step]);
   const [rows, setRows] = useState<EstimationRow[]>(() => buildDefaultRows(request));
   const [productionKg, setProductionKg] = useState(() => estimateProductionKg(request));
   const [created, setCreated] = useState(false);
@@ -60,9 +69,18 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
   };
 
   const handleReject = () => {
-    dispatch({ type: 'UPDATE_REQUEST', payload: { id: request.id, patch: { status: 'rejected' } } });
-    message.success('درخواست رد شد.');
-    navigate('/admin/requests');
+    Modal.confirm({
+      title: 'رد درخواست',
+      content: 'این اقدام برگشت‌پذیر نیست — تأمین‌کننده درخواست را «رد شده» می‌بیند. مطمئنید؟',
+      okText: 'رد درخواست',
+      okButtonProps: { danger: true },
+      cancelText: 'انصراف',
+      onOk: () => {
+        dispatch({ type: 'UPDATE_REQUEST', payload: { id: request.id, patch: { status: 'rejected' } } });
+        message.success('درخواست رد شد.');
+        navigate('/admin/requests');
+      },
+    });
   };
 
   const handleCreate = () => {
@@ -109,14 +127,13 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
     f.active && f.address.province === request.province && f.capacity >= need && !suggestedIds.has(f.id));
 
   return (
-    <>
+    /* عرض ثابت در همه گام‌ها — جهش عرض بین گام‌ها ناخوشایند است (گرید مزارع ۲ ستونه) */
+    <div ref={topRef} style={centeredForm(isDesktop, 960)}>
       <Card style={{ marginBottom: 12 }}>
-        <Steps
-          current={step}
-          size="small"
-          responsive
-          items={FLOW_STEPS.map((s) => ({ title: s.title }))}
-        />
+        <Stepper items={FLOW_STEPS.map((s, i) => ({
+          label: s.title,
+          status: (i < step ? 'done' : i === step ? 'current' : 'idle') as StepperItem['status'],
+        }))} />
       </Card>
 
       {step === 0 && (
@@ -152,7 +169,7 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
               description="می‌توانید درخواست را رد کنید یا استان دیگری را به‌صورت دستی بررسی کنید."
             />
           )}
-          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>پیشنهادهای هوشمند</Text>
+          <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>پیشنهادهای هوشمند</Text>
           <CardGrid minWidth={320} gap={12}>
             {suggested.map((f) => (
               <FarmCard key={f.id} farm={f} selected={matchedFarm?.id === f.id} onSelect={selectFarm} />
@@ -160,7 +177,7 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
           </CardGrid>
           {others.length > 0 && (
             <>
-              <Text strong style={{ fontSize: 13, display: 'block', margin: '12px 0 8px' }}>سایر مزارع استان</Text>
+              <Text strong style={{ ...pivaType.sectionTitle, display: 'block', margin: '12px 0 8px' }}>سایر مزارع استان</Text>
               <CardGrid minWidth={320} gap={12}>
                 {others.map((f) => (
                   <FarmCard key={f.id} farm={f} selected={matchedFarm?.id === f.id} onSelect={selectFarm} />
@@ -176,7 +193,7 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
 
       {step === 2 && (
         <>
-          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
+          <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>
             برآورد هزینه تولید و سهم تأمین‌کننده
           </Text>
           <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
@@ -225,7 +242,7 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
           </PrimaryCTA>
         </>
       )}
-    </>
+    </div>
   );
 }
 
@@ -245,14 +262,14 @@ function RequestReadonly({ request }: { request: SupplierRequest }) {
 
       {farm && (
         <div style={{ marginTop: 12 }}>
-          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>مزرعه تطبیق‌شده</Text>
+          <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>مزرعه تطبیق‌شده</Text>
           <FarmCard farm={farm} selected={false} onSelect={() => {}} />
         </div>
       )}
 
       {request.estimation && (
         <div style={{ marginTop: 12 }}>
-          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>برآورد هزینه و سهم تأمین‌کننده</Text>
+          <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>برآورد هزینه و سهم تأمین‌کننده</Text>
           <EstimationTable rows={request.estimation.rows} productionKg={request.estimation.productionKg} />
           <div style={{ marginTop: 8 }}>
             <ShareSummary share={computeShares(request.estimation.rows, request.estimation.productionKg)} />
@@ -300,13 +317,15 @@ export function AdminRequestDetailPage() {
         />
       }
     >
-      <div style={centeredForm(isDesktop)}>
-        {request.status === 'pending' ? (
-          <RequestFlow key={request.id} request={request} />
-        ) : (
+      {request.status === 'pending' ? (
+        /* RequestFlow خودش عرض را به‌ازای گام مدیریت می‌کند (۹۶۰ برای گرید مزارع) */
+        <RequestFlow key={request.id} request={request} />
+      ) : (
+        /* هم‌عرض فلو تا بعد از ایجاد قرارداد جهش عرض نداشته باشیم */
+        <div style={centeredForm(isDesktop, 960)}>
           <RequestReadonly request={request} />
-        )}
-      </div>
+        </div>
+      )}
     </PageFrame>
   );
 }

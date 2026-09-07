@@ -1,11 +1,22 @@
-import { Button, Card, Space, Tag, Typography } from 'antd';
+import { Button, Card, Space, Typography } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { CONTRACT_STATUS_COLORS, CONTRACT_STATUS_LABELS } from '@/types/contract';
+import { CONTRACT_STATUS_LABELS } from '@/types/contract';
 import type { Contract, ContractProgressStep } from '@/types';
 import { ContractProgressMini } from '@/features/progress/components/ContractProgressMini';
+import { SummaryRow } from '@/features/progress/components/StepCard';
+import { StatusTag, type StatusTone } from '@/components/ui/StatusTag';
 import { formatNumber, toPersianDigits } from '@/utils/format';
+import { pivaType } from '@/config/theme';
 
 const { Text } = Typography;
+
+/** تن semantic وضعیت قرارداد — هم‌زبان بج‌های وضعیت کل سامانه. */
+const STATUS_TONES: Record<Contract['status'], StatusTone> = {
+  awaiting_farm: 'warning',
+  finalized: 'info',
+  completed: 'success',
+  cancelled: 'neutral',
+};
 
 interface ContractCardProps {
   contract: Contract;
@@ -18,29 +29,28 @@ interface ContractCardProps {
   extra?: React.ReactNode;
 }
 
-/** کارت قرارداد (کار) مشترک هر سه نقش — وضعیت، سهم تأمین‌کننده، مزرعه، پیشرفت. */
+/** کارت قرارداد (کار) مشترک هر سه نقش — هدر وضعیتدار، ردیف سهم شفاف، پیشرفت، اکشن فوتر. */
 export function ContractCard({ contract, steps, onOpen, openLabel = 'مشاهده جزئیات', extra }: ContractCardProps) {
   const { estimation } = contract;
   return (
     <Card>
-      <Space direction="vertical" size={8} style={{ width: '100%' }}>
+      <Space direction="vertical" size={12} style={{ width: '100%' }}>
         <Space style={{ width: '100%', justifyContent: 'space-between' }} wrap>
-          <Text strong>{contract.name}</Text>
-          <Tag color={CONTRACT_STATUS_COLORS[contract.status]} style={{ margin: 0 }}>
-            {CONTRACT_STATUS_LABELS[contract.status]}
-          </Tag>
+          <Text strong style={{ fontSize: pivaType.body.fontSize }}>{contract.name}</Text>
+          <StatusTag tone={STATUS_TONES[contract.status]}>{CONTRACT_STATUS_LABELS[contract.status]}</StatusTag>
         </Space>
-        <Text type="secondary" style={{ fontSize: 12 }}>
+        <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize }}>
           {contract.farmName} · {contract.province} · تحویل هدف {toPersianDigits(contract.targetDeliveryDate)}
         </Text>
-        <Space size={4} wrap>
-          <Tag color="green">سهم تأمین‌کننده ٪{formatNumber(estimation.supplierSharePercent)}</Tag>
-          <Tag color="blue">{formatNumber(estimation.supplierShareKg)} کیلوگرم مرغ</Tag>
-        </Space>
+        <SummaryRow
+          label="سهم تأمین‌کننده"
+          value={`٪${formatNumber(estimation.supplierSharePercent)} — ${formatNumber(estimation.supplierShareKg)} کیلوگرم مرغ`}
+        />
         {contract.status === 'finalized' && <ContractProgressMini steps={steps} />}
         {extra && <div style={{ marginTop: 4 }}>{extra}</div>}
         {onOpen && (
-          <Button size="small" icon={<ArrowLeftOutlined />} onClick={onOpen} style={{ marginTop: 4, alignSelf: 'flex-start' }}>
+          <Button type="link" size="small" icon={<ArrowLeftOutlined />} onClick={onOpen}
+            style={{ padding: 0, alignSelf: 'flex-start', fontWeight: 600 }}>
             {openLabel}
           </Button>
         )}

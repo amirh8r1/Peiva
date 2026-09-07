@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { Empty, Typography } from 'antd';
+import { Typography } from 'antd';
 import { useData } from '@/context/DataContext';
 import { PageFrame } from '@/components/ui/PageFrame';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { CardGrid } from '@/components/ui/CardGrid';
 import { ContractCard } from '@/components/ui/ContractCard';
 import { getStepsForContract } from '@/features/progress/utils/progress.utils';
+import { pivaType } from '@/config/theme';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 const { Text } = Typography;
 
@@ -21,7 +23,7 @@ export function AdminContractsPage() {
     <PageFrame header={<PageHeader title="قراردادها" subtitle="پایش قراردادهای ایجادشده از درخواست‌ها" />}>
       {awaiting.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>در انتظار تأیید هماهنگی مزرعه</Text>
+          <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>در انتظار تأیید هماهنگی مزرعه</Text>
           <CardGrid minWidth={320} gap={12}>
             {awaiting.map((c) => (
               <ContractCard key={c.id} contract={c} steps={[]} />
@@ -30,7 +32,7 @@ export function AdminContractsPage() {
         </div>
       )}
 
-      <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>قراردادهای جاری و تکمیل‌شده</Text>
+      <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>قراردادهای جاری و تکمیل‌شده</Text>
       <CardGrid minWidth={320} gap={12}>
         {active.map((c) => (
           <ContractCard
@@ -42,7 +44,14 @@ export function AdminContractsPage() {
           />
         ))}
       </CardGrid>
-      {awaiting.length === 0 && active.length === 0 && <Empty description="قراردادی ندارید" />}
+      {awaiting.length === 0 && active.length === 0 && (
+        <EmptyState
+          title="هنوز قراردادی ساخته نشده"
+          description="قرارداد از روی درخواست تأمین‌کننده و تطبیق مزرعه ساخته می‌شود."
+          actionLabel="مشاهده درخواست‌ها"
+          onAction={() => navigate('/admin/requests')}
+        />
+      )}
     </PageFrame>
   );
 }

@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { Button, Empty, Typography, message } from 'antd';
+import { Button, Modal, Typography, message } from 'antd';
 import { useData } from '@/context/DataContext';
 import { PageFrame } from '@/components/ui/PageFrame';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { CardGrid } from '@/components/ui/CardGrid';
 import { ContractCard } from '@/components/ui/ContractCard';
 import { getStepsForContract } from '@/features/progress/utils/progress.utils';
+import { pivaType } from '@/config/theme';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 const { Text } = Typography;
 
@@ -22,15 +24,23 @@ export function FarmContractsPage() {
   const active = data.contracts.filter((c) => c.status === 'finalized' || c.status === 'completed');
 
   const confirmCoordination = (id: string) => {
-    dispatch({ type: 'UPDATE_CONTRACT_STATUS', payload: { id, status: 'finalized' } });
-    message.success('هماهنگی تأیید شد — کار وارد فاز اجرا شد.');
+    Modal.confirm({
+      title: 'تأیید هماهنگی',
+      content: 'با تأیید، کار وارد فاز اجرا می‌شود و مراحل چهارگانه آغاز می‌گردد. مطمئنید؟',
+      okText: 'تأیید و شروع کار',
+      cancelText: 'انصراف',
+      onOk: () => {
+        dispatch({ type: 'UPDATE_CONTRACT_STATUS', payload: { id, status: 'finalized' } });
+        message.success('هماهنگی تأیید شد — کار وارد فاز اجرا شد.');
+      },
+    });
   };
 
   return (
     <PageFrame header={<PageHeader title="قراردادهای من" />}>
       {awaiting.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>در انتظار تأیید هماهنگی</Text>
+          <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>در انتظار تأیید هماهنگی</Text>
           <CardGrid minWidth={320} gap={12}>
             {awaiting.map((c) => (
               <ContractCard
@@ -48,7 +58,7 @@ export function FarmContractsPage() {
         </div>
       )}
 
-      <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>قراردادهای جاری و تکمیل‌شده</Text>
+      <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>قراردادهای جاری و تکمیل‌شده</Text>
       <CardGrid minWidth={320} gap={12}>
         {active.map((c) => (
           <ContractCard
@@ -59,7 +69,12 @@ export function FarmContractsPage() {
           />
         ))}
       </CardGrid>
-      {awaiting.length === 0 && active.length === 0 && <Empty description="قراردادی ندارید" />}
+      {awaiting.length === 0 && active.length === 0 && (
+        <EmptyState
+          title="هنوز قراردادی ندارید"
+          description="زنجیره‌دار بعد از تطبیق درخواست، قرارداد را برای تأیید شما می‌فرستد."
+        />
+      )}
     </PageFrame>
   );
 }

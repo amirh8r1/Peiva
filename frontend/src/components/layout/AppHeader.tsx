@@ -1,30 +1,29 @@
 import { Layout, Typography, theme } from 'antd';
-import { useLocation } from 'react-router-dom';
-import { panelTitle, LogoutButton } from './navItems';
+import { LogoutButton } from './navItems';
 import { ThemeToggle } from './ThemeToggle';
-import { HEADER_DESKTOP_H } from '@/config/layout';
+import { LogoMark } from '@/components/ui/LogoMark';
 import { pivaTokens } from '@/config/theme';
 
 const { Header: AntHeader } = Layout;
 const { Text } = Typography;
 
 interface AppHeaderProps {
-  height?: number;
-  paddingInline?: number;
-  fontSize?: number;
+  height: number;
+  paddingInline: number;
+  fontSize: number;
   sticky?: boolean;
 }
 
 /**
- * هدر مشترک موبایل (TopAppBar) و دسکتاپ — کلید تم سمت راست، عنوان پنل وسط، دکمه خروج چپ.
+ * هدر موبایل (فقط TopAppBar) — سه ناحیه هم‌عرض: کلید تم راست، برند دقیقاً وسط، خروج چپ.
+ * دسکتاپ از DesktopHeader (تب‌های ناوبری) استفاده می‌کند.
  */
 export function AppHeader({
-  height = HEADER_DESKTOP_H,
-  paddingInline = 24,
-  fontSize = 15,
+  height,
+  paddingInline,
+  fontSize,
   sticky = false,
 }: AppHeaderProps) {
-  const location = useLocation();
   const { token } = theme.useToken();
 
   return (
@@ -32,7 +31,6 @@ export function AppHeader({
       background: token.colorBgContainer,
       paddingInline,
       display: 'flex', alignItems: 'center',
-      justifyContent: 'space-between',
       boxShadow: pivaTokens.shadowHeader,
       borderBottom: `1px solid ${token.colorBorderSecondary}`, // مرز هدر/بدنه در تم تیره
       position: sticky ? 'sticky' : undefined,
@@ -41,11 +39,18 @@ export function AppHeader({
       height,
       lineHeight: `${height}px`,
     }}>
-      <ThemeToggle />
-      <Text strong style={{ fontSize }}>
-        {panelTitle(location.pathname)}
-      </Text>
-      <LogoutButton />
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+        <ThemeToggle />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <LogoMark size={28} />
+        <Text strong style={{ fontSize, fontWeight: 800, color: pivaTokens.brandDeep, lineHeight: 1 }}>
+          پیوا
+        </Text>
+      </div>
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+        <LogoutButton />
+      </div>
     </AntHeader>
   );
 }

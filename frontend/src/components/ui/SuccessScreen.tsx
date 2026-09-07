@@ -27,7 +27,9 @@ export function SuccessScreen({ icon, title, subtitle, actionLabel, onAction }: 
       padding: '48px 16px',
       gap: 12,
     }}>
-      {icon ?? <CheckCircleFilled style={{ fontSize: 64, color: token.colorPrimary }} />}
+      <span className="piva-check-pop" style={{ display: 'inline-flex' }}>
+        {icon ?? <CheckCircleFilled style={{ fontSize: 64, color: token.colorPrimary }} />}
+      </span>
       <Title level={4} style={{ margin: 0 }}>{title}</Title>
       {subtitle && <Text type="secondary">{subtitle}</Text>}
       <PrimaryCTA onClick={onAction}>{actionLabel}</PrimaryCTA>

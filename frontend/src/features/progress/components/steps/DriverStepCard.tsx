@@ -7,6 +7,9 @@ import { TextField, SelectField, DateField } from '../fields';
 import { toEnglishDigits, toPersianDigits } from '@/utils/format';
 import dayjs from '@/utils/dayjs';
 import type { ContractProgressStep, DriverPayload, ProgressRole } from '@/types';
+import { useIsDesktop } from '@/hooks/useResponsive';
+import { formGrid } from '@/utils/responsive';
+import { pivaType } from '@/config/theme';
 
 const { Text } = Typography;
 
@@ -60,6 +63,7 @@ function toPayload(values: DriverFormValues): DriverPayload {
  *  تا تکمیل گام تحویل، تأمین‌کننده می‌تواند مشخصات را ویرایش کند. */
 export function DriverStepCard({ step, role, initialPickupDate, deliveryDone, onUpsert }: Props) {
   const [editing, setEditing] = useState(false);
+  const isDesktop = useIsDesktop();
 
   const isSupplier = role === 'supplier';
   const announced = step.status === 'done';
@@ -103,7 +107,7 @@ export function DriverStepCard({ step, role, initialPickupDate, deliveryDone, on
     return (
       <StepCard step={step} stepLabel="اعلام مشخصات دریافت‌کننده">
         {summary}
-        <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 8 }}>
+        <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize, display: 'block', marginTop: 8 }}>
           این اعلام صرفاً جهت اطلاع شماست — اقدام دیگری لازم نیست.
         </Text>
       </StepCard>
@@ -113,7 +117,7 @@ export function DriverStepCard({ step, role, initialPickupDate, deliveryDone, on
   if (!isSupplier && !announced) {
     return (
       <StepCard step={step} stepLabel="اعلام مشخصات دریافت‌کننده">
-        <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+        <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block' }}>
           در انتظار اعلام مشخصات دریافت‌کننده توسط تأمین‌کننده (۲۴ ساعت قبل از بارگیری)...
         </Text>
       </StepCard>
@@ -130,7 +134,7 @@ export function DriverStepCard({ step, role, initialPickupDate, deliveryDone, on
           </Button>
         )}
         {!canEdit && (
-          <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 8 }}>
+          <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize, display: 'block', marginTop: 8 }}>
             پس از تکمیل تحویل، ویرایش مشخصات ممکن نیست.
           </Text>
         )}
@@ -146,7 +150,7 @@ export function DriverStepCard({ step, role, initialPickupDate, deliveryDone, on
         <Alert type="info" showIcon style={{ marginBottom: 12 }}
           message="این اعلام قبلاً ثبت شده است" description="با ذخیره، نسخه جدید جایگزین می‌شود و در تاریخچه ثبت می‌گردد." />
       )}
-      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+      <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginBottom: 8 }}>
         مشخصات دریافت‌کننده مرغ زنده را اعلام کنید — این اعلام باید حدود ۲۴ ساعت قبل از بارگیری ثبت شود.
       </Text>
       <Form<DriverFormValues>
@@ -167,27 +171,31 @@ export function DriverStepCard({ step, role, initialPickupDate, deliveryDone, on
         }}
         onFinish={handleSubmit}
       >
-        <Form.Item name="driverName" rules={[{ required: true, message: 'نام راننده را وارد کنید' }]}>
-          <TextField label="نام راننده / دریافت‌کننده" />
-        </Form.Item>
-        <Form.Item
-          name="driverPhone"
-          rules={[{ required: true, message: 'شماره تماس راننده را وارد کنید' }, { validator: validatePhone('شماره تماس راننده') }]}
-        >
-          <TextField label="شماره تماس راننده" hint="مثلاً: ۰۹۱۲۳۴۵۶۷۸۹" />
-        </Form.Item>
-        <Form.Item name="plateNumber" rules={[{ required: true, message: 'پلاک خودرو را وارد کنید' }]}>
-          <TextField label="پلاک خودرو" hint="مثلاً: ۱۲ب۳۴۵ ایران۶۶" />
-        </Form.Item>
-        <Form.Item name="vehicleType" rules={[{ required: true, message: 'نوع خودرو را انتخاب کنید' }]}>
-          <SelectField label="نوع خودرو" options={VEHICLE_TYPES.map((t) => ({ value: t, label: t }))} />
-        </Form.Item>
+        <div style={formGrid(isDesktop)}>
+          <Form.Item name="driverName" rules={[{ required: true, message: 'نام راننده را وارد کنید' }]}>
+            <TextField label="نام راننده / دریافت‌کننده" />
+          </Form.Item>
+          <Form.Item
+            name="driverPhone"
+            rules={[{ required: true, message: 'شماره تماس راننده را وارد کنید' }, { validator: validatePhone('شماره تماس راننده') }]}
+          >
+            <TextField label="شماره تماس راننده" hint="مثلاً: ۰۹۱۲۳۴۵۶۷۸۹" />
+          </Form.Item>
+        </div>
+        <div style={formGrid(isDesktop)}>
+          <Form.Item name="plateNumber" rules={[{ required: true, message: 'پلاک خودرو را وارد کنید' }]}>
+            <TextField label="پلاک خودرو" hint="مثلاً: ۱۲ب۳۴۵ ایران۶۶" />
+          </Form.Item>
+          <Form.Item name="vehicleType" rules={[{ required: true, message: 'نوع خودرو را انتخاب کنید' }]}>
+            <SelectField label="نوع خودرو" options={VEHICLE_TYPES.map((t) => ({ value: t, label: t }))} />
+          </Form.Item>
+        </div>
         <Form.Item name="isDriverSupervisor" valuePropName="checked" style={{ marginBottom: 12 }}>
           <Checkbox>ناظر همراه، خود راننده است</Checkbox>
         </Form.Item>
         <Form.Item noStyle shouldUpdate={(p, c) => isSupervisorChecked(p.isDriverSupervisor) !== isSupervisorChecked(c.isDriverSupervisor)}>
           {({ getFieldValue }) => !isSupervisorChecked(getFieldValue('isDriverSupervisor')) && (
-            <>
+            <div style={formGrid(isDesktop)}>
               <Form.Item name="supervisorName" rules={[{ required: true, message: 'نام ناظر همراه را وارد کنید' }]}>
                 <TextField label="نام ناظر همراه" />
               </Form.Item>
@@ -197,7 +205,7 @@ export function DriverStepCard({ step, role, initialPickupDate, deliveryDone, on
               >
                 <TextField label="شماره تماس ناظر" hint="مثلاً: ۰۹۱۲۳۴۵۶۷۸۹" />
               </Form.Item>
-            </>
+            </div>
           )}
         </Form.Item>
         <Form.Item name="pickupDate" rules={[{ required: true, message: 'تاریخ بارگیری را انتخاب کنید' }]}>

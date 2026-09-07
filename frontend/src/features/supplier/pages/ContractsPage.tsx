@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { Empty } from 'antd';
 import { useData } from '@/context/DataContext';
 import { PageFrame } from '@/components/ui/PageFrame';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { CardGrid } from '@/components/ui/CardGrid';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { ContractCard } from '@/components/ui/ContractCard';
 import { getStepsForContract } from '@/features/progress/utils/progress.utils';
 
@@ -27,7 +27,12 @@ export function SupplierContractsPage() {
           />
         ))}
       </CardGrid>
-      {contracts.length === 0 && <Empty description="قراردادی ندارید" />}
+      {contracts.length === 0 && (
+        <EmptyState
+          title="هنوز قراردادی ندارید"
+          description="پس از تطبیق مزرعه و تأیید هماهنگی، قرارداد شما اینجا نمایش داده می‌شود."
+        />
+      )}
     </PageFrame>
   );
 }

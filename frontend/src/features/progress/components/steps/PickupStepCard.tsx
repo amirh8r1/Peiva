@@ -8,6 +8,7 @@ import { DateField } from '../fields';
 import { toPersianDigits, formatNumber } from '@/utils/format';
 import { PICKUP_MIN_WAIT_DAYS } from '@/types';
 import type { ContractProgressStep, ProgressRole, PickupPayload } from '@/types';
+import { pivaType } from '@/config/theme';
 
 const { Text } = Typography;
 
@@ -54,7 +55,7 @@ export function PickupStepCard({ step, role, onUpsert }: Props) {
             <Alert type="error" showIcon style={{ marginBottom: 12 }}
               message="نظر مزرعه‌دار" description={step.rejectedNote || 'درخواست شما رد شده است.'} />
           )}
-          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+          <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginBottom: 8 }}>
             این درخواست حدود یک هفته قبل از دریافت مرغ زنده ثبت می‌شود؛ مزرعه‌دار تاریخ بارگیری را تأیید یا رد می‌کند.
           </Text>
           <Form form={form} layout="vertical" onFinish={handleClaim}>
@@ -82,7 +83,7 @@ export function PickupStepCard({ step, role, onUpsert }: Props) {
       {isFarm && step.status === 'claimed' && (
         <>
           <SummaryRow label="تاریخ بارگیری پیشنهادی" value={toPersianDigits(step.payload.pickupDate)} />
-          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+          <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginTop: 8 }}>
             با تأیید شما، برنامه بارگیری مرغ زنده در تاریخ فوق قطعی می‌شود.
           </Text>
           <FeedbackActions
@@ -98,7 +99,7 @@ export function PickupStepCard({ step, role, onUpsert }: Props) {
       {isAdmin && step.status === 'claimed' && (
         <>
           <SummaryRow label="تاریخ بارگیری پیشنهادی" value={toPersianDigits(step.payload.pickupDate)} />
-          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+          <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize, display: 'block', marginTop: 8 }}>
             در انتظار تأیید مزرعه‌دار...
           </Text>
         </>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Badge, Button, Card, Empty, Space, Tabs, Typography } from 'antd';
+import { Badge, Button, Card, Empty, Space, Tabs, Typography, theme } from 'antd';
 import { ArrowRightOutlined, LockOutlined } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -9,6 +9,7 @@ import { SuccessScreen } from '@/components/ui/SuccessScreen';
 import { useIsDesktop } from '@/hooks/useResponsive';
 import { useRole } from '@/hooks/useRole';
 import { centeredForm } from '@/utils/responsive';
+import { pivaType } from '@/config/theme';
 import { makeInitialSteps, PROGRESS_STEPS, isProgressComplete } from '@/types';
 import type { ContractProgressStep } from '@/types';
 import { getStepsForContract, isStepClaimable, makeWeightRequest, nowFa } from '../utils/progress.utils';
@@ -33,6 +34,7 @@ export function ContractProgressPage() {
   const isDesktop = useIsDesktop();
   const { data, dispatch } = useData();
   const [searchParams] = useSearchParams();
+  const { token } = theme.useToken();
 
   const contract = data.contracts.find((c) => c.id === id);
   const [activeTab, setActiveTab] = useState<ProgressTabKey>(searchParams.get('tab') === 'weight' ? 'weight' : 'steps');
@@ -83,12 +85,14 @@ export function ContractProgressPage() {
       : requests.filter((r) => r.status === 'answered' && !r.seenAt).length;
 
   return (
-    <PageFrame header={
+    <PageFrame
+      remountKey={activeTab}
+      header={
       <PageHeader title={contract.name} subtitle="پیگیری قرارداد" extra={
         <Button icon={<ArrowRightOutlined />} onClick={() => navigate(backPath)}>بازگشت</Button>
       } />
     }>
-      <div style={centeredForm(isDesktop)}>
+      <div style={centeredForm(isDesktop, 960)}>
         <Card style={{ marginBottom: 12 }}>
           <ProgressStepper steps={steps} />
         </Card>
@@ -119,12 +123,12 @@ export function ContractProgressPage() {
                     // گام‌های قفل‌شده (idle و غیرقابل ادعا)
                     if (step.status === 'idle' && !isStepClaimable(steps, key)) {
                       return (
-                        <Card key={key} style={{ marginBottom: 12, opacity: 0.65 }}>
+                        <Card key={key} style={{ marginBottom: 12, borderStyle: 'dashed' }}>
                           <Space>
-                            <LockOutlined />
+                            <LockOutlined style={{ color: token.colorTextTertiary }} />
                             <Text type="secondary">{label}</Text>
                           </Space>
-                          <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                          <Text type="secondary" style={{ fontSize: pivaType.caption.fontSize, display: 'block', marginTop: 4 }}>
                             برای فعال شدن، مراحل قبلی باید تکمیل شوند.
                           </Text>
                         </Card>

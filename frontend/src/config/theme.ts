@@ -2,98 +2,137 @@ import { theme as antdThemeUtil } from 'antd';
 import type { ThemeConfig } from 'antd';
 
 /**
- * تم روشن پیوا — پالت سبز کشاورزی.
+ * تم روشن پیوا — پالت سبز جنگلی روی نئوترال‌های گرم (رنگ‌های زمین، نه خاکستری سرد antd).
  * منبع واحد توکن‌های طراحی — کامپوننت‌ها از theme.useToken() استفاده می‌کنند، نه hex مستقیم.
+ * استراتژی نئوترال گرم: colorTextBase گرم می‌شود تا تینت‌های متن از آن مشتق شوند؛
+ * کلیدهای سطح/بوردر/فیل صریح پین می‌شوند چون رَمپ خاکستری antd hue-neutral است.
  */
 export const antdTheme: ThemeConfig = {
   token: {
     fontFamily: 'Vazirmatn, Tahoma, sans-serif',
     borderRadius: 8,
-    colorPrimary: '#389e0d',
-    colorSuccess: '#52c41a',
-    colorWarning: '#faad14',
-    colorError: '#ff4d4f',
-    colorInfo: '#1677ff',
-    // پس‌زمینه‌های semantic ثابت — پین‌شده تا با تغییر primary جابه‌جا نشوند
-    colorSuccessBg: '#f6ffed',
-    colorSuccessBgHover: '#d9f7be',
-    colorSuccessBorder: '#b7eb8f',
-    colorWarningBg: '#fff7e6',
-    colorInfoBg: '#e6f4ff',
+    colorPrimary: '#15803d',
+    colorSuccess: '#16a34a',
+    colorWarning: '#d97706',
+    colorError: '#dc2626',
+    colorInfo: '#2563eb',
+    // تینت‌های semantic ثابت — پین‌شده تا با تغییر primary جابه‌جا نشوند
+    colorSuccessBg: '#f0fdf4',
+    colorSuccessBgHover: '#dcfce7',
+    colorSuccessBorder: '#bbf7d0',
+    colorWarningBg: '#fffbeb',
+    colorInfoBg: '#eff6ff',
+    // نئوترال گرم (سنگ/زمین)
+    colorTextBase: '#1c1917',
+    colorText: '#1c1917',
+    colorTextSecondary: '#57534e',
+    colorTextTertiary: '#6f6a63',
+    colorBgLayout: '#f7f5f1',
+    colorBgContainer: '#ffffff',
+    colorBgElevated: '#ffffff',
+    colorBorder: '#e7e5e4',
+    colorBorderSecondary: '#e9e7e2',
+    colorFill: 'rgba(28, 25, 23, 0.08)',
+    colorFillSecondary: 'rgba(28, 25, 23, 0.05)',
+    colorFillTertiary: 'rgba(28, 25, 23, 0.03)',
+    colorFillQuaternary: 'rgba(28, 25, 23, 0.02)',
   },
   components: {
     Layout: {
       headerBg: '#ffffff',
-      siderBg: '#001529',
-      bodyBg: '#f5f5f5',
-    },
-    Menu: {
-      darkItemBg: '#001529',
-      darkItemSelectedBg: '#389e0d',
-      darkItemHoverBg: '#0d3b05',
+      bodyBg: '#f7f5f1',
     },
     Table: {
-      headerBg: '#fafafa',
+      headerBg: '#fafaf9',
     },
     Typography: {
       fontWeightStrong: 700, // هویت: تیترهای قوی‌تر در کل سامانه
     },
+    Tabs: {
+      itemSelectedColor: '#15803d',
+      inkBarColor: '#15803d',
+    },
     Card: {
       borderRadiusLG: 12, // کارت‌ها → ۱۲؛ radius های inline حذف می‌شوند
-      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-      boxShadowSecondary: '0 4px 16px rgba(0,0,0,0.08)', // لیفت کارت‌های hoverable
+      boxShadow: '0 1px 2px rgba(28, 25, 23, 0.05)',
+      boxShadowSecondary: '0 4px 16px rgba(28, 25, 23, 0.10)', // لیفت کارت‌های hoverable
     },
   },
 };
 
 /**
- * تم تیره پیوا — پالت معادل تم روشن روی سطوح dark.
- * سبز primary یک پله روشن‌تر (green-6) تا روی زمینه تیره خوانا بماند؛
- * tint های semantic به نسخه dark پالت antd نگاشت شده‌اند (green/blue/orange-1 dark).
+ * تم تیره پیوا — بدنه مایل‌به‌زیتونی عمیق، پالت معادل تم روشن روی سطوح dark.
+ * سبز primary یک پله روشن‌تر (green-400) تا روی زمینه تیره خوانا بماند؛
+ * tint های semantic به نسخه dark پالت نگاشت شده‌اند.
  */
 export const antdThemeDark: ThemeConfig = {
   algorithm: antdThemeUtil.darkAlgorithm,
   token: {
     fontFamily: 'Vazirmatn, Tahoma, sans-serif',
     borderRadius: 8,
-    colorPrimary: '#52c41a',
-    colorSuccess: '#73d13d',
-    colorWarning: '#faad14',
-    colorError: '#ff4d4f',
-    colorInfo: '#4096ff',
-    colorSuccessBg: '#162312',
-    colorSuccessBgHover: '#274916',
-    colorSuccessBorder: '#274916',
-    colorWarningBg: '#2b2111',
-    colorInfoBg: '#111a2c',
-    // سیستم ارتفاع: بدنه عمیق‌ترین، کارت‌ها یک پله بالاتر، مودال‌ها بالاترین
-    colorBgContainer: '#1a1a1a',
-    colorBgElevated: '#242424',
+    colorPrimary: '#4ade80',
+    colorSuccess: '#4ade80',
+    colorWarning: '#f59e0b',
+    colorError: '#f87171',
+    colorInfo: '#60a5fa',
+    colorSuccessBg: '#122116',
+    colorSuccessBgHover: '#1e3a25',
+    colorSuccessBorder: '#1e3a25',
+    colorWarningBg: '#2d2413',
+    colorInfoBg: '#15202e',
+    // نئوترال گرم تیره
+    colorTextBase: '#f5f5f4',
+    colorText: '#f5f5f4',
+    colorTextSecondary: '#a8a29e',
+    colorTextTertiary: '#7a736e',
+    colorBgLayout: '#101210',
+    colorBgContainer: '#161816',
+    colorBgElevated: '#1d201d',
+    colorBorder: '#2a2e2a',
+    colorBorderSecondary: '#242824',
+    colorFill: 'rgba(250, 250, 249, 0.16)',
+    colorFillSecondary: 'rgba(250, 250, 249, 0.10)',
+    colorFillTertiary: 'rgba(250, 250, 249, 0.06)',
+    colorFillQuaternary: 'rgba(250, 250, 249, 0.04)',
   },
   components: {
     Layout: {
-      headerBg: '#1a1a1a', // هم‌سطح کارت‌ها — مرز با بدنه از بوردر/سایه می‌آید
-      siderBg: '#001529', // همان ناوی برند — در هر دو تم
-      bodyBg: '#0f0f0f', // عمیق‌تر از کارت‌ها تا مرزها دیده شوند
-    },
-    Menu: {
-      darkItemBg: '#001529',
-      darkItemSelectedBg: '#389e0d',
-      darkItemHoverBg: '#0d3b05',
+      headerBg: '#161816', // هم‌سطح کارت‌ها — مرز با بدنه از بوردر/سایه می‌آید
+      bodyBg: '#101210', // عمیق‌تر از کارت‌ها تا مرزها دیده شوند
     },
     Table: {
-      headerBg: '#1f1f1f',
+      headerBg: '#1d201d',
     },
     Typography: {
       fontWeightStrong: 700,
     },
+    Tabs: {
+      itemSelectedColor: '#4ade80',
+      inkBarColor: '#4ade80',
+    },
     Card: {
       borderRadiusLG: 12,
       boxShadow: '0 1px 2px rgba(0,0,0,0.32)',
-      boxShadowSecondary: '0 4px 16px rgba(0,0,0,0.48)',
+      // در تیره سایه سیاه دیده نمی‌شود — حلقه نور کمرنگ + سایه عمیق‌تر = حس ارتفاع
+      boxShadowSecondary: '0 0 0 1px rgba(250, 250, 249, 0.10), 0 8px 24px rgba(0, 0, 0, 0.60)',
     },
   },
 };
+
+/**
+ * مقیاس تایپوگرافی پیوا — منبع واحد سایز/وزن فونت کامپوننت‌ها (مثل layout.ts برای ابعاد).
+ * قاعده «بدون hardcode»: کامپوننت‌ها مقدار پراکنده نمی‌نویسند، از این آبجکت می‌خوانند.
+ */
+export const pivaType = {
+  pageTitle: { fontSize: 20, fontWeight: 800 }, // تیتر صفحه
+  sectionTitle: { fontSize: 15, fontWeight: 700 }, // تیتر سکشن
+  statValue: { fontSize: 28, fontWeight: 800 }, // مقدار آمار — اعداد درشت فارسی امضای بصری
+  statLabel: { fontSize: 12, fontWeight: 500 }, // لیبل آمار
+  tab: { fontSize: 14, fontWeight: 600 }, // تب ناوبری هدر
+  body: { fontSize: 14, fontWeight: 400 },
+  secondary: { fontSize: 12, fontWeight: 400 },
+  caption: { fontSize: 11, fontWeight: 400 },
+} as const;
 
 /**
  * رنگ‌های برند بدون معادل semantic در antd.
@@ -102,13 +141,14 @@ export const antdThemeDark: ThemeConfig = {
  */
 export const pivaTokens = {
   brandDeep: 'var(--piva-brand-deep)', // سبز جنگلی — وردمارک و تأکیدهای برند
-  orange: 'var(--piva-orange)', // آمار ضریب تبدیل
+  orange: 'var(--piva-orange)', // آمار ضریب تبدیل (گندم/برداشت)
   purple: 'var(--piva-purple)', // آمار جوجه‌ریزی
+  onPrimary: 'var(--piva-on-primary)', // رنگ عناصر روی سطح primary (در تیره primary روشن است)
   // سایه‌ها به var ارجاع می‌دهند چون در تم تیره باید قوی‌تر باشند تا دیده شوند
   shadowMobileShell: 'var(--piva-shadow-mobile-shell)',
   shadowHeader: 'var(--piva-shadow-header)',
   shadowBottomNav: 'var(--piva-shadow-bottom-nav)',
   shadowNotchInset: 'var(--piva-shadow-notch-inset)',
-  shadowFabIdle: '0 3px 10px rgba(56,158,13,0.35)',
-  shadowFabActive: '0 4px 18px rgba(56,158,13,0.55)',
+  shadowFabIdle: '0 3px 10px rgba(21,128,61,0.35)',
+  shadowFabActive: '0 4px 18px rgba(21,128,61,0.55)',
 } as const;

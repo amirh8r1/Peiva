@@ -11,7 +11,8 @@ import { NumberField, DateField, SelectField } from '@/features/progress/compone
 import { numberFieldProps } from '@/utils/fieldProps';
 import { todayJalali } from '@/features/progress/utils/progress.utils';
 import { useIsDesktop } from '@/hooks/useResponsive';
-import { centeredForm } from '@/utils/responsive';
+import { centeredForm, formGrid } from '@/utils/responsive';
+import { pivaType } from '@/config/theme';
 import { IRAN_PROVINCES, REQUEST_INPUT_LABELS } from '@/types/request';
 import type { RequestInput, RequestInputKind, SupplierRequest } from '@/types/request';
 
@@ -80,14 +81,14 @@ export function NewRequestPage() {
 
   return (
     <PageFrame header={<PageHeader title="درخواست جدید" subtitle="نهاده‌های خود را اعلام کنید" />}>
-      <div style={centeredForm(isDesktop)}>
+      <div style={centeredForm(isDesktop, 760)}>
         <Form
           form={form}
           layout="vertical"
           initialValues={{ inputs: [{ kind: undefined, amount: undefined }] }}
           onFinish={handleSubmit}
         >
-          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>نهاده‌هایی که ارائه می‌دهید</Text>
+          <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>نهاده‌هایی که ارائه می‌دهید</Text>
           <Form.List name="inputs">
             {(fields, { add, remove }) => (
               <>
@@ -96,7 +97,7 @@ export function NewRequestPage() {
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <Form.Item name={[name, 'kind']} style={{ flex: 1.2, marginBottom: 0 }}
                         rules={[{ required: true, message: 'نوع نهاده را انتخاب کنید' }]}>
-                        <Select size="large" placeholder="نوع نهاده" options={KIND_OPTIONS} style={{ borderRadius: 10 }} />
+                        <Select size={isDesktop ? 'middle' : 'large'} placeholder="نوع نهاده" options={KIND_OPTIONS} />
                       </Form.Item>
                       <Form.Item name={[name, 'amount']} style={{ flex: 1, marginBottom: 0 }}
                         rules={[
@@ -104,12 +105,12 @@ export function NewRequestPage() {
                           { type: 'number', min: 1, message: 'حداقل ۱' },
                         ]}>
                         <InputNumber
-                          size="large"
+                          size={isDesktop ? 'middle' : 'large'}
                           placeholder="مقدار"
                           addonAfter={REQUEST_INPUT_LABELS[watchedInputs?.[name]?.kind ?? 'cash'].unit}
                           parser={numberFieldProps.parser}
                           formatter={numberFieldProps.formatter}
-                          style={{ width: '100%', borderRadius: 10 }}
+                          style={{ width: '100%' }}
                         />
                       </Form.Item>
                       <Button danger type="text" icon={<DeleteOutlined />} onClick={() => remove(name)}
@@ -124,17 +125,19 @@ export function NewRequestPage() {
             )}
           </Form.List>
 
-          <Form.Item name="desiredKg" rules={[
-            { required: true, message: 'مقدار مرغ درخواستی را وارد کنید' },
-            { type: 'number', min: 1, message: 'حداقل ۱ کیلوگرم' },
-          ]}>
-            <NumberField label="مرغ زنده درخواستی" unit="کیلوگرم" hint="مقدار کل مرغ زنده‌ای که در پایان دوره می‌خواهید" />
-          </Form.Item>
+          <div style={formGrid(isDesktop)}>
+            <Form.Item name="desiredKg" rules={[
+              { required: true, message: 'مقدار مرغ درخواستی را وارد کنید' },
+              { type: 'number', min: 1, message: 'حداقل ۱ کیلوگرم' },
+            ]}>
+              <NumberField label="مرغ زنده درخواستی" unit="کیلوگرم" hint="مقدار کل مرغ زنده‌ای که در پایان دوره می‌خواهید" />
+            </Form.Item>
+            <Form.Item name="province" rules={[{ required: true, message: 'استان را انتخاب کنید' }]}>
+              <SelectField label="استان موردنظر" options={IRAN_PROVINCES.map((p) => ({ value: p, label: p }))} placeholder="انتخاب استان" />
+            </Form.Item>
+          </div>
           <Form.Item name="targetDeliveryDate" rules={[{ required: true, message: 'تاریخ تحویل هدف را انتخاب کنید' }]}>
             <DateField label="تاریخ تحویل هدف" hint="تاریخ موردنظر برای دریافت مرغ زنده" />
-          </Form.Item>
-          <Form.Item name="province" rules={[{ required: true, message: 'استان را انتخاب کنید' }]}>
-            <SelectField label="استان موردنظر" options={IRAN_PROVINCES.map((p) => ({ value: p, label: p }))} placeholder="انتخاب استان" />
           </Form.Item>
 
           <PrimaryCTA htmlType="submit" icon={<SendOutlined />}>ثبت درخواست</PrimaryCTA>

@@ -6,10 +6,10 @@ import { parsePersianNumber, formatNumber, toPersianDigits } from '@/utils/forma
 import { jalaliDatePickerLocale } from '@/utils/jalaliDatePickerLocale';
 
 // ── InputNumber مشترک ──
+// سایز عمدی اینجا نیست — کامپوننت‌های فیلد (fields.tsx) ریسپانسیو ست می‌کنند (موبایل large، دسکتاپ middle)
 
 export const numberFieldProps = {
-  size: 'large' as const,
-  style: { width: '100%', marginBottom: 12, borderRadius: 10 },
+  style: { width: '100%', marginBottom: 12 },
   parser: (v: string | undefined) => parsePersianNumber(v || ''),
   formatter: (v: string | number | undefined) => (v != null ? formatNumber(Number(v)) : ''),
 };
@@ -18,8 +18,7 @@ export const numberFieldProps = {
 
 export const jalaliDatePickerProps = {
   locale: jalaliDatePickerLocale,
-  size: 'large' as const,
-  style: { width: '100%', borderRadius: 10 } as React.CSSProperties,
+  style: { width: '100%' } as React.CSSProperties,
   placement: 'bottomLeft' as const,
   showToday: false,
   popupAlign: { offset: [0, 4] as [number, number], overflow: { adjustX: true, adjustY: false } },

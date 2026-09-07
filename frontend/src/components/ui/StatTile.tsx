@@ -1,6 +1,6 @@
 import { theme } from 'antd';
 import type { GlobalToken } from 'antd';
-import { pivaTokens } from '@/config/theme';
+import { pivaTokens, pivaType } from '@/config/theme';
 
 type StatTileTone = 'neutral' | 'success' | 'info' | 'warning' | 'purple';
 
@@ -35,7 +35,7 @@ const toneBg = (token: GlobalToken, tone: StatTileTone): string => {
 };
 
 /**
- * تایل آمار مشترک — جایگزین summaryItemStyle تکراری و کارت‌های آمار دستی.
+ * تایل آمار مشترک — اعداد درشت فارسی (امضای بصری سامانه).
  * minWidth:0 داخلی از کلیپ مقادیر بلند در گرید موبایل جلوگیری می‌کند.
  */
 export function StatTile({ icon, label, value, tone = 'neutral', direction = 'row', onClick }: StatTileProps) {
@@ -46,18 +46,24 @@ export function StatTile({ icon, label, value, tone = 'neutral', direction = 'ro
     return (
       <div
         onClick={onClick}
+        className={onClick ? 'piva-tile-lift' : undefined}
         style={{
           background: toneBg(token, tone),
           border: `1px solid ${token.colorBorderSecondary}`,
-          borderRadius: token.borderRadius,
-          padding: '8px 12px',
+          borderRadius: token.borderRadiusLG,
+          padding: '16px 12px',
           textAlign: 'center',
           minWidth: 0,
           cursor: onClick ? 'pointer' : 'default',
         }}
       >
-        <span style={{ fontSize: 11, display: 'block', color: token.colorTextSecondary }}>{label}</span>
-        <span style={{ fontSize: 18, fontWeight: 700, color: accent }}>{value}</span>
+        {icon && <span style={{ fontSize: 22, color: accent, display: 'inline-flex' }}>{icon}</span>}
+        <span style={{ fontSize: pivaType.statLabel.fontSize, fontWeight: pivaType.statLabel.fontWeight, display: 'block', color: token.colorTextSecondary }}>
+          {label}
+        </span>
+        <span style={{ fontSize: pivaType.statValue.fontSize, fontWeight: pivaType.statValue.fontWeight, color: accent, lineHeight: 1.2 }}>
+          {value}
+        </span>
       </div>
     );
   }
@@ -78,8 +84,8 @@ export function StatTile({ icon, label, value, tone = 'neutral', direction = 'ro
     >
       {icon && <span style={{ fontSize: 18, color: accent, flexShrink: 0 }}>{icon}</span>}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ fontSize: 11, display: 'block', color: token.colorTextSecondary }}>{label}</span>
-        <span style={{ fontSize: 13, color: token.colorText }}>{value}</span>
+        <span style={{ fontSize: pivaType.statLabel.fontSize, fontWeight: pivaType.statLabel.fontWeight, display: 'block', color: token.colorTextSecondary }}>{label}</span>
+        <span style={{ fontSize: pivaType.body.fontSize, fontWeight: 600, color: token.colorText }}>{value}</span>
       </div>
     </div>
   );
