@@ -14,7 +14,7 @@ import { EstimationTable } from '@/features/requests/components/EstimationTable'
 import { ShareSummary } from '@/features/requests/components/ShareSummary';
 import { FarmCard } from '@/features/farms/components/FarmCard';
 import { mockFarms } from '@/mocks';
-import { buildDefaultRows, computeShares, estimateProductionKg, requiredBirds, suggestFarms } from '@/utils/estimation';
+import { buildDefaultRows, computeShares, estimateProductionKg, requiredBirds, requestEstimatedBirds, suggestFarms } from '@/utils/estimation';
 import { numberFieldProps } from '@/utils/fieldProps';
 import { todayJalali } from '@/features/progress/utils/progress.utils';
 import { formatNumber, toPersianDigits } from '@/utils/format';
@@ -88,7 +88,7 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
     const estimation = makeEstimation(rows, productionKg);
     const contract: Contract = {
       id: `ctr-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      name: `${request.province} — ${formatNumber(request.desiredKg)} کیلوگرم مرغ زنده`,
+      name: `${request.province} — ${formatNumber(requestEstimatedBirds(request))} قطعه مرغ زنده`,
       requestId: request.id,
       farmId: matchedFarm.id,
       farmName: matchedFarm.name,
@@ -227,9 +227,9 @@ function RequestFlow({ request }: { request: SupplierRequest }) {
         <>
           <Card>
             <Text strong style={{ fontSize: 14, display: 'block', marginBottom: 8 }}>پیش‌نمایش قرارداد (کار)</Text>
-            <SummaryRow label="درخواست" value={`${formatNumber(request.desiredKg)} کیلوگرم مرغ زنده — ${request.province}`} />
+            <SummaryRow label="درخواست" value={`${formatNumber(requestEstimatedBirds(request))} قطعه مرغ زنده — ${request.province}`} />
             <SummaryRow label="مزرعه هدف" value={matchedFarm ? `${matchedFarm.name} (${matchedFarm.address.city})` : '—'} />
-            <SummaryRow label="تاریخ تحویل هدف" value={toPersianDigits(request.targetDeliveryDate)} />
+            <SummaryRow label="تحویل نهاده" value={toPersianDigits(request.targetDeliveryDate)} />
             <SummaryRow label="تولید برآوردی" value={`${formatNumber(productionKg)} کیلوگرم`} />
             <SummaryRow label="کل هزینه تولید" value={`${formatNumber(share.totalCost)} تومان`} />
             <SummaryRow label="سهم مشارکت‌کننده" value={`٪${formatNumber(share.supplierSharePercent)} — ${formatNumber(share.supplierShareKg)} کیلوگرم مرغ`} />
@@ -312,7 +312,7 @@ export function AdminRequestDetailPage() {
       header={
         <PageHeader
           title="جزئیات درخواست"
-          subtitle={`${formatNumber(request.desiredKg)} کیلوگرم مرغ زنده — ${request.province}`}
+          subtitle={`${formatNumber(requestEstimatedBirds(request))} قطعه مرغ زنده — ${request.province}`}
           extra={<Button icon={<ArrowRightOutlined />} onClick={() => navigate('/admin/requests')}>بازگشت</Button>}
         />
       }

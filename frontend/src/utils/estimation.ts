@@ -28,6 +28,9 @@ export const ESTIMATION_CONSTANTS = {
   defaultAvgWeightKg: 2.2,
   /** ضریب تبدیل پیش‌فرض وقتی مزرعه هنوز انتخاب نشده */
   defaultFcr: 1.8,
+  /** ترکیب استاندارد نهاده — ۷۰٪ ذرت و ۳۰٪ کنجاله سویا */
+  feedCornPercent: 70,
+  feedSoybeanPercent: 30,
 } as const;
 
 /** کمیت ردیف‌های نهاده از درخواست. */
@@ -40,7 +43,15 @@ export function requiredBirds(request: SupplierRequest): number {
   const chicks = inputAmount(request, 'chick');
   if (chicks > 0) return Math.round(chicks);
   const { survivalRate, defaultAvgWeightKg } = ESTIMATION_CONSTANTS;
-  return Math.ceil(request.desiredKg / (survivalRate * defaultAvgWeightKg));
+  const perBirdKg = request.targetWeightPerBirdKg ?? defaultAvgWeightKg;
+  return Math.ceil(request.desiredKg / (survivalRate * perBirdKg));
+}
+
+/** تعداد حدودی مرغ نهایی درخواست — منبع واحد نمایش‌های «قطعه» (تمرکز سامانه روی تعداد). */
+export function requestEstimatedBirds(request: SupplierRequest): number {
+  if (request.participation?.estimatedBirds) return request.participation.estimatedBirds;
+  const perBirdKg = request.targetWeightPerBirdKg ?? ESTIMATION_CONSTANTS.defaultAvgWeightKg;
+  return Math.round(request.desiredKg / perBirdKg);
 }
 
 /** تخمین تولید مرغ زنده (کیلوگرم) از نهاده‌های درخواست؛ FCR واقعی مزرعه وقتی انتخاب شده باشد. */

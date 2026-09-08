@@ -17,7 +17,7 @@ type DashTab = 'active' | 'review';
 
 /**
  * داشبورد مشارکت‌کننده — قراردادهای جاری و در حال بررسی در دو تب؛
- * نوتیفیکیشن‌ها در زنگوله (نه روی صفحه)؛ «افزودن قرارداد جدید» ویزارد را باز می‌کند.
+ * نوتیفیکیشن‌ها در زنگوله (نه روی صفحه)؛ «افزودن سفارش جدید» ویزارد را باز می‌کند.
  */
 export function SupplierDashboard() {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ export function SupplierDashboard() {
             /* دکمه فقط دسکتاپ — در موبایل FAB پایین همین کار را می‌کند؛ زنگوله در هدر اصلی است */
             isDesktop ? (
               <Button type="primary" icon={<PlusOutlined />} onClick={() => setWizardOpen(true)}>
-                افزودن قرارداد جدید
+                افزودن سفارش جدید
               </Button>
             ) : undefined
           }

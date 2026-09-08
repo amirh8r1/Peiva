@@ -2,6 +2,8 @@ import { Dropdown, Button, theme } from 'antd';
 import { UserOutlined, SunOutlined, MoonOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
+import { toPersianDigits } from '@/utils/format';
 import { panelTitle } from './navItems';
 import type { MenuProps } from 'antd';
 
@@ -14,13 +16,14 @@ export function AccountMenu() {
   const navigate = useNavigate();
   const location = useLocation();
   const { mode, toggleTheme } = useThemeMode();
+  const { session, signOut } = useAuth();
   const { token } = theme.useToken();
   const isDark = mode === 'dark';
 
   const items: MenuProps['items'] = [
     {
       key: 'panel',
-      label: panelTitle(location.pathname),
+      label: session?.phone ? `${panelTitle(location.pathname)} — ${toPersianDigits(session.phone)}` : panelTitle(location.pathname),
       disabled: true,
     },
     {
@@ -35,7 +38,10 @@ export function AccountMenu() {
       icon: <ArrowRightOutlined />,
       label: 'خروج',
       danger: true,
-      onClick: () => navigate('/'),
+      onClick: () => {
+        signOut();
+        navigate('/');
+      },
     },
   ];
 

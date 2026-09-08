@@ -2,13 +2,15 @@ import { Card, Space, Tag, Typography, theme } from 'antd';
 import { REQUEST_INPUT_LABELS } from '@/types/request';
 import type { RequestInputKind, SupplierRequest } from '@/types/request';
 import { formatNumber, toPersianDigits } from '@/utils/format';
+import { requestEstimatedBirds } from '@/utils/estimation';
 import { RequestStatusTag } from './RequestStatusTag';
 import { pivaType } from '@/config/theme';
 
 const { Text } = Typography;
 
-/** چیپ نهاده درخواست: «۲۰ تن دان» / «۵٬۰۰۰ قطعه جوجه» / «۱۰ میلیون تومان نقدی». */
+/** چیپ نهاده درخواست: «۲۰ تن دان» / «۵٬۰۰۰ قطعه جوجه» / «مشارکت کامل سرمایه در گردش» (بدون مبلغ). */
 function inputChip(kind: RequestInputKind, amount: number): string {
+  if (kind === 'cash') return 'مشارکت کامل سرمایه در گردش';
   const { label, unit } = REQUEST_INPUT_LABELS[kind];
   return `${formatNumber(amount)} ${unit} ${label}`;
 }
@@ -30,7 +32,7 @@ export function RequestSummaryCard({ request, onClick }: RequestSummaryCardProps
     >
       <Space direction="vertical" size={12} style={{ width: '100%' }}>
         <Space style={{ width: '100%', justifyContent: 'space-between' }} wrap>
-          <Text strong style={{ fontSize: pivaType.body.fontSize }}>{formatNumber(request.desiredKg)} کیلوگرم مرغ زنده</Text>
+          <Text strong style={{ fontSize: pivaType.body.fontSize }}>{formatNumber(requestEstimatedBirds(request))} قطعه مرغ زنده</Text>
           <RequestStatusTag status={request.status} />
         </Space>
         <Space size={6} wrap>
@@ -47,7 +49,8 @@ export function RequestSummaryCard({ request, onClick }: RequestSummaryCardProps
           ))}
         </Space>
         <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize }}>
-          {request.province} · تحویل هدف {toPersianDigits(request.targetDeliveryDate)}
+          {request.province} · تحویل نهاده {toPersianDigits(request.targetDeliveryDate)} · حدود {formatNumber(request.desiredKg)} کیلوگرم
+          {request.targetWeightPerBirdKg != null ? ` · وزن هر مرغ ${formatNumber(request.targetWeightPerBirdKg)} کیلوگرم` : ''}
           {request.estimation ? ` · سهم مشارکت‌کننده ٪${formatNumber(request.estimation.supplierSharePercent)}` : ''}
         </Text>
       </Space>

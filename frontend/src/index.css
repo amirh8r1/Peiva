@@ -15,6 +15,8 @@
   --piva-profit-badge-text: #16a34a;
   /* رنگ عناصر روی سطح primary (تیک استپر، جوانه لوگو) — در تیره primary روشن است و سفید خوانا نیست */
   --piva-on-primary: #ffffff;
+  /* حلقه فوکوس ورودی‌های صفحه ورود */
+  --piva-focus-ring: rgba(21, 128, 61, 0.15);
   /* توکن‌های حرکت */
   --piva-duration-enter: 200ms;
   --piva-duration-tab: 150ms; /* ترنزیشن تب فعال ناوبری هدر */
@@ -32,6 +34,7 @@
    (بار اول از تم سیستم، بعد از سوییچ دستی از انتخاب ذخیره‌شده) */
 [data-theme='dark'] {
   --piva-brand-deep: #4ade80;
+  --piva-focus-ring: rgba(74, 222, 128, 0.22);
   --piva-orange: #f59e0b;
   --piva-purple: #a78bfa;
   --piva-body-bg: #101210; /* هم‌رنگ Layout.bodyBg تم تیره */
@@ -54,6 +57,14 @@
 
 * {
   font-family: 'Vazirmatn', Tahoma, sans-serif;
+}
+
+/* ریست استاندارد: بدون آن، width:100% + padding از صفحه بیرون می‌زند
+   (reset.css آنت در این پروژه ایمپورت نشده است) */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
@@ -188,6 +199,23 @@ body {
 }
 .ant-tabs .ant-tabs-ink-bar {
   display: none;
+}
+
+/* ── ورودی‌های صفحه ورود (تلفن/OTP) — حلقه فوکوس برند؛ رنگ توکنی در کامپوننت ── */
+.piva-phone-input:focus,
+.piva-otp-box:focus {
+  border-color: var(--piva-brand-deep);
+  box-shadow: 0 0 0 3px var(--piva-focus-ring);
+}
+
+/* ── shake کد تأیید اشتباه — یک لحظه ارکسترشده (فقط transform) ── */
+@keyframes piva-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.piva-shake {
+  animation: piva-shake 300ms var(--piva-ease-enter);
 }
 
 /* ── انیمیشن تیک موفقیت — یک لحظه ارکسترشده (SuccessScreen) ── */

@@ -6,6 +6,7 @@ import { App as AntdApp } from 'antd';
 import App from './App';
 import { ThemeProvider } from './context/ThemeContext';
 import { DataProvider } from './context/DataContext';
+import { AuthProvider } from './context/AuthContext';
 import './utils/dayjs'; // must be before any antd DatePicker usage
 import './config/rtl';
 import './index.css';
@@ -28,9 +29,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <ThemeProvider>
         <AntdApp>
           <DataProvider>
-            <HashRouter>
-              <App />
-            </HashRouter>
+            <AuthProvider>
+              <HashRouter>
+                <App />
+              </HashRouter>
+            </AuthProvider>
           </DataProvider>
         </AntdApp>
       </ThemeProvider>

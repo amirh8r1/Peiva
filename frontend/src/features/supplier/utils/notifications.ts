@@ -3,6 +3,7 @@
  * (بدون مدل جدید) و بر اساس موضوعیت گروه‌بندی می‌شوند.
  */
 import { getPendingActions, getWeightRequestActions, daysUntil } from '@/features/progress/utils/progress.utils';
+import { requestEstimatedBirds } from '@/utils/estimation';
 import { formatNumber, toPersianDigits } from '@/utils/format';
 import type { AppData } from '@/context/DataContext';
 import type { ContractProgressStep } from '@/types';
@@ -65,7 +66,7 @@ export function getParticipantNotifications(data: AppData): CenterItem[] {
         id: `req-pending-${r.id}`,
         group: 'contracts',
         title: 'قرارداد شما در حال بررسی است',
-        body: `${formatNumber(r.desiredKg)} کیلوگرم مرغ — ${r.province}`,
+        body: `${formatNumber(requestEstimatedBirds(r))} قطعه مرغ — ${r.province}`,
         kind: 'info',
         to: `/supplier/requests/${r.id}`,
       });

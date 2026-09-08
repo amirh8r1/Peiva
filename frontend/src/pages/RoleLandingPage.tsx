@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, Typography, theme } from 'antd';
 import { ArrowLeftOutlined, ApartmentOutlined, BankOutlined, CrownOutlined, SafetyCertificateOutlined, SyncOutlined, TeamOutlined } from '@ant-design/icons';
 import { useIsDesktop } from '@/hooks/useResponsive';
+import { useAuth, type AuthRole } from '@/context/AuthContext';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { LogoMark } from '@/components/ui/LogoMark';
@@ -77,11 +78,17 @@ export function RoleLandingPage() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const { token } = theme.useToken();
+  const { session } = useAuth();
 
   // عنوان تب مرورگر — لندینگ خارج از AppLayout است
   useEffect(() => {
     document.title = 'پیوا | مزرعه‌ای به وسعت ایران';
   }, []);
+
+  // نشست فعال همان نقش = ورود مستقیم؛ وگرنه فلو لاگین (شماره → کد تأیید)
+  const enterRole = (role: AuthRole) => {
+    navigate(session?.role === role ? `/${role}` : `/login?role=${role}`);
+  };
 
   return (
     <PageTransition>
@@ -144,7 +151,7 @@ export function RoleLandingPage() {
               iconBg={token.colorSuccessBg}
               title="زنجیره‌دار — پنل مدیریت"
               description="تطبیق درخواست‌ها با مزرعه، برآورد شفاف هزینه و سهم، پایش اجرا"
-              onClick={() => navigate('/admin')}
+              onClick={() => enterRole('admin')}
             />
             <RoleCard
               icon={<ApartmentOutlined />}
@@ -152,7 +159,7 @@ export function RoleLandingPage() {
               iconBg={token.colorSuccessBg}
               title="مشارکت‌کننده"
               description="اعلام نهاده/جوجه/اعتبار مالی و دریافت مرغ با سهم شفاف از تولید"
-              onClick={() => navigate('/supplier')}
+              onClick={() => enterRole('supplier')}
             />
             <RoleCard
               icon={<TeamOutlined />}
@@ -160,7 +167,7 @@ export function RoleLandingPage() {
               iconBg={token.colorInfoBg}
               title="مزرعه‌دار"
               description="تأیید هماهنگی با زنجیره‌دار و اجرای فرایند پرورش و تحویل"
-              onClick={() => navigate('/farm')}
+              onClick={() => enterRole('farm')}
             />
           </div>
 

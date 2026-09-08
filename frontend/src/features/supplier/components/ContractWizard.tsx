@@ -1,21 +1,34 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button, Form, Modal, Typography, message, theme } from 'antd';
-import { CheckOutlined, CloseOutlined, DownloadOutlined, SendOutlined } from '@ant-design/icons';
+import { CheckOutlined, CloseOutlined, SendOutlined } from '@ant-design/icons';
 import { useData } from '@/context/DataContext';
 import { useIsDesktop } from '@/hooks/useResponsive';
 import { Stepper, type StepperItem } from '@/components/ui/Stepper';
+import { ESTIMATION_CONSTANTS } from '@/utils/estimation';
 import { computeParticipation, buildParticipationSnapshot } from '@/utils/participation';
 import { todayJalali } from '@/features/progress/utils/progress.utils';
 import { pivaTokens, pivaType } from '@/config/theme';
 import { toPersianDigits } from '@/utils/format';
 import type { SupplierRequest } from '@/types/request';
-import { draftInputs, StepOneBody, StepTwoBody, StepThreeBody, StepFourBody, OverviewAside, MobileOverview, type WizardDraft, type StepTwoValues } from './wizard/steps';
+import {
+  draftInputs,
+  StepZeroBody,
+  StepOneBody,
+  StepTwoBody,
+  StepThreeBody,
+  StepFourBody,
+  StepFiveBody,
+  OverviewAside,
+  MobileOverview,
+  type WizardDraft,
+  type StepTwoValues,
+} from './wizard/steps';
 import { downloadContractDoc } from './wizard/contractDoc';
 
 const { Text } = Typography;
 
-const WIZARD_STEPS = ['آورده‌ها', 'درخواست', 'برآورد سهم', 'خلاصه و ارسال'];
+const WIZARD_STEPS = ['نوع سفارش', 'نهاده', 'وزن و استان', 'محاسبه جوجه', 'پیش‌فاکتور', 'پیش‌قرارداد'];
 
 /**
  * استپر متمرکز موبایل — پنجره ۳تایی [قبلی | فعلی | بعدی] با ساختار کاملاً متقارن:
@@ -113,7 +126,8 @@ interface ContractWizardProps {
 }
 
 /**
- * ویزارد تمام‌صفحه قرارداد جدید مشارکت‌کننده — ۴ گام با پروگرس‌بار بالا.
+ * ویزارد تمام‌صفحه سفارش جدید مشارکت‌کننده — ۶ گام با پروگرس‌بار بالا:
+ * مبنای سفارش → نهاده → وزن و استان → محاسبه جوجه → پیش‌فاکتور → پیش‌قرارداد و ارسال.
  * پورتال به body تا transform باقی‌مانده PageTransition موقعیت fixed را نشکند.
  */
 export function ContractWizard({ onClose, onCreated }: ContractWizardProps) {
@@ -126,12 +140,20 @@ export function ContractWizard({ onClose, onCreated }: ContractWizardProps) {
   const [step2Form] = Form.useForm<StepTwoValues>();
   const requestIdRef = useRef<string>(`rq-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`);
 
-  const inputs = useMemo(() => draftInputs(draft), [draft]);
-  const participation = useMemo(
-    () => (draft.desiredKg ? computeParticipation(inputs, draft.desiredKg) : null),
-    [inputs, draft.desiredKg],
+  // تولید کل برآوردی = نهاده (تن → کیلوگرم) ÷ ضریب تبدیل پیش‌فرض — همان فرمول برآورد ادمین
+  const productionKg = useMemo(
+    () => (draft.feed ? Math.round((draft.feed * 1000) / ESTIMATION_CONSTANTS.defaultFcr) : 0),
+    [draft.feed],
   );
-  const isDirty = inputs.length > 0 || draft.desiredKg != null || draft.deliveryDate != null || draft.province != null;
+  const inputs = useMemo(() => draftInputs(draft, productionKg, draft.perBirdKg), [draft, productionKg]);
+  const participation = useMemo(
+    () => (productionKg > 0 && draft.perBirdKg != null
+      ? computeParticipation(inputs, productionKg, { perBirdWeightKg: draft.perBirdKg })
+      : null),
+    [inputs, productionKg, draft.perBirdKg],
+  );
+  const isDirty = inputs.length > 0 || draft.basis != null || draft.perBirdKg != null
+    || draft.feedDeliveryDate != null || draft.province != null;
 
   // Esc = بستن (با تأیید در حالت dirty)
   useEffect(() => {
@@ -146,7 +168,7 @@ export function ContractWizard({ onClose, onCreated }: ContractWizardProps) {
   const handleClose = () => {
     if (!isDirty) return onClose();
     Modal.confirm({
-      title: 'انصراف از قرارداد جدید',
+      title: 'انصراف از سفارش جدید',
       content: 'اطلاعات واردشده از بین می‌رود. مطمئنید؟',
       okText: 'انصراف',
       okButtonProps: { danger: true },
@@ -157,50 +179,69 @@ export function ContractWizard({ onClose, onCreated }: ContractWizardProps) {
 
   const handleNext = async () => {
     if (step === 0) {
-      if (!inputs.length) {
-        message.error('حداقل یکی از آورده‌ها را انتخاب و مقدار آن را وارد کنید.');
+      if (draft.basis == null) {
+        message.error('مبنای سفارش را انتخاب کنید.');
         return;
       }
       setStep(1);
       return;
     }
     if (step === 1) {
-      try {
-        await step2Form.validateFields();
-      } catch {
-        return; // خطاهای فرم خودشان نمایش داده می‌شوند
+      if (!draft.feed) {
+        message.error('مقدار نهاده را وارد کنید.');
+        return;
+      }
+      if (!draft.feedDeliveryDate) {
+        message.error('تاریخ تحویل نهاده را مشخص کنید.');
+        return;
       }
       setStep(2);
       return;
     }
     if (step === 2) {
+      try {
+        await step2Form.validateFields();
+      } catch {
+        return; // خطاهای فرم خودشان نمایش داده می‌شوند
+      }
       setStep(3);
+      return;
+    }
+    if (step === 3) {
+      setStep(4);
+      return;
+    }
+    if (step === 4) {
+      setStep(5);
     }
   };
 
   const handleSubmit = () => {
-    if (!draft.desiredKg || !draft.deliveryDate || !draft.province) return;
+    if (!draft.perBirdKg || !draft.feedDeliveryDate || !draft.province || !participation) return;
     const request: SupplierRequest = {
       id: requestIdRef.current,
+      basis: 'production',
       inputs,
-      desiredKg: draft.desiredKg,
-      targetDeliveryDate: draft.deliveryDate.format('YYYY/MM/DD'),
+      desiredKg: participation.productionKg,
+      targetWeightPerBirdKg: draft.perBirdKg,
+      targetDeliveryDate: draft.feedDeliveryDate.format('YYYY/MM/DD'),
       province: draft.province,
       status: 'pending',
       createdAt: todayJalali(),
-      participation: buildParticipationSnapshot(inputs, draft.desiredKg),
+      participation: buildParticipationSnapshot(inputs, productionKg, { perBirdWeightKg: draft.perBirdKg }),
     };
     dispatch({ type: 'ADD_REQUEST', payload: request });
-    message.success('قرارداد شما ثبت و برای بررسی ارسال شد.');
+    message.success('پیش‌قرارداد شما ثبت و برای بررسی ارسال شد.');
     onCreated();
   };
 
   const handleDownload = () => {
-    if (!participation || !draft.desiredKg || !draft.deliveryDate || !draft.province) return;
+    if (!participation || !draft.perBirdKg || !draft.feedDeliveryDate || !draft.province) return;
     downloadContractDoc({
       inputs,
-      desiredKg: draft.desiredKg,
-      deliveryDate: draft.deliveryDate.format('YYYY/MM/DD'),
+      productionKg: participation.productionKg,
+      perBirdKg: draft.perBirdKg,
+      feedDeliveryDate: draft.feedDeliveryDate.format('YYYY/MM/DD'),
       province: draft.province,
       participation,
       requestId: requestIdRef.current,
@@ -217,12 +258,13 @@ export function ContractWizard({ onClose, onCreated }: ContractWizardProps) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="قرارداد جدید"
+      aria-label="سفارش جدید"
       style={{
         position: 'fixed', inset: 0, zIndex: 300,
         background: token.colorBgLayout,
         display: 'flex', flexDirection: 'column',
-        animation: 'piva-page-enter 200ms cubic-bezier(0.2, 0, 0, 1) both',
+        // backwards: بعد از ورود، transform به none برمی‌گردد تا موقعیت fixed فرزندان (پاپ‌آپ تقویم) نشکند
+        animation: 'piva-page-enter 200ms cubic-bezier(0.2, 0, 0, 1) backwards',
       }}
     >
       {/* هدر: دسکتاپ = عنوان + استپر + بستن؛ موبایل = عنوان/بستن + نوار پیشرفت خطی (استپر در عرض موبایل له می‌شود) */}
@@ -232,7 +274,7 @@ export function ContractWizard({ onClose, onCreated }: ContractWizardProps) {
             maxWidth: 960, margin: '0 auto', paddingInline: 24,
             display: 'flex', alignItems: 'center', gap: 24, minHeight: 64,
           }}>
-            <Text strong style={{ ...pivaType.sectionTitle, fontWeight: 800, flexShrink: 0 }}>قرارداد جدید</Text>
+            <Text strong style={{ ...pivaType.sectionTitle, fontWeight: 800, flexShrink: 0 }}>سفارش جدید</Text>
             <div style={{ flex: 1, minWidth: 0 }}>
               <Stepper items={stepperItems} />
             </div>
@@ -241,7 +283,7 @@ export function ContractWizard({ onClose, onCreated }: ContractWizardProps) {
         ) : (
           <div style={{ maxWidth: 960, margin: '0 auto', paddingInline: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 }}>
-              <Text strong style={{ ...pivaType.sectionTitle, fontWeight: 800 }}>قرارداد جدید</Text>
+              <Text strong style={{ ...pivaType.sectionTitle, fontWeight: 800 }}>سفارش جدید</Text>
               <Button type="text" icon={<CloseOutlined />} onClick={handleClose} aria-label="بستن" />
             </div>
             <MobileWizardStepper step={step} total={WIZARD_STEPS.length} />
@@ -256,18 +298,22 @@ export function ContractWizard({ onClose, onCreated }: ContractWizardProps) {
           display: 'flex', gap: 24, alignItems: 'flex-start',
         }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* موبایل: فاکتور قابل باز/بسته زیر استپر — دسکتاپ پنل کناری دارد */}
-            {!isDesktop && step >= 2 && participation && (
-              <MobileOverview participation={participation} desiredKg={draft.desiredKg ?? 0} />
+            {/* موبایل: پیش‌فاکتور قابل باز/بسته زیر استپر — دسکتاپ پنل کناری دارد */}
+            {!isDesktop && step >= 3 && participation && (
+              <MobileOverview participation={participation} />
             )}
-            {step === 0 && <StepOneBody draft={draft} onChange={(p) => setDraft((d) => ({ ...d, ...p }))} />}
-            {step === 1 && <StepTwoBody form={step2Form} draft={draft} onChange={(p) => setDraft((d) => ({ ...d, ...p }))} />}
-            {step === 2 && participation && <StepThreeBody participation={participation} desiredKg={draft.desiredKg ?? 0} />}
-            {step === 3 && participation && <StepFourBody draft={draft} inputs={inputs} participation={participation} />}
+            {step === 0 && <StepZeroBody draft={draft} onChange={(p) => setDraft((d) => ({ ...d, ...p }))} />}
+            {step === 1 && <StepOneBody draft={draft} onChange={(p) => setDraft((d) => ({ ...d, ...p }))} />}
+            {step === 2 && <StepTwoBody form={step2Form} draft={draft} onChange={(p) => setDraft((d) => ({ ...d, ...p }))} />}
+            {step === 3 && participation && <StepThreeBody draft={draft} onChange={(p) => setDraft((d) => ({ ...d, ...p }))} participation={participation} />}
+            {step === 4 && participation && <StepFourBody participation={participation} feedTons={draft.feed ?? 0} />}
+            {step === 5 && participation && (
+              <StepFiveBody draft={draft} inputs={inputs} participation={participation} onDownload={handleDownload} />
+            )}
           </div>
-          {isDesktop && step >= 2 && participation && (
+          {isDesktop && step >= 3 && participation && (
             <div style={{ width: 300, flexShrink: 0 }}>
-              <OverviewAside participation={participation} desiredKg={draft.desiredKg ?? 0} />
+              <OverviewAside participation={participation} />
             </div>
           )}
         </div>
@@ -280,18 +326,13 @@ export function ContractWizard({ onClose, onCreated }: ContractWizardProps) {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
         }}>
           <Button disabled={step === 0} onClick={() => setStep((s) => s - 1)}>بازگشت</Button>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {step === 3 && (
-              <Button icon={<DownloadOutlined />} onClick={handleDownload}>دانلود قرارداد</Button>
-            )}
-            {step < 3 ? (
-              <Button type="primary" onClick={handleNext}>
-                {step === 2 ? 'تأیید و ادامه' : 'گام بعدی'}
-              </Button>
-            ) : (
-              <Button type="primary" icon={<SendOutlined />} onClick={handleSubmit}>ارسال قرارداد</Button>
-            )}
-          </div>
+          {step < 5 ? (
+            <Button type="primary" onClick={handleNext}>
+              {step === 4 ? 'تأیید پیش‌فاکتور' : 'گام بعدی'}
+            </Button>
+          ) : (
+            <Button type="primary" icon={<SendOutlined />} onClick={handleSubmit}>ارسال درخواست</Button>
+          )}
         </div>
       </div>
     </div>,

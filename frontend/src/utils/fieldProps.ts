@@ -23,4 +23,7 @@ export const jalaliDatePickerProps = {
   showToday: false,
   popupAlign: { offset: [0, 4] as [number, number], overflow: { adjustX: true, adjustY: false } },
   format: (d: unknown) => toPersianDigits((d as { format: (f: string) => string }).format('YYYY/MM/DD')),
+  // پاپ‌آپ داخل والد تریگر رندر شود — در اورلی پورتال‌شده ویزارد، transform باقی‌مانده
+  // موقعیت fixed پاپ‌آپ را می‌شکند و تقویم بیرون صفحه باز می‌شود.
+  getPopupContainer: (trigger: HTMLElement) => (trigger.parentElement ?? document.body) as HTMLElement,
 };

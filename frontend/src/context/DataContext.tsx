@@ -13,7 +13,7 @@ export interface AppData {
 
 const STORAGE_KEY = 'fonoon-app-data';
 const VERSION_KEY = 'fonoon-app-version';
-const CURRENT_VERSION = 7;
+const CURRENT_VERSION = 8;
 
 /** حالت خام — بدون هیچ داده‌ای (دموی خودکار حذف شد تا کاربر از صفر شروع کند). */
 const EMPTY_DATA: AppData = { requests: [], contracts: [], progressSteps: [], weightRequests: [] };

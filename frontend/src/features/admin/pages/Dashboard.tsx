@@ -9,6 +9,7 @@ import { NotificationSection, type NotifyItem } from '@/components/ui/Notificati
 import { ContractProgressMini } from '@/features/progress/components/ContractProgressMini';
 import { getStepsForContract } from '@/features/progress/utils/progress.utils';
 import { formatNumber, toPersianDigits } from '@/utils/format';
+import { requestEstimatedBirds } from '@/utils/estimation';
 
 /** داشبورد زنجیره‌دار — پایش اکوسیستم + صندوق اقدامات (تطبیق درخواست و پیگیری هماهنگی). */
 export function AdminDashboard() {
@@ -41,7 +42,7 @@ export function AdminDashboard() {
     ...pending.map((r) => ({
       id: `pending-${r.id}`,
       title: 'در انتظار تطبیق مزرعه',
-      body: `${formatNumber(r.desiredKg)} کیلوگرم مرغ زنده — ${r.province}، تحویل ${toPersianDigits(r.targetDeliveryDate)}`,
+      body: `${formatNumber(requestEstimatedBirds(r))} قطعه مرغ زنده — ${r.province}، تحویل نهاده ${toPersianDigits(r.targetDeliveryDate)}`,
       onClick: () => navigate(`/admin/requests/${r.id}`),
       buttonLabel: 'تطبیق و برآورد سهم',
     })),

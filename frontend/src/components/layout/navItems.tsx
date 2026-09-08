@@ -19,7 +19,7 @@ export const adminNavItems: NavItem[] = [
 export const supplierNavItems: NavItem[] = [
   { key: '/supplier', icon: <HomeOutlined />, label: 'داشبورد', path: '/supplier' },
   // باز کردن ویزارد: ناوبری به /supplier?new=1 — داشبورد پارامتر را می‌خواند و ویزارد را باز می‌کند
-  { key: '/supplier?new=1', icon: <PlusOutlined />, label: 'قرارداد جدید', path: '/supplier?new=1', fab: true },
+  { key: '/supplier?new=1', icon: <PlusOutlined />, label: 'سفارش جدید', path: '/supplier?new=1', fab: true },
   { key: '/supplier/contracts', icon: <FileTextOutlined />, label: 'قراردادها', path: '/supplier/contracts' },
 ];
 

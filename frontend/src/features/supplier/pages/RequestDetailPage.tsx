@@ -6,18 +6,15 @@ import { PageFrame } from '@/components/ui/PageFrame';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PrimaryCTA } from '@/components/ui/PrimaryCTA';
 import { RequestSummaryCard } from '@/features/requests/components/RequestSummaryCard';
-import { EstimationTable } from '@/features/requests/components/EstimationTable';
-import { ShareSummary } from '@/features/requests/components/ShareSummary';
 import { FarmCard } from '@/features/farms/components/FarmCard';
 import { mockFarms } from '@/mocks';
-import { computeShares } from '@/utils/estimation';
 import { REQUEST_STATUS_LABELS } from '@/types/request';
 import type { SupplierRequestStatus } from '@/types/request';
 import { useIsDesktop } from '@/hooks/useResponsive';
 import { centeredForm } from '@/utils/responsive';
 import { pivaType } from '@/config/theme';
 import { Stepper, type StepperItem } from '@/components/ui/Stepper';
-import { StepThreeBody } from '../components/wizard/steps';
+import { ParticipationSummary } from '../components/wizard/steps';
 
 const { Text } = Typography;
 
@@ -75,16 +72,14 @@ export function SupplierRequestDetailPage() {
 
         {request.participation && (
           <div style={{ marginTop: 12 }}>
-            <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>برآورد سهم شما (از ویزارد)</Text>
-            <StepThreeBody
-              participation={{
-                estimatedBirds: request.participation.estimatedBirds,
-                productionKg: request.participation.productionKg,
-                productionValue: request.participation.productionValue,
-                shares: request.participation.shares,
-                buckets: request.participation.buckets,
-              }}
-              desiredKg={request.participation.productionKg}
+            <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>پیش‌فاکتور سهم شما</Text>
+            <ParticipationSummary
+              productionKg={request.participation.productionKg}
+              buckets={request.participation.buckets}
+              estimatedBirds={request.participation.estimatedBirds}
+              minBirds={request.participation.minBirds}
+              maxBirds={request.participation.maxBirds}
+              tolerancePercent={request.participation.tolerancePercent}
             />
           </div>
         )}
@@ -93,19 +88,6 @@ export function SupplierRequestDetailPage() {
           <div style={{ marginTop: 12 }}>
             <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>مزرعه تطبیق‌شده</Text>
             <FarmCard farm={farm} selected={false} onSelect={() => {}} />
-          </div>
-        )}
-
-        {request.estimation && (
-          <div style={{ marginTop: 12 }}>
-            <Text strong style={{ ...pivaType.sectionTitle, display: 'block', marginBottom: 8 }}>برآورد هزینه و سهم شما</Text>
-            <EstimationTable rows={request.estimation.rows} productionKg={request.estimation.productionKg} />
-            <div style={{ marginTop: 8 }}>
-              <ShareSummary
-                share={computeShares(request.estimation.rows, request.estimation.productionKg)}
-                label="سهم شما از تولید"
-              />
-            </div>
           </div>
         )}
 

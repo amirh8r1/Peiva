@@ -40,7 +40,7 @@ export function ContractCard({ contract, steps, onOpen, openLabel = 'مشاهد�
           <StatusTag tone={STATUS_TONES[contract.status]}>{CONTRACT_STATUS_LABELS[contract.status]}</StatusTag>
         </Space>
         <Text type="secondary" style={{ fontSize: pivaType.secondary.fontSize }}>
-          {contract.farmName} · {contract.province} · تحویل هدف {toPersianDigits(contract.targetDeliveryDate)}
+          {contract.farmName} · {contract.province} · تحویل نهاده {toPersianDigits(contract.targetDeliveryDate)}
         </Text>
         <SummaryRow
           label="سهم مشارکت‌کننده"

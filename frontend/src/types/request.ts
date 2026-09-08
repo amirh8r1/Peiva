@@ -13,6 +13,15 @@ export interface RequestInput {
   amount: number;
 }
 
+/** مبنای سفارش جدید — فعلاً فقط «مشارکت در تولید» فعال است، بقیه به‌زودی. */
+export type RequestBasisKind = 'production' | 'count' | 'other';
+
+export const REQUEST_BASIS_LABELS: Record<RequestBasisKind, string> = {
+  production: 'مشارکت در تولید',
+  count: 'تعداد',
+  other: 'سایر',
+};
+
 export const REQUEST_INPUT_LABELS: Record<RequestInputKind, { label: string; unit: string }> = {
   feed: { label: 'دان مرغی', unit: 'تن' },
   chick: { label: 'جوجه یکروزه', unit: 'قطعه' },
@@ -24,10 +33,14 @@ export type SupplierRequestStatus = 'pending' | 'matched' | 'in_progress' | 'com
 export interface SupplierRequest {
   /** قطعی: `rq-{ts}-{rand}` — یکتا (append-only، مثل کانونشن اپ). */
   id: string;
+  /** مبنای سفارش — در فلو فعلی همیشه production است. */
+  basis: RequestBasisKind;
   inputs: RequestInput[];
-  /** مرغ زنده درخواستی (کیلوگرم) */
+  /** کل تولید برآوردی مرغ زنده (کیلوگرم) — از نهاده با ضریب تبدیل محاسبه می‌شود */
   desiredKg: number;
-  /** تاریخ تحویل هدف ('YYYY/MM/DD' انگلیسی) */
+  /** وزن مطلوب هر مرغ زنده در محصول نهایی (کیلوگرم) — مثلاً ۲٫۵ */
+  targetWeightPerBirdKg?: number;
+  /** تاریخ تحویل نهاده ('YYYY/MM/DD' انگلیسی) */
   targetDeliveryDate: string;
   province: string;
   status: SupplierRequestStatus;
@@ -104,9 +117,18 @@ export interface ParticipationBucket {
  * زنجیره‌دار بعداً همان اعداد را ببینند. additive است و با estimation ادمین تداخل ندارد.
  */
 export interface ParticipationSnapshot {
-  /** تعداد حدودی مرغ زنده تحویلی */
+  /** تعداد حدودی مرغ نهایی (پس از نرخ بقا) */
   estimatedBirds: number;
-  /** مرغ زنده درخواستی (کیلوگرم) — گردش‌رفته از وزن مطلوب */
+  /** جوجه لازم برای جوجه‌ریزی — محاسبه سیستم از نهاده و وزن هر مرغ */
+  requiredBirds?: number;
+  /** کف و سقف تلرانس تعداد مرغ نهایی (سقف تلفات مجاز و تراکم‌ریزی مجاز) */
+  minBirds?: number;
+  maxBirds?: number;
+  /** تلرانس تولید (٪±) */
+  tolerancePercent?: number;
+  /** وزن مطلوب هر مرغ زنده (کیلوگرم) — مبنای محاسبه */
+  perBirdWeightKg?: number;
+  /** کل تولید برآوردی مرغ زنده (کیلوگرم) */
   productionKg: number;
   /** productionKg × قیمت بازار مرغ زنده */
   productionValue: number;

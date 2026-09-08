@@ -1,16 +1,20 @@
 /**
- * سند قرارداد پیشنهادی (HTML چاپ‌پذیر) — دانلود به‌صورت فایل با Blob
+ * سند پیش‌قرارداد (HTML چاپ‌پذیر) — دانلود به‌صورت فایل با Blob
  * (امن در برابر popup-blocker) و قابل چاپ مستقیم از مرورگر.
+ * شامل تعهدات طرفین، پارامترهای تولید و برآورد سهم با تلرانس ±۱۰٪.
  */
-import { REQUEST_INPUT_LABELS } from '@/types/request';
+import { ESTIMATION_CONSTANTS } from '@/utils/estimation';
 import type { RequestInput } from '@/types/request';
 import type { ParticipationComputation } from '@/utils/participation';
 import { formatNumber, toPersianDigits } from '@/utils/format';
 
 interface ContractDocOptions {
   inputs: RequestInput[];
-  desiredKg: number;
-  deliveryDate: string;
+  /** تولید کل برآوردی (کیلوگرم) */
+  productionKg: number;
+  /** وزن مطلوب هر مرغ زنده (کیلوگرم) */
+  perBirdKg: number;
+  feedDeliveryDate: string;
   province: string;
   participation: ParticipationComputation;
   /** شماره درخواست (بدون پیشوند) — برای شناسه سند */
@@ -21,24 +25,39 @@ interface ContractDocOptions {
 const INPUT_TITLES: Record<RequestInput['kind'], string> = {
   feed: 'نهاده (دان مرغی)',
   chick: 'جوجه یک‌روزه',
-  cash: 'اعتبار مالی',
+  cash: 'سرمایه در گردش',
 };
 
-/** HTML کامل سند — RTL، برند پیوا، جدول آورده‌ها و برآورد سهم. رنگ‌های برند داخل سند ثابت‌اند (فایل آفلاین). */
+/** تعهدات مشارکت‌کننده — از آورده‌های انتخاب‌شده + ترکیب استاندارد نهاده. */
+function buildParticipantRows(o: ContractDocOptions): string {
+  const c = ESTIMATION_CONSTANTS;
+  const feed = o.inputs.find((i) => i.kind === 'feed');
+  const chick = o.inputs.find((i) => i.kind === 'chick');
+  const cash = o.inputs.find((i) => i.kind === 'cash');
+
+  const rows: string[] = [];
+  if (feed) {
+    rows.push(`<tr><td>تحویل نهاده</td><td class="num">${formatNumber(feed.amount)} تن — ترکیب ٪${formatNumber(c.feedCornPercent)} ذرت و ٪${formatNumber(c.feedSoybeanPercent)} کنجاله سویا</td></tr>`);
+    rows.push(`<tr><td>تاریخ تحویل نهاده</td><td class="num">${toPersianDigits(o.feedDeliveryDate)}</td></tr>`);
+  }
+  if (chick) rows.push(`<tr><td>تحویل جوجه یک‌روزه</td><td class="num">تأمین کامل — ${formatNumber(chick.amount)} قطعه</td></tr>`);
+  if (cash) rows.push(`<tr><td>سرمایه در گردش</td><td class="num">تأمین کامل سایر هزینه‌های دوره</td></tr>`);
+  return rows.join('');
+}
+
+/** HTML کامل سند — RTL، برند پیوا، تعهدات طرفین و برآورد سهم. رنگ‌های برند داخل سند ثابت‌اند (فایل آفلاین). */
 export function buildContractHtml(o: ContractDocOptions): string {
-  const rows = o.inputs
-    .map((i) => `<tr><td>${INPUT_TITLES[i.kind]}</td><td>${formatNumber(i.amount)} ${REQUEST_INPUT_LABELS[i.kind].unit}</td></tr>`)
+  const bucketRows = o.participation.buckets
+    .map((b) => `<tr><td>${b.label}</td><td>٪${formatNumber(b.percent)}</td><td>${formatNumber(Math.round((b.percent / 100) * o.participation.estimatedBirds))} قطعه</td></tr>`)
     .join('');
 
-  const bucketRows = o.participation.buckets
-    .map((b) => `<tr><td>${b.label}</td><td>٪${formatNumber(b.percent)}</td><td>${formatNumber(b.amountToman)} تومان</td></tr>`)
-    .join('');
+  const chickInput = o.inputs.find((i) => i.kind === 'chick');
 
   return `<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>قرارداد مشارکت — پیوا</title>
+<title>پیش‌قرارداد مشارکت — پیوا</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -55,6 +74,7 @@ export function buildContractHtml(o: ContractDocOptions): string {
   .num { text-align: left; }
   .big { font-size: 22px; font-weight: 800; color: #15803d; }
   .meta { color: #57534e; font-size: 12px; margin: 0; }
+  .tolerance { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #92400e; margin-top: 12px; }
   .foot { margin-top: 28px; padding-top: 12px; border-top: 1px solid #e7e5e4; color: #78716c; font-size: 11px; text-align: center; }
   @media print { body { background: #fff; } .page { padding: 16px; } }
 </style>
@@ -63,7 +83,7 @@ export function buildContractHtml(o: ContractDocOptions): string {
 <div class="page">
   <div class="brand">
     <h1>پیوا</h1>
-    <p>مزرعه‌ای به وسعت ایران — قرارداد مشارکت در پرورش مرغ</p>
+    <p>مزرعه‌ای به وسعت ایران — پیش‌قرارداد مشارکت در تولید</p>
     <p class="meta">شماره سند: ${o.requestId} · تاریخ ثبت: ${toPersianDigits(o.createdAt)}</p>
   </div>
 
@@ -74,22 +94,32 @@ export function buildContractHtml(o: ContractDocOptions): string {
     <tr><td>مزرعه‌دار</td><td>تطبیق توسط زنجیره‌دار</td></tr>
   </table>
 
-  <h2>آورده‌های مشارکت‌کننده</h2>
-  <table>${rows}</table>
+  <h2>تعهدات مشارکت‌کننده</h2>
+  <table>${buildParticipantRows(o)}</table>
 
-  <h2>پارامترهای درخواست</h2>
+  <h2>تعهدات زنجیره‌دار (پیوا)</h2>
   <table>
-    <tr><td>وزن مرغ مطلوب</td><td class="num">${formatNumber(o.desiredKg)} کیلوگرم مرغ زنده</td></tr>
-    <tr><td>زمان تحویل حدودی</td><td class="num">${toPersianDigits(o.deliveryDate)}</td></tr>
-    <tr><td>استان مدنظر</td><td class="num">${o.province}</td></tr>
+    ${chickInput ? '' : `<tr><td>تأمین جوجه یک‌روزه</td><td class="num">${formatNumber(o.participation.requiredBirds)} قطعه</td></tr>`}
+    <tr><td>مزرعه و ناظر فنی</td><td>تطبیق مزرعه استان و نظارت فنی دوره</td></tr>
+    <tr><td>دارو، واکسن و انرژی</td><td>تأمین کامل ملزومات پرورش</td></tr>
+    <tr><td>تسویه سهم</td><td>تسویه سهم مشارکت‌کننده طبق این سند</td></tr>
+  </table>
+
+  <h2>پارامترهای تولید</h2>
+  <table>
+    <tr><td>وزن مطلوب هر مرغ زنده</td><td class="num">${formatNumber(o.perBirdKg)} کیلوگرم</td></tr>
+    <tr><td>استان تولید</td><td class="num">${o.province}</td></tr>
+    <tr><td>تولید کل برآوردی</td><td class="num">${formatNumber(o.productionKg)} کیلوگرم مرغ زنده</td></tr>
+    <tr><td>جوجه لازم</td><td class="num">${formatNumber(o.participation.requiredBirds)} قطعه</td></tr>
   </table>
 
   <h2>برآورد و سهم بازیگران</h2>
-  <p class="meta">تعداد حدودی مرغ زنده تحویلی: <span class="big">${formatNumber(o.participation.estimatedBirds)}</span> قطعه (حدود ${formatNumber(o.participation.productionKg)} کیلوگرم)</p>
+  <p class="meta">تعداد مرغ نهایی حدودی: <span class="big">${formatNumber(o.participation.estimatedBirds)}</span> قطعه (حدود ${formatNumber(o.productionKg)} کیلوگرم مرغ زنده)</p>
   <table>
     ${bucketRows}
-    <tr><td><strong>سهم مشارکت‌کننده از مرغ تولیدی</strong></td><td><strong>٪${formatNumber(o.participation.shares.participant)}</strong></td><td><strong>${formatNumber(o.participation.shares.participant * o.participation.productionKg / 100)} کیلوگرم مرغ</strong></td></tr>
+    <tr><td><strong>سهم مشارکت‌کننده از مرغ تولیدی</strong></td><td><strong>٪${formatNumber(o.participation.shares.participant)}</strong></td><td><strong>${formatNumber(Math.round(o.participation.shares.participant * o.participation.estimatedBirds / 100))} قطعه</strong></td></tr>
   </table>
+  <div class="tolerance">تلرانس ٪${formatNumber(o.participation.tolerancePercent)}± — به دلیل سقف تلفات مجاز و تراکم‌ریزی مجاز، تعداد مرغ نهایی ممکن است بین ${formatNumber(o.participation.minBirds)} تا ${formatNumber(o.participation.maxBirds)} قطعه باشد؛ سهم هر طرف به همان نسبت تنظیم می‌شود.</div>
 
   <p class="foot">این سند پیشنهادی است و ثبت نهایی آن پس از بررسی و تأیید زنجیره‌دار انجام می‌شود.</p>
 </div>
@@ -104,7 +134,7 @@ export function downloadContractDoc(o: ContractDocOptions): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `قرارداد-مشارکت-پیوا-${o.requestId}.html`;
+  a.download = `پیش‌قرارداد-مشارکت-پیوا-${o.requestId}.html`;
   document.body.appendChild(a);
   a.click();
   a.remove();
